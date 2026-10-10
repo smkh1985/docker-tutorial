@@ -158,6 +158,10 @@ docker rm cache</code></pre></div>
   <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name cache -v redisdata:/data redis:alpine</code></pre></div>
   <p class="en">Before the <code>:</code> there's a <b>name</b> (<code>redisdata</code>), not a path. No <code>mkdir</code> needed: if the volume doesn't exist yet, Docker <b>creates it</b>.</p>
   <p class="fa">قبل از <code>:</code> یک <b>نام</b> (<code>redisdata</code>) آمده، نه مسیر. <code>mkdir</code> لازم نیست: اگر volume هنوز وجود نداشته باشد، Docker آن را <b>می‌سازد</b>.</p>
+  <div class="note tip">
+    <p class="en">💡 <code>/data</code> already exists in the image. The volume does <b>not</b> go <b>inside</b> it (there is no <code>/data/data</code>): it <b>takes the place of</b> <code>/data</code>. Whatever Redis writes to <code>/data</code> lands in the volume.</p>
+    <p class="fa">💡 پوشه‌ی <code>/data</code> از قبل در ایمیج وجود دارد. volume <b>داخل</b> آن نمی‌رود (چیزی به نام <code>/data/data</code> نداریم): بلکه <b>جای</b> <code>/data</code> را می‌گیرد. هر چه Redis در <code>/data</code> بنویسد، در volume ذخیره می‌شود.</p>
+  </div>
   <p class="en">Count three times again:</p>
   <p class="fa">دوباره سه بار بشمارید:</p>
   <div class="code reveal"><span class="lbl">bash</span><pre><code>docker exec cache redis-cli INCR visits</code></pre></div>
@@ -197,6 +201,8 @@ local     redisdata</code></pre></div>
 ]</code></pre></div>
   <p class="en">It's in <b>Docker's own storage folder</b>, owned by <code>root</code>. You don't open it yourself: you use it through containers, and Docker takes care of it.</p>
   <p class="fa">در <b>پوشه‌ی ذخیره‌سازی خود Docker</b> است که مال <code>root</code> است. خودتان بازش نمی‌کنید: از طریق کانتینرها از آن استفاده می‌کنید و Docker مراقبش است.</p>
+  <p class="en">The <code>_data</code> folder on your PC <b>is</b> <code>/data</code> inside the container: two names for the same folder.</p>
+  <p class="fa">پوشه‌ی <code>_data</code> روی کامپیوتر شما <b>همان</b> <code>/data</code> داخل کانتینر است: دو نام برای یک پوشه.</p>
   <details class="q">
     <summary><span class="en">❓ Is my <code>~/my-data</code> folder from Lesson 8 in this list?</span><span class="fa">❓ پوشه‌ی <code>~/my-data</code> از درس ۸ در این فهرست هست؟</span></summary>
     <p class="en"><b>No.</b> <code>docker volume ls</code> lists only volumes that <b>Docker manages</b>. A bind mount is just a folder on your PC, so it never appears there. To see what a container has mounted (of either kind), inspect the <b>container</b> and look for <code>"Mounts"</code> in its (long) output:</p>
@@ -255,8 +261,8 @@ docker exec cache redis-cli INCR visits</code></pre></div>
   </table>
   </div>
   <div class="note warn">
-    <p class="en">⚠ <b>Stop databases cleanly.</b> Redis keeps data in memory and saves it to disk when it stops. <code>docker rm -f</code> kills it <b>before</b> it can save. We tried it: we counted to 5, ran <code>rm -f</code>, and the new container had <b>3</b>, the value from the last clean stop. The last visits were lost, even with a volume. Use <code>docker stop</code> first.</p>
-    <p class="fa">⚠ <b>دیتابیس‌ها را با آرامش متوقف کنید.</b> Redis داده‌ها را در حافظه نگه می‌دارد و وقتی متوقف می‌شود روی دیسک ذخیره‌شان می‌کند. <code>docker rm -f</code> آن را <b>قبل از</b> ذخیره کردن از کار می‌اندازد. امتحانش کردیم: تا 5 شمردیم، <code>rm -f</code> زدیم، و کانتینر جدید <b>3</b> داشت، یعنی مقدار آخرین توقف آرام. آخرین بازدیدها از دست رفتند، حتی با volume. اول از <code>docker stop</code> استفاده کنید.</p>
+    <p class="en">⚠ <b>Stop databases cleanly.</b> Redis keeps data in memory and saves it to disk when it stops. <code>docker rm -f</code> kills it <b>before</b> it can save. We tried it: we counted to 5, ran <code>rm -f</code>, and the new container had <b>3</b>, the value from the last clean stop. The last visits were lost, even with a volume. Why? A volume only keeps what Redis has <b>written to disk</b> (dumped to <code>dump.rdb</code>). Changes that are still only in memory, not dumped yet, are lost. You can see it yourself: before the first <code>docker stop</code>, <code>/data</code> is still <b>empty</b>. Redis also saves by itself from time to time, but you can't count on the latest changes being saved. Use <code>docker stop</code> first.</p>
+    <p class="fa">⚠ <b>دیتابیس‌ها را با آرامش متوقف کنید.</b> Redis داده‌ها را در حافظه نگه می‌دارد و وقتی متوقف می‌شود روی دیسک ذخیره‌شان می‌کند. <code>docker rm -f</code> آن را <b>قبل از</b> ذخیره کردن از کار می‌اندازد. امتحانش کردیم: تا 5 شمردیم، <code>rm -f</code> زدیم، و کانتینر جدید <b>3</b> داشت، یعنی مقدار آخرین توقف آرام. آخرین بازدیدها از دست رفتند، حتی با volume. چرا؟ volume فقط چیزی را نگه می‌دارد که Redis <b>روی دیسک نوشته</b> باشد (در <code>dump.rdb</code> ذخیره کرده باشد). تغییراتی که هنوز فقط در حافظه هستند و ذخیره نشده‌اند، از دست می‌روند. خودتان می‌توانید ببینید: قبل از اولین <code>docker stop</code>، پوشه‌ی <code>/data</code> هنوز <b>خالی</b> است. Redis هر از گاهی خودش هم ذخیره می‌کند، اما نمی‌شود روی ذخیره شدن آخرین تغییرات حساب کرد. اول از <code>docker stop</code> استفاده کنید.</p>
   </div>
   <div class="checks">
     <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
