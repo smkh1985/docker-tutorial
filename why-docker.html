@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why Docker?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+<link rel="icon" href="docker.svg" type="image/svg+xml">
+<style>
+  /* ---------- Story stage ---------- */
+  .story { max-width: 980px; margin: 0 auto; }
+  .stage {
+    position: relative; display: flex; gap: 16px; justify-content: center; align-items: flex-start;
+    min-height: 430px; padding: 18px 12px 12px; border-radius: 16px;
+    background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow);
+    direction: ltr; overflow: hidden;
+  }
+  .machine {
+    flex: 1 1 0; max-width: 440px; min-width: 0; display: flex; flex-direction: column; align-items: stretch;
+    transition: opacity .5s, transform .5s;
+  }
+  .machine.hidden { opacity: 0; transform: translateY(20px); pointer-events: none; }
+  .machine h3 { margin: 8px 0 0; text-align: center; font-size: .95rem; }
+  .machine .sub { text-align: center; font-size: .75rem; color: var(--muted); }
+  .stack { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 5px; position: relative; }
+  .r-code  { grid-column: 1 / 4; grid-row: 1; }
+  .r-lib   { grid-column: 1; grid-row: 2; }
+  .r-tools { grid-column: 2; grid-row: 2 / 4; }
+  .r-cfg   { grid-column: 3; grid-row: 2; }
+  .r-py    { grid-column: 1; grid-row: 3; }
+  .r-db    { grid-column: 3; grid-row: 3; }
+  .r-os    { grid-column: 1 / 4; grid-row: 4; }
+  .r-full  { width: 100%; }
+  .layer.r-lib, .layer.r-tools, .layer.r-cfg, .layer.r-py, .layer.r-db { font-size: .76rem; padding-left: 3px !important; padding-right: 3px !important; white-space: normal; line-height: 1.15; overflow-wrap: anywhere; }
+  .layer.on.r-lib, .layer.on.r-cfg, .layer.on.r-py, .layer.on.r-db { height: 52px; max-height: 52px; }
+  .r-lib b, .r-tools b, .r-cfg b, .r-py b, .r-db b { font-size: .68rem; }
+  .layer.r-tools.on { height: 109px; max-height: 109px; }
+  .after { display: none; }
+  .after.on { display: block; }
+  .after > .layer { margin-top: 5px; }
+  .stack[data-stack]:not(.on) { display: none; }
+  .box-wrap { height: 340px; display: flex; flex-direction: column; justify-content: flex-end; }
+  .statusrow { height: 2.4rem; position: relative; margin-top: 6px; }
+  .statusrow .status { position: absolute; inset: 0; }
+  .layer {
+    border-radius: 8px; padding: 6px 10px; font-size: .78rem; line-height: 1.35; text-align: center;
+    border: 1px solid transparent; font-family: "JetBrains Mono", monospace;
+    max-height: 0; opacity: 0; transform: translateY(16px) scaleY(.6); transform-origin: bottom center; overflow: hidden; padding-top: 0; padding-bottom: 0;
+    transition: max-height .55s ease-out, height .55s ease-out, margin .55s ease-out, opacity .45s ease-out .1s, transform .55s cubic-bezier(.2,.8,.3,1.2), padding .55s ease-out, background .4s, border-color .4s;
+  }
+  .layer.on { max-height: 42px; height: 42px; opacity: 1; transform: none; padding-top: 4px; padding-bottom: 4px; margin-top: 5px; }
+  .layer:not(.on) { border-width: 0 !important; margin: 0; height: 0; }
+  .layer { display: flex; flex-direction: column; justify-content: center; white-space: nowrap; text-overflow: ellipsis; font-size: .8rem; }
+  .layer .fa { font-family: "Vazirmatn", Tahoma, sans-serif; direction: rtl; unicode-bidi: isolate; }
+  .layer b { font-family: "Inter", "Vazirmatn", sans-serif; font-size: .7rem; display: block; opacity: .75; font-weight: 600; }
+  .l-os    { background: #e7e9ee; color: #333b48; }
+  .l-py    { background: #fff3c4; color: #5c4400; }
+  .l-lib   { background: #ffe0c2; color: #6b3300; }
+  .l-tools { background: #e6dcff; color: #3f2a86; }
+  .l-db    { background: #d8ecff; color: #0b4a8a; }
+  .l-cfg   { background: #ffd9e3; color: #8a1238; }
+  .l-code  { background: #d7f5e3; color: #0b5a33; }
+  .l-docker{ background: #d5e6ff; color: #1d4ed8; }
+  .l-missing { background: transparent !important; border: 2px dashed #d33 !important; color: #d33 !important; }
+  .l-bad.flag { border: 2px solid #d33; box-shadow: 0 0 0 3px rgba(221,51,51,.18); }
+  :root[data-theme="dark"] .layer:not(.l-missing) { filter: brightness(.88); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .layer:not(.l-missing) { filter: brightness(.88); } }
+
+  .status { text-align: center; font-size: 1.7rem; height: 2.2rem; transition: opacity .4s, transform .4s; }
+  .status.hidden { opacity: 0; transform: scale(.4); }
+
+  .inbox {
+    display: block; border: 3px solid var(--docker); border-radius: 10px;
+    padding: 0 5px; max-height: 0; opacity: 0; overflow: hidden; background: color-mix(in srgb, var(--docker) 6%, transparent);
+    transform: translateX(-110%); transition: max-height .6s, opacity .5s, padding .5s, transform .9s ease-out;
+  }
+  .inbox.on { max-height: 460px; opacity: 1; padding: 5px; transform: none; }
+  .inbox-label { text-align: center; font: 600 .7rem "Inter", "Vazirmatn", sans-serif; color: var(--docker); }
+  /* the box (container image) */
+  .box-wrap { position: relative; }
+  .boxframe {
+    position: absolute; inset: -6px; border: 3px solid var(--docker); border-radius: 12px;
+    opacity: 0; transform: scale(1.08); transition: opacity .5s, transform .5s; pointer-events: none;
+    background: color-mix(in srgb, var(--docker) 6%, transparent);
+  }
+  .boxframe.on { opacity: 1; transform: none; }
+  .boxframe span {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%); white-space: nowrap;
+    background: var(--docker); color: #fff; font: 600 .72rem "Inter", "Vazirmatn", sans-serif; padding: 2px 9px; border-radius: 99px;
+  }
+
+  .bubble {
+    position: absolute; top: 92px; left: calc(50% - 228px); z-index: 3; white-space: nowrap;
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); color: var(--text); border: 2.5px solid var(--text); border-radius: 22px;
+    padding: 10px 18px 10px 12px; font-size: 1.05rem; font-weight: 600; font-style: italic;
+    box-shadow: 4px 5px 0 color-mix(in srgb, var(--text) 18%, transparent);
+    opacity: 0; transform: translateX(-50%) rotate(-3deg) scale(.5); transform-origin: 50% 120%;
+    transition: opacity .25s, transform .45s cubic-bezier(.2,1.6,.4,1);
+  }
+  .bubble.on { opacity: 1; transform: translateX(-50%) rotate(-3deg) scale(1); }
+  .bubble .who { font-size: 1.7rem; font-style: normal; line-height: 1; }
+  .bubble::before, .bubble::after { content: ""; position: absolute; left: 46%; border: solid transparent; }
+  .bubble::before { bottom: -17px; border-width: 16px 12px 0 2px; border-top-color: var(--text); }
+  .bubble::after  { bottom: -11px; border-width: 12px 9px 0 3px; border-top-color: var(--surface); margin-left: 3px; }
+  .bubble .fa { font-family: "Vazirmatn", sans-serif; font-style: normal; }
+
+  /* caption + controls */
+  .caption {
+    margin: 14px 0 10px; padding: 14px 18px; border-radius: 12px; background: var(--surface-2); min-height: 92px;
+  }
+  .caption .stepno { font-size: .75rem; color: var(--muted); font-weight: 600; direction: ltr; unicode-bidi: isolate; }
+  .caption h2 { margin: 2px 0 4px; font-size: 1.2rem; }
+  .caption p { margin: 0; color: var(--muted); }
+  .controls { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; direction: ltr; }
+  .controls .btn { padding: 7px 16px; font-size: .95rem; }
+  .controls .btn.primary { background: var(--docker); color: #fff; border-color: var(--docker); }
+  .dots { display: flex; gap: 5px; margin: 0 8px; }
+  .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--border); cursor: pointer; }
+  .dots i.on { background: var(--docker); }
+  .finish { text-align: center; margin-top: 18px; display: none; }
+  .finish.show { display: block; }
+  .finish a.btn { display: inline-block; text-decoration: none; padding: 10px 22px; font-size: 1rem; background: var(--accent); color: #fff; border-color: var(--accent); }
+  @media (max-width: 640px) {
+    .stage { gap: 6px; padding: 14px 6px 8px; min-height: 400px; }
+    .layer { font-size: .64rem; padding-left: 4px; padding-right: 4px; }
+    .layer b { font-size: .6rem; }
+    .machine h3 { font-size: .78rem; }
+    .bubble { font-size: .8rem; white-space: normal; width: 42%; padding: 6px 10px; }
+    .bubble .who { font-size: 1.2rem; }
+  }
+</style>
+</head>
+<body class="lang-en" data-lesson="intro">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="index-wrap story">
+
+  <section class="hero">
+    <h1><span class="en">Why do we need Docker?</span><span class="fa">چرا به Docker نیاز داریم؟</span></h1>
+    <p class="en">Before any commands, let's see the <b>problem</b> Docker solves. Click <b>Next</b> (or press <kbd>→</kbd>) to go step by step.</p>
+    <p class="fa">قبل از هر دستوری، بیایید <b>مشکلی</b> را ببینیم که Docker حل می‌کند. روی <b>بعدی</b> کلیک کنید (یا <kbd>→</kbd> را بزنید) تا قدم‌به‌قدم جلو بروید.</p>
+  </section>
+
+  <!-- ================= STAGE ================= -->
+  <div class="stage" id="stage">
+    <div class="bubble" data-show="11-11"><span class="who">🧑‍💻</span><span><span class="en">“But it works on my machine!”</span><span class="fa">«ولی روی کامپیوتر من کار می‌کند!»</span></span></div>
+
+    <!-- YOUR PC -->
+    <div class="machine" id="m-you">
+      <div class="box-wrap">
+          <div class="stack">
+            <div class="boxframe" data-show="12-14"><span class="en">📦 container image</span><span class="fa">📦 ایمیج کانتینر</span></div>
+            <div class="layer l-code r-code" data-show="1-14"><b class="en">your code</b><b class="fa">کد شما</b>app.py</div>
+            <div class="layer l-lib r-lib" data-show="4-14"><b class="en">libraries</b><b class="fa">کتابخانه‌ها</b>fastapi · numpy</div>
+            <div class="layer l-tools r-tools" data-show="5-14"><b class="en">tools</b><b class="fa">ابزارها</b>npm 10<br>Java 21</div>
+            <div class="layer l-cfg r-cfg" data-show="7-14"><b class="en">config</b><b class="fa">تنظیمات</b>postgresql.conf</div>
+            <div class="layer l-py r-py" data-show="3-14"><b class="en">language</b><b class="fa">زبان</b>Python 3.13.2</div>
+            <div class="layer l-db r-db" data-show="6-14"><b class="en">database</b><b class="fa">دیتابیس</b>PostgreSQL 18</div>
+            <div class="layer l-os r-os" data-show="2-14"><b class="en">operating system</b><b class="fa">سیستم‌عامل</b>Ubuntu 24.04</div>
+          </div>
+      </div>
+      <div class="statusrow"><div class="status hidden" data-show="8-14">✅</div></div>
+      <h3><span class="en">💻 Your PC</span><span class="fa">💻 کامپیوتر شما</span></h3>
+      <div class="sub"><span class="en">the developer</span><span class="fa">توسعه‌دهنده</span></div>
+    </div>
+
+    <!-- OTHER MACHINE -->
+    <div class="machine hidden" id="m-col" data-machine="9-14">
+      <div class="box-wrap">
+          <div class="stack" data-stack="9-12">
+            <div class="layer l-code r-code" data-show="9-12"><b class="en">your code</b><b class="fa">کد شما</b>app.py</div>
+            <div class="layer l-lib r-lib l-bad" data-show="10-12"><b class="en">libraries</b><b class="fa">کتابخانه‌ها</b>numpy 1.26 ❌</div>
+            <div class="layer l-tools r-tools l-missing" data-show="10-12"><b class="en">tools</b><b class="fa">ابزارها</b><span class="en">no Java</span><span class="fa">Java ندارد</span></div>
+            <div class="layer l-cfg r-cfg l-missing" data-show="10-12"><b class="en">config</b><b class="fa">تنظیمات</b><span class="en">missing</span><span class="fa">ناموجود</span></div>
+            <div class="layer l-py r-py l-bad" data-show="10-12"><b class="en">language</b><b class="fa">زبان</b>Python 3.10 ❌</div>
+            <div class="layer l-db r-db l-bad" data-show="10-12"><b class="en">database</b><b class="fa">دیتابیس</b>PostgreSQL 15 ❌</div>
+            <div class="layer l-os r-os" data-show="9-12"><b class="en">operating system</b><b class="fa">سیستم‌عامل</b>Ubuntu 22.04</div>
+          </div>
+          <div class="after" data-stack="13-14">
+            <div class="inbox" data-show="13-14">
+              <div class="inbox-label"><span class="en">📦 the same image</span><span class="fa">📦 همان ایمیج</span></div>
+              <div class="stack">
+              <div class="layer l-code r-code on"><b class="en">your code</b><b class="fa">کد شما</b>app.py</div>
+              <div class="layer l-lib r-lib on"><b class="en">libraries</b><b class="fa">کتابخانه‌ها</b>fastapi · numpy</div>
+              <div class="layer l-tools r-tools on"><b class="en">tools</b><b class="fa">ابزارها</b>npm 10<br>Java 21</div>
+              <div class="layer l-cfg r-cfg on"><b class="en">config</b><b class="fa">تنظیمات</b>postgresql.conf</div>
+              <div class="layer l-py r-py on"><b class="en">language</b><b class="fa">زبان</b>Python 3.13.2</div>
+              <div class="layer l-db r-db on"><b class="en">database</b><b class="fa">دیتابیس</b>PostgreSQL 18</div>
+              <div class="layer l-os r-os on"><b class="en">OS files</b><b class="fa">فایل‌های سیستم‌عامل</b>Ubuntu 24.04</div>
+              </div>
+            </div>
+            <div class="layer l-docker r-full" data-show="13-14"><b class="en">only this is installed</b><b class="fa">فقط این نصب شده</b>🐳 Docker</div>
+            <div class="layer l-os r-full" data-show="13-14"><b class="en">any OS</b><b class="fa">هر سیستم‌عاملی</b>Windows · macOS · Linux · server</div>
+          </div>
+      </div>
+      <div class="statusrow"><div class="status hidden" data-show="10-11">💥</div><div class="status hidden" data-show="13-14">✅</div></div>
+      <h3><span class="en">💻🖥 Another machine</span><span class="fa">💻🖥 یک ماشین دیگر</span></h3>
+      <div class="sub"><span class="en">a second developer's PC, or a deployment server</span><span class="fa">کامپیوتر یک توسعه‌دهنده‌ی دیگر، یا سرور استقرار</span></div>
+    </div>
+  </div>
+
+  <!-- ================= CAPTION + CONTROLS ================= -->
+  <div class="caption" id="caption" aria-live="polite"></div>
+  <div class="controls">
+    <button class="btn" id="backBtn"><span class="en">← Back</span><span class="fa">→ قبلی</span></button>
+    <div class="dots" id="dots"></div>
+    <button class="btn primary" id="nextBtn"><span class="en">Next →</span><span class="fa">بعدی ←</span></button>
+    <button class="btn" id="playBtn" title="Autoplay">▶</button>
+  </div>
+
+  <div class="finish" id="finish">
+    <section class="card" style="text-align:start;margin-top:18px">
+      <div class="checks" style="margin-top:0">
+        <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+        <label><input type="checkbox" data-id="why-1"><span><span class="en">I can explain the “it works on my machine” problem</span><span class="fa">می‌توانم مشکل «روی کامپیوتر من کار می‌کند» را توضیح دهم</span></span></label>
+        <label><input type="checkbox" data-id="why-2"><span><span class="en">I know Docker packs an app with everything it needs into one box, an image</span><span class="fa">می‌دانم Docker یک برنامه را با همه‌ی نیازهایش در یک جعبه، یعنی ایمیج، بسته‌بندی می‌کند</span></span></label>
+      </div>
+    </section>
+    <a class="btn" href="00-install.html"><span class="en">Start Lesson 0: Install Docker →</span><span class="fa">شروع درس ۰: نصب Docker ←</span></a>
+  </div>
+
+  <div class="done-banner" id="doneBanner"><h2>🎉 <span class="en">Now you know why Docker exists!</span><span class="fa">حالا می‌دانید Docker چرا وجود دارد!</span></h2><p id="nextLine"></p></div>
+  <nav class="pager" id="pager"></nav>
+  <footer><a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a></footer>
+</div>
+
+<script src="course.js"></script>
+<script>
+(function () {
+  var STEPS = [
+    null,
+    { en: ['You write some code', 'Your app: <code>app.py</code>. But code never runs alone…'],
+      fa: ['شما کدی می‌نویسید', 'برنامه‌ی شما: <code>app.py</code>. ولی کد هیچ‌وقت تنها اجرا نمی‌شود…'] },
+    { en: ['It runs on an operating system', 'Your PC has Ubuntu 24.04.'],
+      fa: ['روی یک سیستم‌عامل اجرا می‌شود', 'کامپیوتر شما Ubuntu 24.04 دارد.'] },
+    { en: ['You install Python 3.13.2', 'Exactly this version: your code uses its newest features.'],
+      fa: ['Python 3.13.2 را نصب می‌کنید', 'دقیقاً همین نسخه: کد شما از جدیدترین امکاناتش استفاده می‌کند.'] },
+    { en: ['You install libraries on top of Python', 'fastapi, psycopg, numpy, each in a specific version.'],
+      fa: ['کتابخانه‌ها را روی Python نصب می‌کنید', 'fastapi، psycopg، numpy، هر کدام با یک نسخه‌ی مشخص.'] },
+    { en: ['You install more tools', 'npm for the frontend, Java for a report generator…'],
+      fa: ['ابزارهای بیشتری نصب می‌کنید', 'npm برای frontend، Java برای یک گزارش‌ساز…'] },
+    { en: ['You install a database', 'PostgreSQL 18.'],
+      fa: ['یک دیتابیس نصب می‌کنید', 'PostgreSQL 18.'] },
+    { en: ['…and configure it', 'Config files on top: postgresql.conf, a .env with passwords and settings.'],
+      fa: ['…و تنظیمش می‌کنید', 'فایل‌های تنظیمات روی آن: postgresql.conf، یک ‎.env با رمزها و تنظیمات.'] },
+    { en: ['It works! ✅', 'Your app needs <b>all</b> of these layers: OS, tools, libraries, config files and code. On your PC they all fit together.'],
+      fa: ['کار می‌کند! ✅', 'برنامه‌ی شما <b>همه‌ی</b> این لایه‌ها را لازم دارد: سیستم‌عامل، ابزارها، کتابخانه‌ها، فایل‌های تنظیمات و کد. روی کامپیوتر شما همه با هم جورند.'] },
+    { en: ['Now someone else must run it', 'Another machine: a second developer’s PC, or the server where real users will use the app. You send it your code.'],
+      fa: ['حالا شخص دیگری باید اجرایش کند', 'یک ماشین دیگر: کامپیوتر یک توسعه‌دهنده‌ی دیگر، یا سروری که کاربران واقعی از برنامه استفاده می‌کنند. کدتان را برایش می‌فرستید.'] },
+    { en: ['They must install everything by hand… 💥', 'Hours of work, and every small difference breaks the app: Python 3.10 instead of 3.13.2, an old numpy, no Java, an older PostgreSQL, a missing config.'],
+      fa: ['آن‌ها باید همه‌چیز را با دست نصب کنند… 💥', 'ساعت‌ها کار، و هر تفاوت کوچکی برنامه را خراب می‌کند: Python 3.10 به‌جای 3.13.2، یک numpy قدیمی، نبودن Java، یک PostgreSQL قدیمی‌تر، تنظیمات ناموجود.'] },
+    { en: ['“But it works on my machine!” 🤷', 'This is so common it has a name: the <b>“it works on my machine”</b> problem.'],
+      fa: ['«ولی روی کامپیوتر من کار می‌کند!» 🤷', 'این‌قدر رایج است که اسم دارد: مشکل <b>«روی کامپیوتر من کار می‌کند»</b>.'] },
+    { en: ['The wish: pack it all into one box 📦', 'What if we could put the app <b>together with everything it needs</b> (OS files, Python, libraries, tools, config) into one package?'],
+      fa: ['آرزو: همه را در یک جعبه بسته‌بندی کنیم 📦', 'چه می‌شد اگر برنامه را <b>همراه با همه‌ی نیازهایش</b> (فایل‌های سیستم‌عامل، Python، کتابخانه‌ها، ابزارها، تنظیمات) در یک بسته می‌گذاشتیم؟'] },
+    { en: ['…and move the box anywhere ✅', 'The other machine only needs <b>Docker</b> installed. The box runs exactly the same everywhere: no installing, no mismatches.'],
+      fa: ['…و جعبه را به هر جایی ببریم ✅', 'ماشین دیگر فقط <b>Docker</b> را لازم دارد. جعبه همه‌جا دقیقاً یکسان اجرا می‌شود: بدون نصب، بدون ناسازگاری.'] },
+    { en: ['That box is a Docker image 🐳', 'Docker <b>builds</b> these boxes (images), <b>ships</b> them to other computers, and <b>runs</b> them as containers. That is what this course teaches.'],
+      fa: ['آن جعبه یک ایمیج Docker است 🐳', 'Docker این جعبه‌ها (ایمیج‌ها) را <b>می‌سازد</b>، به کامپیوترهای دیگر <b>می‌فرستد</b> و به‌صورت کانتینر <b>اجرا می‌کند</b>. این دوره همین را یاد می‌دهد.'] }
+  ];
+  var LAST = STEPS.length - 1;
+  var step = 1, timer = null;
+  var cap = document.getElementById('caption'), dots = document.getElementById('dots');
+  var nodes = document.querySelectorAll('[data-show]'), machines = document.querySelectorAll('[data-machine]');
+  function inRange(attr) { var p = attr.split('-'); return step >= +p[0] && step <= +p[1]; }
+  for (var i = 1; i <= LAST; i++) { var d = document.createElement('i'); d.dataset.s = i; d.onclick = function () { go(+this.dataset.s); }; dots.appendChild(d); }
+
+  function render() {
+    nodes.forEach(function (n) {
+      var on = inRange(n.dataset.show);
+      if (n.classList.contains('status')) n.classList.toggle('hidden', !on); else n.classList.toggle('on', on);
+    });
+    machines.forEach(function (m) { m.classList.toggle('hidden', !inRange(m.dataset.machine)); });
+    document.querySelectorAll('[data-stack]').forEach(function (n) { n.classList.toggle('on', inRange(n.dataset.stack)); });
+    document.querySelectorAll('.l-bad').forEach(function (n) { n.classList.toggle('flag', step >= 10 && step <= 12); });
+    var fa = document.body.classList.contains('lang-fa'), t = STEPS[step][fa ? 'fa' : 'en'];
+    cap.innerHTML = '<div class="stepno">' + step + ' / ' + LAST + '</div><h2>' + t[0] + '</h2><p>' + t[1] + '</p>';
+    dots.querySelectorAll('i').forEach(function (d) { d.classList.toggle('on', +d.dataset.s <= step); });
+    document.getElementById('backBtn').disabled = step === 1;
+    document.getElementById('nextBtn').disabled = step === LAST;
+    document.getElementById('finish').classList.toggle('show', step === LAST);
+  }
+  function go(s) { step = Math.max(1, Math.min(LAST, s)); render(); }
+  function stop() { clearInterval(timer); timer = null; document.getElementById('playBtn').textContent = '▶'; }
+  document.getElementById('nextBtn').onclick = function () { stop(); go(step + 1); };
+  document.getElementById('backBtn').onclick = function () { stop(); go(step - 1); };
+  document.getElementById('playBtn').onclick = function () {
+    if (timer) return stop();
+    if (step === LAST) go(1);
+    this.textContent = '⏸';
+    timer = setInterval(function () { if (step >= LAST) stop(); else go(step + 1); }, 3200);
+  };
+  document.addEventListener('keydown', function (e) {
+    var fa = document.body.classList.contains('lang-fa');
+    if (e.key === 'ArrowRight') { stop(); go(step + (fa ? -1 : 1)); }
+    if (e.key === 'ArrowLeft') { stop(); go(step + (fa ? 1 : -1)); }
+  });
+  document.getElementById('langBtn').addEventListener('click', render);
+  render();
+})();
+</script>
+</body>
+</html>

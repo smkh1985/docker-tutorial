@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 18 · Tags and versions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="18">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Build version 1</span><span class="fa">۱ · ساختن نسخه‌ی ۱</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Build version 2</span><span class="fa">۲ · ساختن نسخه‌ی ۲</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · List the versions</span><span class="fa">۳ · فهرست نسخه‌ها</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Run both</span><span class="fa">۴ · اجرای هر دو</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · latest is just a name</span><span class="fa">۵ · latest فقط یک نام است</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Clean up</span><span class="fa">۶ · تمیزکاری</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 18 — Tags: keep versions</span>
+    <span class="fa">درس ۱۸ — تگ‌ها: نگه داشتن نسخه‌ها</span>
+  </h1>
+  <p class="en">In Lesson 17, every rebuild of <code>my-site</code> replaced the previous one. Real projects keep <b>versions</b>: if version 2 has a bug, you can go back to version 1. You do that with <b>tags</b>, the part after the <code>:</code> in <code>name:tag</code> (Lesson 1).</p>
+  <p class="fa">در درس ۱۷، هر بار ساختن دوباره‌ی <code>my-site</code> نسخه‌ی قبلی را جایگزین کرد. پروژه‌های واقعی <b>نسخه‌ها</b> را نگه می‌دارند: اگر نسخه‌ی ۲ باگ داشت، می‌توانید به نسخه‌ی ۱ برگردید. این کار را با <b>تگ‌ها</b> انجام می‌دهید، یعنی بخش بعد از <code>:</code> در <code>name:tag</code> (درس ۱).</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 V1 ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Build version 1</span><span class="fa">ساختن نسخه‌ی ۱</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Go to your <code>my-site</code> folder from Lesson 17, and replace the page's text with <code>&lt;h1&gt;Version 1&lt;/h1&gt;</code>:</p>
+  <p class="fa">به پوشه‌ی <code>my-site</code> از درس ۱۷ بروید و متن صفحه را با <code>&lt;h1&gt;Version 1&lt;/h1&gt;</code> جایگزین کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>cd ~/my-site
+echo '&lt;h1&gt;Version 1&lt;/h1&gt;' &gt; index.html</code></pre></div>
+  <p class="en">Build it, this time with a tag after the name:</p>
+  <p class="fa">آن را بسازید، این بار با یک تگ بعد از نام:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker build -t my-site:v1 .</code></pre></div>
+  <p class="en"><code>my-site:v1</code> = name <code>my-site</code>, tag <code>v1</code>. A tag can be anything: <code>v1</code>, <code>1.0</code>, <code>2026-10-10</code>…</p>
+  <p class="fa"><code>my-site:v1</code> یعنی نام <code>my-site</code> و تگ <code>v1</code>. تگ می‌تواند هر چیزی باشد: <code>v1</code>، <code>1.0</code>، <code>2026-10-10</code> و …</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en">The build finished with <code>naming to … my-site:v1</code></span><span class="fa">ساخت با <code>naming to … my-site:v1</code> تمام شد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 V2 ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Build version 2</span><span class="fa">ساختن نسخه‌ی ۲</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Change the page to <code>&lt;h1&gt;Version 2&lt;/h1&gt;</code>, and build it with the tag <code>v2</code>:</p>
+  <p class="fa">صفحه را به <code>&lt;h1&gt;Version 2&lt;/h1&gt;</code> تغییر دهید و آن را با تگ <code>v2</code> بسازید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>echo '&lt;h1&gt;Version 2&lt;/h1&gt;' &gt; index.html
+docker build -t my-site:v2 .</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The build finished with <code>naming to … my-site:v2</code></span><span class="fa">ساخت با <code>naming to … my-site:v2</code> تمام شد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 LIST ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">List the versions</span><span class="fa">فهرست نسخه‌ها</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">List only the <code>my-site</code> images:</p>
+  <p class="fa">فقط ایمیج‌های <code>my-site</code> را فهرست کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image ls my-site</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>IMAGE            ID             DISK USAGE   CONTENT SIZE   EXTRA
+my-site:latest   14e42403a10d        240MB         63.9MB         <span class="c"># from Lesson 17</span>
+my-site:v1       eab935f421ad        240MB         63.9MB
+my-site:v2       83073a48ca1d        240MB         63.9MB</code></pre></div>
+  <p class="en">Three images with the same name and different tags. Nothing was replaced: <b>every version is kept</b>.</p>
+  <p class="fa">سه ایمیج با یک نام و تگ‌های مختلف. چیزی جایگزین نشد: <b>همه‌ی نسخه‌ها نگه داشته شده‌اند</b>.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I see <code>my-site:v1</code> and <code>my-site:v2</code></span><span class="fa"><code>my-site:v1</code> و <code>my-site:v2</code> را می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 RUN BOTH ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Run both versions side by side</span><span class="fa">اجرای هر دو نسخه کنار هم</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Run <b>version 1</b> named <code>web1</code> on port 8080:</p>
+  <p class="fa"><b>نسخه‌ی ۱</b> را با نام <code>web1</code> روی پورت 8080 اجرا کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name web1 -p 8080:80 my-site:v1</code></pre></div>
+  <p class="en">Now run <b>version 2</b> named <code>web2</code>. Port 8080 is taken (Lesson 4), so use <b>8081</b> on your PC:</p>
+  <p class="fa">حالا <b>نسخه‌ی ۲</b> را با نام <code>web2</code> اجرا کنید. پورت 8080 گرفته شده (درس ۴)، پس روی کامپیوترتان از <b>8081</b> استفاده کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web2 -p 8081:80 my-site:v2</code></pre></div>
+  <p class="en">Open both tabs:</p>
+  <p class="fa">هر دو تب را باز کنید:</p>
+  <div class="flow"><div class="row">
+    <div class="browser"><div class="bar">localhost:8080</div><div class="page"><h1>Version 1</h1></div></div>
+    <div class="browser"><div class="bar">localhost:8081</div><div class="page"><h1>Version 2</h1></div></div>
+  </div></div>
+  <p class="en">Two versions of your app, running at the same time. If version 2 had a bug, version 1 is right there: just run <code>my-site:v1</code> again. That's a <b>rollback</b>.</p>
+  <p class="fa">دو نسخه از برنامه‌ی شما، هم‌زمان در حال اجرا. اگر نسخه‌ی ۲ باگ داشت، نسخه‌ی ۱ همین‌جاست: فقط <code>my-site:v1</code> را دوباره اجرا کنید. به این کار <b>rollback</b> (برگشت به نسخه‌ی قبل) می‌گویند.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en"><code>localhost:8080</code> shows Version 1 and <code>localhost:8081</code> shows Version 2</span><span class="fa"><code>localhost:8080</code> نسخه‌ی ۱ و <code>localhost:8081</code> نسخه‌ی ۲ را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 LATEST ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en"><code>latest</code> is just a name</span><span class="fa"><code>latest</code> فقط یک نام است</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Look at the list from step 3 again. <code>v2</code> is your newest build, but <code>latest</code> has a <b>different ID</b>: it's still the image from Lesson 17.</p>
+  <p class="fa">دوباره به فهرست قدم ۳ نگاه کنید. <code>v2</code> جدیدترین ساخت شماست، ولی <code>latest</code> <b>شناسه‌ی متفاوتی</b> دارد: هنوز همان ایمیج درس ۱۷ است.</p>
+  <div class="note key">
+    <p class="en">🔑 <code>latest</code> does <b>not</b> mean “newest”. It's only the tag Docker uses when you don't give one. It doesn't move by itself.</p>
+    <p class="fa">🔑 <code>latest</code> به معنی «جدیدترین» <b>نیست</b>. فقط تگی است که Docker وقتی تگ ندهید استفاده می‌کند. خودبه‌خود جابه‌جا نمی‌شود.</p>
+  </div>
+  <p class="en">You can move it yourself. <code>docker tag</code> gives an existing image <b>another name</b>:</p>
+  <p class="fa">می‌توانید خودتان جابه‌جایش کنید. <code>docker tag</code> به یک ایمیج موجود <b>یک نام دیگر</b> می‌دهد:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker tag my-site:v2 my-site:latest
+docker image ls my-site</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>IMAGE            ID             DISK USAGE   CONTENT SIZE   EXTRA
+my-site:latest   83073a48ca1d        240MB         63.9MB
+my-site:v1       eab935f421ad        240MB         63.9MB
+my-site:v2       83073a48ca1d        240MB         63.9MB</code></pre></div>
+  <p class="en">Now <code>latest</code> and <code>v2</code> have the <b>same ID</b>: one image with two names. No copy was made. (The old <code>latest</code> lost its only name, so <code>docker image ls</code> no longer shows it. It still uses disk space; delete it by its ID from step 3 if you like: <code>docker image rm 14e42403a10d</code>, using <b>your</b> ID.)</p>
+  <p class="fa">حالا <code>latest</code> و <code>v2</code> <b>شناسه‌ی یکسان</b> دارند: یک ایمیج با دو نام. هیچ کپی‌ای ساخته نشد. (<code>latest</code> قبلی تنها نامش را از دست داد، پس <code>docker image ls</code> دیگر آن را نشان نمی‌دهد. ولی هنوز فضای دیسک می‌گیرد؛ اگر خواستید با شناسه‌اش از قدم ۳ حذفش کنید: <code>docker image rm 14e42403a10d</code>، با شناسه‌ی <b>خودتان</b>.)</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en">After <code>docker tag</code>, <code>latest</code> and <code>v2</code> have the same ID</span><span class="fa">بعد از <code>docker tag</code>، <code>latest</code> و <code>v2</code> شناسه‌ی یکسان دارند</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 CLEAN UP ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Stop and delete <code>web1</code> and <code>web2</code> with <b>one</b> command:</p>
+  <p class="fa"><code>web1</code> و <code>web2</code> را با <b>یک</b> دستور متوقف و حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web1 web2</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en"><code>web1</code> and <code>web2</code> are gone from <code>docker ps -a</code></span><span class="fa"><code>web1</code> و <code>web2</code> از <code>docker ps -a</code> حذف شده‌اند</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>docker build -t NAME:TAG .</code></td><td><span class="en">Build an image with a version tag</span><span class="fa">ساختن ایمیج با یک تگ نسخه</span></td></tr>
+      <tr><td><code>docker run … NAME:TAG</code></td><td><span class="en">Run a specific version</span><span class="fa">اجرای یک نسخه‌ی مشخص</span></td></tr>
+      <tr><td><code>docker tag IMAGE NEW_NAME</code></td><td><span class="en">Give an existing image another name (same ID)</span><span class="fa">دادن یک نام دیگر به ایمیج موجود (همان شناسه)</span></td></tr>
+      <tr><td><code>latest</code></td><td><span class="en">The default tag, not “the newest”</span><span class="fa">تگ پیش‌فرض، نه «جدیدترین»</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You can version your images!</span><span class="fa">حالا می‌توانید برای ایمیج‌هایتان نسخه بسازید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

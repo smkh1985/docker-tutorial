@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 7 · Run a command in a new container</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="07">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Run one command</span><span class="fa">۱ · اجرای یک دستور</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Why --rm?</span><span class="fa">۲ · چرا ‎--rm؟</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · A shell in a new container</span><span class="fa">۳ · شل در کانتینر جدید</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · run -it vs exec -it</span><span class="fa">۴ · run -it یا exec -it</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 7 — Run a command in a new container</span>
+    <span class="fa">درس ۷ — اجرای یک دستور در کانتینر جدید</span>
+  </h1>
+  <p class="en">Every image has a default program: nginx starts a web server, hello-world prints a message. But you can tell <code>docker run</code> to run <b>your own command</b> instead. Great for trying a Linux distro or running a quick tool, without installing anything.</p>
+  <p class="fa">هر ایمیج یک برنامه‌ی پیش‌فرض دارد: nginx یک وب‌سرور اجرا می‌کند، hello-world یک پیام چاپ می‌کند. ولی می‌توانید به <code>docker run</code> بگویید به‌جای آن <b>دستور خودتان</b> را اجرا کند. عالی برای امتحان یک توزیع لینوکس یا اجرای سریع یک ابزار، بدون نصب هیچ چیز.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 ONE COMMAND ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Run one command</span><span class="fa">اجرای یک دستور</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Ask a tiny Alpine Linux container which Linux it is:</p>
+  <p class="fa">از یک کانتینر کوچک Alpine Linux بپرسید چه لینوکسی است:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run --rm alpine cat /etc/os-release</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>NAME="Alpine Linux"
+ID=alpine
+VERSION_ID=3.24.2
+PRETTY_NAME="Alpine Linux v3.24"
+...</code></pre></div>
+  <p class="en">Everything <b>after the image name</b> is the command to run. Docker created a new container from <code>alpine</code>, ran <code>cat /etc/os-release</code> in it, printed the result, and the container stopped. <code>--rm</code> (Lesson 2) deleted it right away.</p>
+  <p class="fa">هر چیزی <b>بعد از نام ایمیج</b> دستوری است که اجرا می‌شود. Docker از <code>alpine</code> یک کانتینر جدید ساخت، <code>cat /etc/os-release</code> را در آن اجرا کرد، نتیجه را چاپ کرد و کانتینر متوقف شد. <code>--rm</code> (درس ۲) بلافاصله آن را حذف کرد.</p>
+  <div class="flow">
+    <div class="box"><code>docker run --rm</code> <b><code>alpine</code></b> <code>cat /etc/os-release</code><small><span class="en">options · image · your command</span><span class="fa">گزینه‌ها · ایمیج · دستور شما</span></small></div>
+  </div>
+  <p class="en">Try another one:</p>
+  <p class="fa">یکی دیگر امتحان کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run --rm alpine echo "Hello from a new container"</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>Hello from a new container</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en">I saw <code>Alpine Linux</code> and my <code>echo</code> message</span><span class="fa"><code>Alpine Linux</code> و پیام <code>echo</code> خودم را دیدم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 WHY --rm ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Why <code>--rm</code>?</span><span class="fa">چرا <code>--rm</code>؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Run a command <b>without</b> <code>--rm</code>, and name the container <code>once</code>:</p>
+  <p class="fa">یک دستور را <b>بدون</b> <code>--rm</code> اجرا کنید و نام کانتینر را <code>once</code> بگذارید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run --name once alpine echo hi</code></pre></div>
+  <p class="en">The command finished, but list <b>all</b> containers:</p>
+  <p class="fa">دستور تمام شد، ولی <b>همه‌ی</b> کانتینرها را فهرست کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps -a</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>NAMES     STATUS                     <span class="c"># other columns left out</span>
+once      Exited (0) 1 second ago</code></pre></div>
+  <p class="en">A leftover. Every one-off command would leave one behind. Delete it:</p>
+  <p class="fa">یک باقی‌مانده. هر دستور یک‌باره یکی از این‌ها جا می‌گذارد. حذفش کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm once</code></pre></div>
+  <div class="note key">
+    <p class="en">🔑 For one-off commands, always add <code>--rm</code>.</p>
+    <p class="fa">🔑 برای دستورهای یک‌باره همیشه <code>--rm</code> را اضافه کنید.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">Without <code>--rm</code>, <code>once</code> was left behind; I deleted it</span><span class="fa">بدون <code>--rm</code>، <code>once</code> باقی ماند؛ حذفش کردم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 SHELL ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">A shell in a new container</span><span class="fa">یک شل در کانتینر جدید</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Want to look around Ubuntu without installing it? Run <code>bash</code> in a new <code>ubuntu</code> container, with <code>-it</code> so you can type (like <code>exec -it</code> in Lesson 6):</p>
+  <p class="fa">می‌خواهید بدون نصب، Ubuntu را بگردید؟ <code>bash</code> را در یک کانتینر جدید <code>ubuntu</code> اجرا کنید، با <code>-it</code> تا بتوانید تایپ کنید (مثل <code>exec -it</code> در درس ۶):</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -it --rm ubuntu bash</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>root@e51c490f4f10:/#</code></pre></div>
+  <p class="en">You're inside a fresh Ubuntu. Check it:</p>
+  <p class="fa">داخل یک Ubuntu تازه هستید. بررسی کنید:</p>
+  <div class="code"><span class="lbl">bash · inside</span><pre><code>cat /etc/os-release</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>PRETTY_NAME="Ubuntu 26.04.1 LTS"
+NAME="Ubuntu"
+...</code></pre></div>
+  <p class="en">Leave the shell:</p>
+  <p class="fa">از شل خارج شوید:</p>
+  <div class="code reveal"><span class="lbl">bash · inside</span><pre><code>exit</code></pre></div>
+  <p class="en">The shell <b>was</b> the container's program, so leaving it stopped the container, and <code>--rm</code> deleted it. Check: <code>docker ps -a</code> has no Ubuntu container.</p>
+  <p class="fa">شل همان برنامه‌ی کانتینر <b>بود</b>، پس خروج از آن کانتینر را متوقف کرد و <code>--rm</code> حذفش کرد. بررسی کنید: <code>docker ps -a</code> هیچ کانتینر Ubuntu ندارد.</p>
+  <details class="q">
+    <summary><span class="en">❓ What if I forget <code>-it</code>?</span><span class="fa">❓ اگر <code>-it</code> را فراموش کنم چه می‌شود؟</span></summary>
+    <p class="en"><code>docker run --rm ubuntu bash</code> returns <b>immediately</b>, with no prompt and no error. <code>bash</code> had no keyboard to read from, so it had nothing to do and exited. Interactive programs need <code>-it</code>.</p>
+    <p class="fa"><code>docker run --rm ubuntu bash</code> <b>بلافاصله</b> برمی‌گردد، بدون prompt و بدون خطا. <code>bash</code> صفحه‌کلیدی برای خواندن نداشت، پس کاری برای انجام نداشت و تمام شد. برنامه‌های تعاملی <code>-it</code> لازم دارند.</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I saw <code>Ubuntu</code> inside the container</span><span class="fa">داخل کانتینر <code>Ubuntu</code> را دیدم</span></span></label>
+    <label><input type="checkbox" data-id="s3-2"><span><span class="en">After <code>exit</code>, the container is gone</span><span class="fa">بعد از <code>exit</code>، کانتینر حذف شده</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 RUN VS EXEC ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en"><code>run -it</code> or <code>exec -it</code>?</span><span class="fa"><code>run -it</code> یا <code>exec -it</code>؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Both give you a shell, but in very different containers:</p>
+  <p class="fa">هر دو یک شل به شما می‌دهند، ولی در کانتینرهای خیلی متفاوت:</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th></th>
+      <th><code>docker exec -it NAME bash</code></th>
+      <th><code>docker run -it --rm IMAGE bash</code></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><span class="en">Container</span><span class="fa">کانتینر</span></td><td><span class="en">an <b>existing</b>, running one (Lesson 6)</span><span class="fa">یک کانتینر <b>موجود</b> و در حال اجرا (درس ۶)</span></td><td><span class="en">a <b>brand-new</b> one, from an image</span><span class="fa">یک کانتینر <b>کاملاً جدید</b>، از روی ایمیج</span></td></tr>
+      <tr><td><span class="en">After <code>exit</code></span><span class="fa">بعد از <code>exit</code></span></td><td><span class="en">the container keeps running</span><span class="fa">کانتینر روشن می‌ماند</span></td><td><span class="en">the container stops (and <code>--rm</code> deletes it)</span><span class="fa">کانتینر متوقف می‌شود (و <code>--rm</code> حذفش می‌کند)</span></td></tr>
+      <tr><td><span class="en">Use it to</span><span class="fa">کاربرد</span></td><td><span class="en">look inside / fix a running app</span><span class="fa">نگاه کردن داخل / رفع مشکل برنامه‌ی در حال اجرا</span></td><td><span class="en">try an image, run a quick tool</span><span class="fa">امتحان یک ایمیج، اجرای سریع یک ابزار</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="en">You can delete the images you pulled if you like (Lesson 1): <code>docker image rm alpine ubuntu</code>.</p>
+  <p class="fa">اگر خواستید، ایمیج‌هایی را که دانلود کردید حذف کنید (درس ۱): <code>docker image rm alpine ubuntu</code>.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">I know when to use <code>run -it</code> and when <code>exec -it</code></span><span class="fa">می‌دانم کی از <code>run -it</code> و کی از <code>exec -it</code> استفاده کنم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>docker run --rm IMAGE COMMAND</code></td><td><span class="en">Run one command in a new container, then delete it</span><span class="fa">اجرای یک دستور در کانتینر جدید و بعد حذف آن</span></td></tr>
+      <tr><td><code>docker run -it --rm IMAGE bash</code></td><td><span class="en">A shell in a new container; <code>exit</code> ends it</span><span class="fa">یک شل در کانتینر جدید؛ <code>exit</code> تمامش می‌کند</span></td></tr>
+      <tr><td><code>docker exec -it NAME bash</code></td><td><span class="en">A shell in an existing, running container</span><span class="fa">یک شل در کانتینر موجود و در حال اجرا</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You can run any command in a container!</span><span class="fa">حالا می‌توانید هر دستوری را در کانتینر اجرا کنید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

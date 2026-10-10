@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 22 · Your own API + database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="22">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Project folder</span><span class="fa">۱ · پوشه‌ی پروژه</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · The API code</span><span class="fa">۲ · کد API</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · The Dockerfile</span><span class="fa">۳ · Dockerfile</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · compose.yaml</span><span class="fa">۴ · compose.yaml</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Start everything</span><span class="fa">۵ · اجرای همه‌چیز</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Why did it restart?</span><span class="fa">۶ · چرا دوباره راه افتاد؟</span></a></li>
+    <li><a href="#s7"><span class="tick">✓</span><span class="en">7 · Use your API</span><span class="fa">۷ · استفاده از API</span></a></li>
+    <li><a href="#s8"><span class="tick">✓</span><span class="en">8 · down, then up</span><span class="fa">۸ · down و دوباره up</span></a></li>
+    <li><a href="#s9"><span class="tick">✓</span><span class="en">9 · Clean up</span><span class="fa">۹ · تمیزکاری</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 22 — Your own API + database</span>
+    <span class="fa">درس ۲۲ — API خودتان + دیتابیس</span>
+  </h1>
+  <p class="en">Time to put it all together. You'll build a small <b>shop API</b> in Python (FastAPI), package it with a <b>Dockerfile</b>, and run it with <b>Compose</b> next to a <b>PostgreSQL</b> database. Your data will survive in a <b>volume</b>.</p>
+  <p class="fa">وقت کنار هم گذاشتن همه‌چیز است. یک <b>API فروشگاهی</b> کوچک با Python (FastAPI) می‌سازید، آن را با یک <b>Dockerfile</b> بسته‌بندی می‌کنید و با <b>Compose</b> کنار یک دیتابیس <b>PostgreSQL</b> اجرا می‌کنید. داده‌هایتان در یک <b>volume</b> باقی می‌مانند.</p>
+  <div class="flow">
+    <div class="box"><b><span class="en">You</span><span class="fa">شما</span></b><small><code>curl</code> / <span class="en">browser</span><span class="fa">مرورگر</span> → <code>localhost:8000</code></small></div>
+    <div class="arrow"><small><code>ports: 8000:8000</code></small></div>
+    <div class="row">
+      <div class="box img"><b><code>api</code></b><small><span class="en">your image (FastAPI)</span><span class="fa">ایمیج شما (FastAPI)</span></small></div>
+      <div class="box ctr"><b><code>db</code></b><small>PostgreSQL · <code>pgdata</code></small></div>
+    </div>
+    <p style="margin:6px 0 0"><small><code>api</code> → <code>db:5432</code> <span class="en">by service name</span><span class="fa">با نام سرویس</span></small></p>
+  </div>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 FOLDER ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Project folder and database settings</span><span class="fa">پوشه‌ی پروژه و تنظیمات دیتابیس</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Make a project folder called <code>shop-api</code> in your home folder and go into it:</p>
+  <p class="fa">یک پوشه‌ی پروژه به نام <code>shop-api</code> در پوشه‌ی خانه‌تان بسازید و واردش شوید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>mkdir ~/shop-api
+cd ~/shop-api</code></pre></div>
+  <p class="en">Create <code>db.env</code> with the database settings (Lesson 11):</p>
+  <p class="fa"><code>db.env</code> را با تنظیمات دیتابیس بسازید (درس ۱۱):</p>
+  <div class="code"><span class="lbl">db.env</span><pre><code>POSTGRES_USER=ali
+POSTGRES_PASSWORD=secret
+POSTGRES_DB=shop</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>db.env</code> is in <code>~/shop-api</code></span><span class="fa"><code>db.env</code> در <code>~/shop-api</code> است</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 CODE ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">The API code</span><span class="fa">کد API</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">List the Python libraries the API needs in <code>requirements.txt</code>:</p>
+  <p class="fa">کتابخانه‌های Python که API لازم دارد را در <code>requirements.txt</code> بنویسید:</p>
+  <div class="code"><span class="lbl">requirements.txt</span><pre><code>fastapi
+uvicorn
+psycopg[binary]</code></pre></div>
+  <p class="en"><code>fastapi</code> builds the API, <code>uvicorn</code> is the web server that runs it, and <code>psycopg</code> talks to PostgreSQL. Now the program, <code>main.py</code>:</p>
+  <p class="fa"><code>fastapi</code> API را می‌سازد، <code>uvicorn</code> وب‌سروری است که آن را اجرا می‌کند و <code>psycopg</code> با PostgreSQL صحبت می‌کند. حالا خود برنامه، <code>main.py</code>:</p>
+  <div class="code"><span class="lbl">main.py</span><pre><code>import os
+
+import psycopg
+from fastapi import FastAPI
+
+app = FastAPI()
+DATABASE_URL = os.environ["DATABASE_URL"]
+
+with psycopg.connect(DATABASE_URL) as conn:
+    conn.execute("CREATE TABLE IF NOT EXISTS products (name text)")
+
+
+@app.get("/products")
+def list_products():
+    with psycopg.connect(DATABASE_URL) as conn:
+        rows = conn.execute("SELECT name FROM products").fetchall()
+    return [row[0] for row in rows]
+
+
+@app.post("/products")
+def add_product(name: str):
+    with psycopg.connect(DATABASE_URL) as conn:
+        conn.execute("INSERT INTO products (name) VALUES (%s)", (name,))
+    return {"added": name}</code></pre></div>
+  <p class="en">You don't need to know Python well. What matters:</p>
+  <p class="fa">لازم نیست Python را خوب بلد باشید. چیزهای مهم:</p>
+  <ul>
+    <li><span class="en">It reads the database address from the <b>environment variable</b> <code>DATABASE_URL</code> (Lesson 11).</span><span class="fa">آدرس دیتابیس را از <b>متغیر محیطی</b> <code>DATABASE_URL</code> می‌خواند (درس ۱۱).</span></li>
+    <li><span class="en">At start, it creates the table <code>products</code> if it doesn't exist.</span><span class="fa">در شروع، اگر جدول <code>products</code> نباشد آن را می‌سازد.</span></li>
+    <li><span class="en"><code>GET /products</code> lists products; <code>POST /products?name=…</code> adds one.</span><span class="fa"><code>GET /products</code> محصولات را فهرست می‌کند؛ <code>POST /products?name=…</code> یکی اضافه می‌کند.</span></li>
+  </ul>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en"><code>requirements.txt</code> and <code>main.py</code> are saved</span><span class="fa"><code>requirements.txt</code> و <code>main.py</code> ذخیره شدند</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 DOCKERFILE ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">The Dockerfile</span><span class="fa">Dockerfile</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">Dockerfile</span><pre><code>FROM python:3.13-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+EXPOSE 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]</code></pre></div>
+  <p class="en">The patterns from Lessons 19 and 20, with three things to notice:</p>
+  <p class="fa">الگوهای درس‌های ۱۹ و ۲۰، با سه نکته‌ی قابل توجه:</p>
+  <ul>
+    <li><span class="en"><code>requirements.txt</code> is copied and installed <b>before</b> the rest of the project (<code>COPY . .</code>), so changing your code won't reinstall the libraries (caching, Lesson 19).</span><span class="fa"><code>requirements.txt</code> <b>قبل از</b> بقیه‌ی پروژه (<code>COPY . .</code>) کپی و نصب می‌شود، تا تغییر کد باعث نصب دوباره‌ی کتابخانه‌ها نشود (cache، درس ۱۹).</span></li>
+    <li><span class="en"><code>--host 0.0.0.0</code> makes uvicorn listen on <b>all</b> network addresses of the container. By default it would only accept connections from <b>inside</b> the container, and <code>-p</code> couldn't reach it.</span><span class="fa"><code>--host 0.0.0.0</code> باعث می‌شود uvicorn روی <b>همه‌ی</b> آدرس‌های شبکه‌ی کانتینر گوش دهد. به‌طور پیش‌فرض فقط اتصال‌های <b>داخل</b> کانتینر را قبول می‌کند و <code>-p</code> نمی‌تواند به آن برسد.</span></li>
+    <li><span class="en"><code>COPY . .</code> would also copy <code>db.env</code>, the password file (Lesson 20). Create <code>.dockerignore</code> to keep it, and the build files, out of the image:</span><span class="fa"><code>COPY . .</code> فایل <code>db.env</code>، یعنی فایل رمز را هم کپی می‌کند (درس ۲۰). <code>.dockerignore</code> را بسازید تا آن و فایل‌های ساخت را بیرون از ایمیج نگه دارد:</span></li>
+  </ul>
+  <div class="code"><span class="lbl">.dockerignore</span><pre><code>db.env
+Dockerfile
+.dockerignore
+compose.yaml</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-2"><span><span class="en"><code>.dockerignore</code> lists <code>db.env</code></span><span class="fa"><code>.dockerignore</code> نام <code>db.env</code> را دارد</span></span></label>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en"><code>Dockerfile</code> is saved in <code>~/shop-api</code></span><span class="fa"><code>Dockerfile</code> در <code>~/shop-api</code> ذخیره شد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 COMPOSE ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en"><code>compose.yaml</code></span><span class="fa"><code>compose.yaml</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">compose.yaml</span><pre><code>services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://ali:secret@db:5432/shop
+    restart: unless-stopped
+  db:
+    image: postgres:alpine
+    env_file: db.env
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+volumes:
+  pgdata:</code></pre></div>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>build: .</code></td><td><span class="en"><b>New:</b> instead of <code>image:</code>, build the image from the Dockerfile in <b>this folder</b> (like <code>docker build .</code>, Lesson 17)</span><span class="fa"><b>جدید:</b> به‌جای <code>image:</code>، ایمیج را از Dockerfile <b>همین پوشه</b> بساز (مثل <code>docker build .</code>، درس ۱۷)</span></td></tr>
+      <tr><td><code>environment:</code></td><td><span class="en"><b>New:</b> set environment variables, like <code>-e</code> (Lesson 11)</span><span class="fa"><b>جدید:</b> تنظیم متغیرهای محیطی، مثل <code>-e</code> (درس ۱۱)</span></td></tr>
+      <tr><td><code>postgresql://ali:secret@db:5432/shop</code></td><td><span class="en">The database address: user <code>ali</code>, password <code>secret</code>, host <b><code>db</code></b> (the service name, Lesson 15), port <code>5432</code>, database <code>shop</code></span><span class="fa">آدرس دیتابیس: کاربر <code>ali</code>، رمز <code>secret</code>، host <b><code>db</code></b> (نام سرویس، درس ۱۵)، پورت <code>5432</code>، دیتابیس <code>shop</code></span></td></tr>
+      <tr><td><code>restart: unless-stopped</code></td><td><span class="en">Restart policy (Lesson 12). You'll see why it matters in step 6</span><span class="fa">سیاست راه‌اندازی مجدد (درس ۱۲). در قدم ۶ می‌بینید چرا مهم است</span></td></tr>
+      <tr><td><code>db:</code></td><td><span class="en">The same database as in Lesson 15: <code>env_file</code> + named volume</span><span class="fa">همان دیتابیس درس ۱۵: <code>env_file</code> + named volume</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en"><code>ls</code> shows 5 files: <code>compose.yaml</code>, <code>db.env</code>, <code>Dockerfile</code>, <code>main.py</code>, <code>requirements.txt</code></span><span class="fa"><code>ls</code> پنج فایل نشان می‌دهد: <code>compose.yaml</code>، <code>db.env</code>، <code>Dockerfile</code>، <code>main.py</code>، <code>requirements.txt</code></span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 UP ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Start everything</span><span class="fa">اجرای همه‌چیز</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker compose up -d</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>[+] Building 27.9s (12/12) FINISHED          <span class="c"># building your image first</span>
+ ✔ Image shop-api-api       Built
+ ✔ Network shop-api_default Created
+ ✔ Volume shop-api_pgdata   Created
+ ✔ Container shop-api-db-1  Started
+ ✔ Container shop-api-api-1 Started</code></pre></div>
+  <p class="en">Compose <b>built your image</b> (because of <code>build: .</code>), then created the network, the volume and both containers. Check them (Lesson 14):</p>
+  <p class="fa">Compose <b>ایمیج شما را ساخت</b> (به خاطر <code>build: .</code>)، بعد شبکه، volume و هر دو کانتینر را ساخت. بررسی‌شان کنید (درس ۱۴):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker compose ps</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>NAME             SERVICE   STATUS         PORTS
+shop-api-api-1   api       Up 3 seconds   0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+shop-api-db-1    db        Up 9 seconds   5432/tcp</code></pre></div>
+  <p class="en">Look closely: <code>api</code> has been up for only <b>3</b> seconds, <code>db</code> for 9. Why?</p>
+  <p class="fa">دقیق نگاه کنید: <code>api</code> فقط <b>۳</b> ثانیه است که روشن است، <code>db</code> ۹ ثانیه. چرا؟</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en">Both <code>api</code> and <code>db</code> are <code>Up</code></span><span class="fa">هر دو <code>api</code> و <code>db</code> در وضعیت <code>Up</code> هستند</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 WHY RESTART ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Why did the API restart?</span><span class="fa">چرا API دوباره راه افتاد؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Read the <code>api</code> service's logs. Like <code>docker logs</code> (Lesson 5), but by service name:</p>
+  <p class="fa">لاگ‌های سرویس <code>api</code> را بخوانید. مثل <code>docker logs</code> (درس ۵)، ولی با نام سرویس:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker compose logs api</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>...
+api-1  | psycopg.OperationalError: connection failed: connection to server at "172.26.0.2", port 5432 failed: Connection refused
+...
+api-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)</code></pre></div>
+  <p class="en">Both containers started at almost the same time. The API tried to connect while PostgreSQL was <b>still starting</b>, got <code>Connection refused</code>, and crashed. Then <code>restart: unless-stopped</code> (Lesson 12) started it again, and this time the database was ready: <code>Uvicorn running</code>. ✅</p>
+  <p class="fa">هر دو کانتینر تقریباً هم‌زمان شروع شدند. API وقتی PostgreSQL <b>هنوز در حال شروع</b> بود سعی کرد وصل شود، <code>Connection refused</code> گرفت و crash کرد. بعد <code>restart: unless-stopped</code> (درس ۱۲) دوباره راهش انداخت و این بار دیتابیس آماده بود: <code>Uvicorn running</code>. ✅</p>
+  <div class="note key">
+    <p class="en">🔑 This happens a lot in real projects: an app starts faster than its database. A restart policy is the simplest fix.</p>
+    <p class="fa">🔑 این در پروژه‌های واقعی زیاد پیش می‌آید: برنامه سریع‌تر از دیتابیسش شروع می‌شود. سیاست راه‌اندازی مجدد ساده‌ترین راه‌حل است.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en">I found <code>Connection refused</code> and then <code>Uvicorn running</code> in the logs</span><span class="fa"><code>Connection refused</code> و بعد <code>Uvicorn running</code> را در لاگ‌ها پیدا کردم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 7 USE API ================= -->
+<section class="card step" id="s7">
+  <h2><span class="num">7</span>
+    <span class="en">Use your API</span><span class="fa">استفاده از API</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Ask for the products. The list is empty at first:</p>
+  <p class="fa">محصولات را بخواهید. اول فهرست خالی است:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>curl localhost:8000/products</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>[]</code></pre></div>
+  <p class="en">Add two products. <code>-X POST</code> sends a <b>POST</b> request instead of the default <b>GET</b>:</p>
+  <p class="fa">دو محصول اضافه کنید. <code>-X POST</code> به‌جای درخواست پیش‌فرض <b>GET</b> یک درخواست <b>POST</b> می‌فرستد:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>curl -X POST "localhost:8000/products?name=coffee"
+curl -X POST "localhost:8000/products?name=tea"</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>{"added":"coffee"}
+{"added":"tea"}</code></pre></div>
+  <p class="en">Ask again:</p>
+  <p class="fa">دوباره بپرسید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>curl localhost:8000/products</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>["coffee","tea"]</code></pre></div>
+  <p class="en">FastAPI also gives you a web page to try the API. Open <a href="http://localhost:8000/docs" target="_blank">http://localhost:8000/docs</a>:</p>
+  <p class="fa">FastAPI یک صفحه‌ی وب هم برای امتحان API می‌دهد. <a href="http://localhost:8000/docs" target="_blank">http://localhost:8000/docs</a> را باز کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8000/docs</div>
+    <div class="page"><h1>FastAPI</h1><p><b>GET</b> /products · <b>POST</b> /products</p></div>
+  </div>
+  <p class="en">Click an endpoint, then <b>Try it out</b>, to call it from the browser.</p>
+  <p class="fa">روی یک endpoint کلیک کنید، بعد <b>Try it out</b> را بزنید تا آن را از مرورگر صدا بزنید.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s7-1"><span><span class="en"><code>GET /products</code> shows <code>["coffee","tea"]</code></span><span class="fa"><code>GET /products</code> نشان می‌دهد <code>["coffee","tea"]</code></span></span></label>
+    <label><input type="checkbox" data-id="s7-2"><span><span class="en">I opened <code>/docs</code> in the browser</span><span class="fa"><code>/docs</code> را در مرورگر باز کردم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 8 DOWN UP ================= -->
+<section class="card step" id="s8">
+  <h2><span class="num">8</span>
+    <span class="en"><code>down</code>, then <code>up</code>: is the data still there?</span><span class="fa"><code>down</code> و دوباره <code>up</code>: داده‌ها هنوز هستند؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Remove the containers and network, then start the project again (Lesson 14):</p>
+  <p class="fa">کانتینرها و شبکه را حذف کنید و پروژه را دوباره اجرا کنید (درس ۱۴):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker compose down
+docker compose up -d</code></pre></div>
+  <p class="en">Ask for the products again:</p>
+  <p class="fa">دوباره محصولات را بخواهید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>curl localhost:8000/products</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>["coffee","tea"]</code></pre></div>
+  <p class="en">✅ New containers, same data: it lives in the <code>pgdata</code> volume (Lessons 9 and 15).</p>
+  <p class="fa">✅ کانتینرهای جدید، همان داده‌ها: در volume ای به نام <code>pgdata</code> است (درس‌های ۹ و ۱۵).</p>
+  <div class="note tip">
+    <p class="en">💡 Changed <code>main.py</code>? Run <code>docker compose up -d --build</code>: <code>--build</code> rebuilds your image first, then replaces the <code>api</code> container.</p>
+    <p class="fa">💡 <code>main.py</code> را تغییر دادید؟ <code>docker compose up -d --build</code> را بزنید: <code>--build</code> اول ایمیج شما را دوباره می‌سازد و بعد کانتینر <code>api</code> را جایگزین می‌کند.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s8-1"><span><span class="en">After <code>down</code> and <code>up</code>, my products are still there</span><span class="fa">بعد از <code>down</code> و <code>up</code>، محصولاتم هنوز هستند</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 9 CLEAN UP ================= -->
+<section class="card step" id="s9">
+  <h2><span class="num">9</span>
+    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Remove everything, <b>including the data</b> (Lesson 15):</p>
+  <p class="fa">همه‌چیز را حذف کنید، <b>حتی داده‌ها</b> (درس ۱۵):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker compose down -v</code></pre></div>
+  <p class="en">Your built image stays; delete it if you like (Lesson 1): <code>docker image rm shop-api-api</code>.</p>
+  <p class="fa">ایمیج ساخته‌شده‌ی شما باقی می‌ماند؛ اگر خواستید حذفش کنید (درس ۱): <code>docker image rm shop-api-api</code>.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s9-1"><span><span class="en">Everything from <code>shop-api</code> is removed</span><span class="fa">همه‌چیزِ <code>shop-api</code> حذف شد</span></span></label>
+  </div>
+</section>
+
+<div class="note tip stuck">
+  <p class="en">📥 <b>Stuck?</b> The finished files of this lesson are in the course folder under <code>examples/22-api-db/</code>. Compare them with yours. Or try the finished version: go into that folder and run <code>docker compose up -d</code>.</p>
+  <p class="fa">📥 <b>گیر کرده‌اید؟</b> فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/22-api-db/</code> هستند. آن‌ها را با فایل‌های خودتان مقایسه کنید. یا نسخه‌ی کامل را امتحان کنید: به همان پوشه بروید و <code>docker compose up -d</code> را اجرا کنید.</p>
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">What you used</span><span class="fa">چیزهایی که استفاده کردید</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><span class="en">Your own image</span><span class="fa">ایمیج خودتان</span></td><td><code>Dockerfile</code>: <code>FROM</code>, <code>WORKDIR</code>, <code>COPY . .</code>, <code>RUN</code>, <code>EXPOSE</code>, <code>CMD</code> + <code>.dockerignore</code> <span class="en">(Lessons 17, 19 and 20)</span><span class="fa">(درس‌های ۱۷، ۱۹ و ۲۰)</span></td></tr>
+      <tr><td><span class="en">Settings</span><span class="fa">تنظیمات</span></td><td><code>environment:</code>, <code>env_file:</code> <span class="en">(Lesson 11)</span><span class="fa">(درس ۱۱)</span></td></tr>
+      <tr><td><span class="en">Data that survives</span><span class="fa">داده‌ای که باقی می‌ماند</span></td><td><span class="en">named volume (Lesson 9)</span><span class="fa">named volume (درس ۹)</span></td></tr>
+      <tr><td><span class="en">Talking by name</span><span class="fa">صحبت با نام</span></td><td><code>db</code> <span class="en">as host (Lesson 13)</span><span class="fa">به‌عنوان host (درس ۱۳)</span></td></tr>
+      <tr><td><span class="en">Coming back after a crash</span><span class="fa">برگشتن بعد از crash</span></td><td><code>restart: unless-stopped</code> <span class="en">(Lesson 12)</span><span class="fa">(درس ۱۲)</span></td></tr>
+      <tr><td><span class="en">One command for all</span><span class="fa">یک دستور برای همه</span></td><td><code>docker compose up -d</code> <span class="en">with</span><span class="fa">با</span> <code>build: .</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You built your own API with a database!</span><span class="fa">API خودتان را با یک دیتابیس ساختید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

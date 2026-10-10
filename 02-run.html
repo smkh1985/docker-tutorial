@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 2 · Run a container</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="02">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Run it</span><span class="fa">۱ · اجرا</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · See the container</span><span class="fa">۲ · دیدن کانتینر</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Run it again</span><span class="fa">۳ · اجرای دوباره</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Image in use</span><span class="fa">۴ · ایمیج در حال استفاده</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Delete the containers</span><span class="fa">۵ · حذف کانتینرها</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Pick your own name</span><span class="fa">۶ · انتخاب نام دلخواه</span></a></li>
+    <li><a href="#s7"><span class="tick">✓</span><span class="en">7 · Delete all stopped: prune</span><span class="fa">۷ · حذف همه‌ی متوقف‌ها: prune</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 2 — Run a container</span>
+    <span class="fa">درس ۲ — اجرای کانتینر</span>
+  </h1>
+  <p class="en">In Lesson 1 you learned that an image is the recipe. Now you'll <b>run</b> the <code>hello-world</code> image to make a container, see it, and delete it.</p>
+  <p class="fa">در درس ۱ یاد گرفتید که ایمیج مثل دستور پخت است. حالا ایمیج <code>hello-world</code> را <b>اجرا</b> می‌کنید تا یک کانتینر ساخته شود، آن را می‌بینید و حذفش می‌کنید.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+  <div class="flow">
+    <div class="box img"><b><span class="en">Image</span><span class="fa">ایمیج</span></b><small><code>hello-world</code></small></div>
+    <div class="arrow"><small><code>docker run</code></small></div>
+    <div class="box ctr"><b><span class="en">Container</span><span class="fa">کانتینر</span></b><small><span class="en">runs, prints a message, exits</span><span class="fa">اجرا می‌شود، پیامی چاپ می‌کند، تمام می‌شود</span></small></div>
+  </div>
+</section>
+
+<!-- ================= 1 RUN ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Run it</span><span class="fa">اجرا</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run hello-world</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+...</code></pre></div>
+  <p class="en"><code>docker run</code> did two things: it <b>created</b> a new container from the image, and <b>started</b> it. The program inside printed the message and finished, so the container stopped.</p>
+  <p class="fa"><code>docker run</code> دو کار کرد: از روی ایمیج یک کانتینر جدید <b>ساخت</b> و آن را <b>اجرا</b> کرد. برنامه‌ی داخل آن پیام را چاپ کرد و تمام شد، پس کانتینر هم متوقف شد.</p>
+  <details class="q">
+    <summary><span class="en">❓ The message says Docker “pulled the image from Docker Hub”. Did it download it again?</span><span class="fa">❓ پیام می‌گوید Docker ایمیج را «از Docker Hub دانلود کرد». یعنی دوباره دانلودش کرد؟</span></summary>
+    <p class="en">No. That text is always the same. The image was already on your PC from Lesson 1, so there was no <code>Unable to find image … locally</code> line at the top. That line only appears when Docker really has to download.</p>
+    <p class="fa">نه. آن متن همیشه ثابت است. ایمیج از درس ۱ روی کامپیوتر شما بود، پس خط <code>Unable to find image … locally</code> در بالای خروجی نیامد. آن خط فقط وقتی می‌آید که Docker واقعاً مجبور به دانلود باشد.</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en">I saw “Hello from Docker!”</span><span class="fa">پیام «Hello from Docker!» را دیدم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 SEE IT ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">See the container</span><span class="fa">دیدن کانتینر</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">The container stopped, but it still exists. List <b>all</b> containers, including stopped ones:</p>
+  <p class="fa">کانتینر متوقف شده، ولی هنوز وجود دارد. <b>همه‌ی</b> کانتینرها را، حتی متوقف‌شده‌ها، فهرست کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker ps -a</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE         COMMAND    CREATED         STATUS                     NAMES
+978227142bc2   hello-world   "/hello"   4 seconds ago   Exited (0) 2 seconds ago   tender_visvesvaraya</code></pre></div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th><span class="en">Column</span><span class="fa">ستون</span></th>
+      <th><span class="en">Meaning</span><span class="fa">معنی</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><code>CONTAINER ID</code></td><td><span class="en">The container's unique ID</span><span class="fa">شناسه‌ی یکتای کانتینر</span></td></tr>
+      <tr><td><code>IMAGE</code></td><td><span class="en">The image it was made from</span><span class="fa">ایمیجی که کانتینر از روی آن ساخته شده</span></td></tr>
+      <tr><td><code>STATUS</code></td><td><span class="en"><code>Exited (0)</code> = finished, and <code>0</code> means no error. A running container shows <code>Up …</code></span><span class="fa"><code>Exited (0)</code> یعنی تمام شده و <code>0</code> یعنی بدون خطا. کانتینر در حال اجرا <code>Up …</code> نشان می‌دهد</span></td></tr>
+      <tr><td><code>NAMES</code></td><td><span class="en">A random name Docker made up. <b>Yours will be different</b></span><span class="fa">یک نام تصادفی که Docker ساخته. <b>نام شما فرق می‌کند</b></span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note tip">
+    <p class="en">Without <code>-a</code>, <code>docker ps</code> shows only <b>running</b> containers, so <code>hello-world</code> wouldn't be there. You may see other containers in your list too; the newest is at the top.</p>
+    <p class="fa">بدون <code>-a</code>، دستور <code>docker ps</code> فقط کانتینرهای <b>در حال اجرا</b> را نشان می‌دهد، پس <code>hello-world</code> در آن نیست. ممکن است کانتینرهای دیگری هم در فهرستتان ببینید؛ جدیدترین در بالاست.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">I found my <code>hello-world</code> container and its random name</span><span class="fa">کانتینر <code>hello-world</code> و نام تصادفی‌اش را پیدا کردم</span></span></label>
+    <label><input type="checkbox" data-id="s2-2"><span><span class="en">Its status is <code>Exited (0)</code></span><span class="fa">وضعیتش <code>Exited (0)</code> است</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 RUN AGAIN ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Run it again</span><span class="fa">اجرای دوباره</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Repeat steps 1 and 2: run the image again, then list all containers. Each run makes a <b>new</b> container:</p>
+  <p class="fa">قدم‌های ۱ و ۲ را تکرار کنید: ایمیج را دوباره اجرا کنید و بعد همه‌ی کانتینرها را فهرست کنید. هر اجرا یک کانتینر <b>جدید</b> می‌سازد:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run hello-world
+docker ps -a</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE         COMMAND    CREATED         STATUS                     NAMES
+5255154c4676   hello-world   "/hello"   4 seconds ago   Exited (0) 2 seconds ago   eager_cannon
+978227142bc2   hello-world   "/hello"   8 seconds ago   Exited (0) 5 seconds ago   tender_visvesvaraya</code></pre></div>
+  <p class="en">Two containers, two IDs, two names, made from <b>one</b> image. That's the recipe and the cakes from Lesson 1.</p>
+  <p class="fa">دو کانتینر، دو شناسه، دو نام، از روی <b>یک</b> ایمیج. همان دستور پخت و کیک‌های درس ۱.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I see two <code>hello-world</code> containers with different names</span><span class="fa">دو کانتینر <code>hello-world</code> با نام‌های متفاوت می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 IMAGE IN USE ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">The image is now in use</span><span class="fa">حالا ایمیج در حال استفاده است</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image ls hello-world</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>IMAGE                ID             DISK USAGE   CONTENT SIZE   EXTRA
+hello-world:latest   5e2309035332       25.9kB         9.49kB   U</code></pre></div>
+  <p class="en">Remember the <code>EXTRA</code> column from Lesson 1? <code>U</code> means containers are <b>using</b> this image, even stopped ones. Docker won't let you delete an image while a container still needs it.</p>
+  <p class="fa">ستون <code>EXTRA</code> از درس ۱ یادتان هست؟ <code>U</code> یعنی کانتینرهایی از این ایمیج <b>استفاده</b> می‌کنند، حتی اگر متوقف باشند. تا وقتی کانتینری به ایمیج نیاز دارد، Docker اجازه‌ی حذف آن را نمی‌دهد.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">I see <code>U</code> in the <code>EXTRA</code> column</span><span class="fa"><code>U</code> را در ستون <code>EXTRA</code> می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 DELETE ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Delete the containers</span><span class="fa">حذف کانتینرها</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Use <code>docker rm</code> with <b>your</b> container names (or IDs) from <code>docker ps -a</code>. You can give several at once:</p>
+  <p class="fa">از <code>docker rm</code> با نام‌ها (یا شناسه‌های) کانتینرهای <b>خودتان</b> از <code>docker ps -a</code> استفاده کنید. می‌توانید چند تا را با هم بدهید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker rm tender_visvesvaraya eager_cannon   <span class="c"># use YOUR names</span></code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>tender_visvesvaraya
+eager_cannon</code></pre></div>
+  <p class="en">Now check both lists. The containers are gone, and the image is still there but no longer in use:</p>
+  <p class="fa">حالا هر دو فهرست را بررسی کنید. کانتینرها حذف شده‌اند و ایمیج هنوز هست، ولی دیگر در حال استفاده نیست:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps -a
+docker image ls hello-world</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>IMAGE                ID             DISK USAGE   CONTENT SIZE   EXTRA
+hello-world:latest   5e2309035332       25.9kB         9.49kB         <span class="c"># no U</span></code></pre></div>
+  <div class="note key">
+    <p class="en">🔑 <code>docker rm</code> deletes a <b>container</b>. <code>docker image rm</code> deletes an <b>image</b>. Don't mix them up.</p>
+    <p class="fa">🔑 <code>docker rm</code> یک <b>کانتینر</b> را حذف می‌کند. <code>docker image rm</code> یک <b>ایمیج</b> را. این دو را با هم اشتباه نگیرید.</p>
+  </div>
+  <div class="note tip">
+    <p class="en">💡 <b>Shortcut:</b> <code>docker run --rm hello-world</code> deletes the container automatically when it exits. That's what you used in Lesson 0.</p>
+    <p class="fa">💡 <b>میان‌بُر:</b> <code>docker run --rm hello-world</code> کانتینر را بعد از تمام شدن به‌طور خودکار حذف می‌کند. همان چیزی که در درس ۰ استفاده کردید.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en">My <code>hello-world</code> containers are gone from <code>docker ps -a</code></span><span class="fa">کانتینرهای <code>hello-world</code> من از <code>docker ps -a</code> حذف شده‌اند</span></span></label>
+    <label><input type="checkbox" data-id="s5-2"><span><span class="en">The image has no <code>U</code> anymore</span><span class="fa">ایمیج دیگر <code>U</code> ندارد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 NAME ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Pick your own name with <code>--name</code></span><span class="fa">انتخاب نام دلخواه با <code>--name</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Copying names like <code>tender_visvesvaraya</code> in step 5 was annoying, and they change every time. Give the container a name yourself:</p>
+  <p class="fa">کپی کردن نام‌هایی مثل <code>tender_visvesvaraya</code> در قدم ۵ آزاردهنده بود، و هر بار هم عوض می‌شوند. خودتان به کانتینر نام بدهید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run --name hello hello-world
+docker ps -a</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE         COMMAND    CREATED         STATUS                     NAMES
+5d317f21b58b   hello-world   "/hello"   4 seconds ago   Exited (0) 2 seconds ago   hello</code></pre></div>
+  <p class="en">Now you know the name in advance, so later commands are easy to type, and the same for everyone. Delete the container using its new name:</p>
+  <p class="fa">حالا نام را از قبل می‌دانید، پس دستورهای بعدی راحت تایپ می‌شوند و برای همه یکسان هستند. کانتینر را با نام جدیدش حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm hello</code></pre></div>
+  <details class="q">
+    <summary><span class="en">❓ What if I use the same name twice?</span><span class="fa">❓ اگر یک نام را دو بار استفاده کنم چه می‌شود؟</span></summary>
+    <p class="en">Names must be unique. If a container called <code>hello</code> still exists (even stopped), Docker refuses:</p>
+    <p class="fa">نام‌ها باید یکتا باشند. اگر کانتینری به نام <code>hello</code> هنوز وجود داشته باشد (حتی متوقف)، Docker قبول نمی‌کند:</p>
+    <div class="code"><span class="lbl">output</span><pre><code>docker: Error response from daemon: Conflict. The container name "/hello" is already in use by container "c0daa80731df…". You have to remove (or rename) that container to be able to reuse that name.</code></pre></div>
+    <p class="en">Fix: <code>docker rm hello</code> first, then run again.</p>
+    <p class="fa">راه‌حل: اول <code>docker rm hello</code>، بعد دوباره اجرا کنید.</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en"><code>docker ps -a</code> showed my container as <code>hello</code></span><span class="fa"><code>docker ps -a</code> کانتینرم را با نام <code>hello</code> نشان داد</span></span></label>
+    <label><input type="checkbox" data-id="s6-2"><span><span class="en">I deleted it with <code>docker rm hello</code></span><span class="fa">آن را با <code>docker rm hello</code> حذف کردم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 7 PRUNE ================= -->
+<section class="card step" id="s7">
+  <h2><span class="num">7</span>
+    <span class="en">Delete all stopped containers at once: <code>prune</code></span><span class="fa">حذف همه‌ی کانتینرهای متوقف با هم: <code>prune</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Copying names to delete containers one by one gets tiring. <code>prune</code> deletes <b>all stopped containers</b> in one go:</p>
+  <p class="fa">کپی کردن نام‌ها و حذف یکی‌یکی کانتینرها خسته‌کننده می‌شود. <code>prune</code> <b>همه‌ی کانتینرهای متوقف</b> را یک‌جا حذف می‌کند:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker container prune</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>WARNING! This will remove all stopped containers.
+Are you sure you want to continue? [y/N]</code></pre></div>
+  <p class="en">It asks first. Type <kbd>y</kbd> and <kbd>Enter</kbd> to delete; it then lists the deleted container IDs and the disk space it freed. Anything else (or just <kbd>Enter</kbd>) cancels.</p>
+  <p class="fa">اول سؤال می‌پرسد. برای حذف <kbd>y</kbd> و <kbd>Enter</kbd> را بزنید؛ بعد شناسه‌ی کانتینرهای حذف‌شده و فضای آزادشده را نشان می‌دهد. هر چیز دیگری (یا فقط <kbd>Enter</kbd>) لغوش می‌کند.</p>
+  <div class="note warn">
+    <p class="en">⚠ <b>“All” really means all</b>: every stopped container on your PC, not only the ones from this course. Other projects' stopped containers, and everything inside them, are deleted too. <b>Always run <code>docker ps -a</code> first</b> and check the list. If you see anything you want to keep, answer <kbd>N</kbd> and delete by name with <code>docker rm</code> instead.</p>
+    <p class="fa">⚠ <b>«همه» واقعاً یعنی همه</b>: همه‌ی کانتینرهای متوقف روی کامپیوتر شما، نه فقط کانتینرهای این دوره. کانتینرهای متوقف پروژه‌های دیگر هم، با هر چه داخلشان است، حذف می‌شوند. <b>همیشه اول <code>docker ps -a</code> را اجرا کنید</b> و فهرست را بررسی کنید. اگر چیزی دیدید که می‌خواهید نگه دارید، <kbd>N</kbd> را بزنید و به‌جایش با <code>docker rm</code> و نام، حذف کنید.</p>
+  </div>
+  <p class="en">Running containers are never touched; only stopped ones.</p>
+  <p class="fa">به کانتینرهای در حال اجرا دست نمی‌زند؛ فقط متوقف‌ها.</p>
+  <details class="q">
+    <summary><span class="en">❓ Are there other <code>prune</code> commands?</span><span class="fa">❓ دستورهای <code>prune</code> دیگری هم هست؟</span></summary>
+    <div class="table-wrap">
+    <table>
+      <tbody>
+        <tr><td><code>docker container prune</code></td><td><span class="en">all stopped containers</span><span class="fa">همه‌ی کانتینرهای متوقف</span></td></tr>
+        <tr><td><code>docker image prune</code></td><td><span class="en">images with no name (untagged)</span><span class="fa">ایمیج‌های بدون نام (بدون تگ)</span></td></tr>
+        <tr><td><code>docker volume prune</code></td><td><span class="en">unused volumes. ⚠ This can delete <b>databases</b>! (volumes: Lessons 8–9)</span><span class="fa">volumeهای بلااستفاده. ⚠ این می‌تواند <b>دیتابیس‌ها</b> را حذف کند! (volumeها: درس‌های ۸ و ۹)</span></td></tr>
+        <tr><td><code>docker system prune</code></td><td><span class="en">several of these at once</span><span class="fa">چند مورد از این‌ها با هم</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="en">They all ask before deleting, and they all work on your <b>whole</b> PC. Read the warning they print before answering <kbd>y</kbd>.</p>
+    <p class="fa">همه‌شان قبل از حذف سؤال می‌پرسند، و همه روی <b>کل</b> کامپیوتر شما کار می‌کنند. قبل از زدن <kbd>y</kbd> هشداری را که چاپ می‌کنند بخوانید.</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s7-1"><span><span class="en">I know <code>docker container prune</code> deletes <b>every</b> stopped container on my PC</span><span class="fa">می‌دانم <code>docker container prune</code> <b>همه‌ی</b> کانتینرهای متوقف روی کامپیوترم را حذف می‌کند</span></span></label>
+    <label><input type="checkbox" data-id="s7-2"><span><span class="en">I check <code>docker ps -a</code> before I answer <kbd>y</kbd></span><span class="fa">قبل از زدن <kbd>y</kbd>، <code>docker ps -a</code> را بررسی می‌کنم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>docker run IMAGE</code></td><td><span class="en">Create a new container from an image and start it</span><span class="fa">ساختن یک کانتینر جدید از ایمیج و اجرای آن</span></td></tr>
+      <tr><td><code>docker ps -a</code></td><td><span class="en">List all containers, including stopped ones</span><span class="fa">فهرست همه‌ی کانتینرها، حتی متوقف‌شده‌ها</span></td></tr>
+      <tr><td><code>docker run --name NAME IMAGE</code></td><td><span class="en">Run, and give the container your own name</span><span class="fa">اجرا، با نام دلخواه برای کانتینر</span></td></tr>
+      <tr><td><code>docker rm NAME</code></td><td><span class="en">Delete a container</span><span class="fa">حذف کانتینر</span></td></tr>
+      <tr><td><code>docker container prune</code></td><td><span class="en">Delete <b>all</b> stopped containers (asks first; check <code>docker ps -a</code>!)</span><span class="fa">حذف <b>همه‌ی</b> کانتینرهای متوقف (اول سؤال می‌پرسد؛ <code>docker ps -a</code> را بررسی کنید!)</span></td></tr>
+      <tr><td><code>docker run --rm IMAGE</code></td><td><span class="en">Run, then delete the container automatically</span><span class="fa">اجرا، و بعد حذف خودکار کانتینر</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You ran your first containers!</span><span class="fa">اولین کانتینرهایتان را اجرا کردید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

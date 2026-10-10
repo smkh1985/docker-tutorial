@@ -1,0 +1,21 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "8501:8501"
+    environment:
+      API_URL: http://api:8000
+    restart: unless-stopped
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://ali:secret@db:5432/shop
+    restart: unless-stopped
+  db:
+    image: postgres:alpine
+    env_file: db.env
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+volumes:
+  pgdata:

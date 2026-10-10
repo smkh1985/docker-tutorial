@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 20 · Copy a whole project</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="20">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · A small project</span><span class="fa">۱ · یک پروژه‌ی کوچک</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · COPY . . and EXPOSE</span><span class="fa">۲ · COPY . . و EXPOSE</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Build and run</span><span class="fa">۳ · ساخت و اجرا</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · What got copied?</span><span class="fa">۴ · چه چیزی کپی شد؟</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · .dockerignore</span><span class="fa">۵ · ‎.dockerignore</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · ENV</span><span class="fa">۶ · ENV</span></a></li>
+    <li><a href="#s7"><span class="tick">✓</span><span class="en">7 · Clean up</span><span class="fa">۷ · تمیزکاری</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 20 — Copy a whole project</span>
+    <span class="fa">درس ۲۰ — کپی کل پروژه</span>
+  </h1>
+  <p class="en">So far you copied files one by one. Real projects have many files, so Dockerfiles usually copy the <b>whole folder</b> with <code>COPY . .</code>. That's convenient, and dangerous: it copies <b>everything</b>, secrets included. You'll see the problem, fix it with <code>.dockerignore</code>, and meet two more instructions: <code>EXPOSE</code> and <code>ENV</code>.</p>
+  <p class="fa">تا الان فایل‌ها را یکی‌یکی کپی کردید. پروژه‌های واقعی فایل‌های زیادی دارند، پس Dockerfileها معمولاً <b>کل پوشه</b> را با <code>COPY . .</code> کپی می‌کنند. راحت است، و خطرناک: <b>همه‌چیز</b> را کپی می‌کند، حتی رمزها را. مشکل را می‌بینید، با <code>.dockerignore</code> درستش می‌کنید و با دو دستور دیگر آشنا می‌شوید: <code>EXPOSE</code> و <code>ENV</code>.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 PROJECT ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">A small project, with a secret</span><span class="fa">یک پروژه‌ی کوچک، با یک راز</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Make a project folder called <code>site-app</code> in your home folder and go into it:</p>
+  <p class="fa">یک پوشه‌ی پروژه به نام <code>site-app</code> در پوشه‌ی خانه‌تان بسازید و واردش شوید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>mkdir ~/site-app
+cd ~/site-app</code></pre></div>
+  <p class="en">Create two pages: <code>index.html</code> with <code>&lt;h1&gt;My site&lt;/h1&gt;</code>, and <code>about.html</code> with <code>&lt;h1&gt;About us&lt;/h1&gt;</code> (Lesson 6):</p>
+  <p class="fa">دو صفحه بسازید: <code>index.html</code> با <code>&lt;h1&gt;My site&lt;/h1&gt;</code>، و <code>about.html</code> با <code>&lt;h1&gt;About us&lt;/h1&gt;</code> (درس ۶):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>echo '&lt;h1&gt;My site&lt;/h1&gt;' &gt; index.html
+echo '&lt;h1&gt;About us&lt;/h1&gt;' &gt; about.html</code></pre></div>
+  <p class="en">Real projects also keep secrets next to the code, like the env file from Lesson 11. Create <code>db.env</code> with <code>nano</code>:</p>
+  <p class="fa">پروژه‌های واقعی رمزها را هم کنار کد نگه می‌دارند، مثل env file درس ۱۱. با <code>nano</code> فایل <code>db.env</code> را بسازید:</p>
+  <div class="code"><span class="lbl">db.env</span><pre><code>POSTGRES_USER=ali
+POSTGRES_PASSWORD=secret
+POSTGRES_DB=shop</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>ls</code> shows <code>about.html</code>, <code>db.env</code>, <code>index.html</code></span><span class="fa"><code>ls</code> فایل‌های <code>about.html</code>، <code>db.env</code>، <code>index.html</code> را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 DOCKERFILE ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en"><code>COPY . .</code> and <code>EXPOSE</code></span><span class="fa"><code>COPY . .</code> و <code>EXPOSE</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Create <code>Dockerfile</code> with <code>nano</code>:</p>
+  <p class="fa">با <code>nano</code> فایل <code>Dockerfile</code> را بسازید:</p>
+  <div class="code"><span class="lbl">Dockerfile</span><pre><code>FROM python:3.13-slim
+WORKDIR /app
+COPY . .
+EXPOSE 8000
+CMD ["python", "-m", "http.server", "8000"]</code></pre></div>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>COPY . .</code></td><td><span class="en"><b>New:</b> copy <b>everything</b> in this folder (the first <code>.</code>) into the <code>WORKDIR</code> (the second <code>.</code>)</span><span class="fa"><b>جدید:</b> <b>همه‌چیزِ</b> این پوشه (<code>.</code> اول) را به <code>WORKDIR</code> (<code>.</code> دوم) کپی کن</span></td></tr>
+      <tr><td><code>EXPOSE 8000</code></td><td><span class="en"><b>New:</b> document that the app listens on port 8000. It does <b>not</b> publish the port: you still need <code>-p</code> (Lesson 4)</span><span class="fa"><b>جدید:</b> مستند می‌کند که برنامه روی پورت 8000 گوش می‌دهد. پورت را منتشر <b>نمی‌کند</b>: هنوز به <code>-p</code> نیاز دارید (درس ۴)</span></td></tr>
+      <tr><td><code>python -m http.server 8000</code></td><td><span class="en">Python's built-in web server: it serves the files of the current folder on port 8000</span><span class="fa">وب‌سرور داخلی Python: فایل‌های پوشه‌ی فعلی را روی پورت 8000 سرو می‌کند</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en"><code>Dockerfile</code> is saved in <code>~/site-app</code></span><span class="fa"><code>Dockerfile</code> در <code>~/site-app</code> ذخیره شد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 BUILD RUN ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Build and run</span><span class="fa">ساخت و اجرا</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Build the image <code>site-app</code>:</p>
+  <p class="fa">ایمیج <code>site-app</code> را بسازید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t site-app .</code></pre></div>
+  <p class="en">Run it in the background, named <code>site</code>, with port 8080 on your PC → 8000 in the container:</p>
+  <p class="fa">آن را در پس‌زمینه با نام <code>site</code> اجرا کنید، با پورت 8080 کامپیوتر شما ← 8000 کانتینر:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name site -p 8080:8000 site-app</code></pre></div>
+  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a>:</p>
+  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را باز کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>My site</h1></div>
+  </div>
+  <details class="q">
+    <summary><span class="en">❓ So what does <code>EXPOSE</code> actually do?</span><span class="fa">❓ پس <code>EXPOSE</code> واقعاً چه کار می‌کند؟</span></summary>
+    <p class="en">It's a note for people and tools. Run the image <b>without</b> <code>-p</code> and <code>docker ps</code> still shows the port in <code>PORTS</code>, just not published:</p>
+    <p class="fa">یک یادداشت برای آدم‌ها و ابزارهاست. ایمیج را <b>بدون</b> <code>-p</code> اجرا کنید؛ <code>docker ps</code> باز هم پورت را در <code>PORTS</code> نشان می‌دهد، فقط منتشرنشده:</p>
+    <div class="code"><span class="lbl">output</span><pre><code>PORTS
+8000/tcp</code></pre></div>
+    <p class="en">That's why nginx showed <code>80/tcp</code> in Lesson 3: its Dockerfile has <code>EXPOSE 80</code> (you saw it in <code>docker history</code>, Lesson 16).</p>
+    <p class="fa">برای همین nginx در درس ۳ <code>80/tcp</code> را نشان داد: Dockerfile آن <code>EXPOSE 80</code> دارد (آن را در <code>docker history</code>، درس ۱۶ دیدید).</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">The browser shows “My site”</span><span class="fa">مرورگر «My site» را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 WHAT GOT COPIED ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">What got copied?</span><span class="fa">چه چیزی کپی شد؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">List <b>all</b> files in the image's <code>/app</code>. Run <code>ls -a</code> in a new container from <code>site-app</code>, and delete it afterwards (Lesson 7):</p>
+  <p class="fa"><b>همه‌ی</b> فایل‌های <code>/app</code> در ایمیج را فهرست کنید. <code>ls -a</code> را در یک کانتینر جدید از <code>site-app</code> اجرا کنید و بعد حذفش کنید (درس ۷):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run --rm site-app ls -a</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>.
+..
+Dockerfile
+about.html
+db.env          <span class="c"># ← your secret, inside the image!</span>
+index.html</code></pre></div>
+  <p class="en">Worse: the web server serves <b>every</b> file in the folder. Open <a href="http://localhost:8080/db.env" target="_blank">http://localhost:8080/db.env</a>:</p>
+  <p class="fa">بدتر: وب‌سرور <b>همه‌ی</b> فایل‌های پوشه را سرو می‌کند. <a href="http://localhost:8080/db.env" target="_blank">http://localhost:8080/db.env</a> را باز کنید:</p>
+  <div class="browser err">
+    <div class="bar">localhost:8080/db.env</div>
+    <div class="page"><p style="font-family:'JetBrains Mono',monospace;color:var(--text)">POSTGRES_USER=ali<br>POSTGRES_PASSWORD=secret<br>POSTGRES_DB=shop</p></div>
+  </div>
+  <p class="en">😱 Anyone who can open your site can read your database password. And anyone who gets your <b>image</b> can read it too, even if you never run it.</p>
+  <p class="fa">😱 هر کسی که بتواند سایت شما را باز کند، رمز دیتابیس شما را می‌خواند. و هر کسی که <b>ایمیج</b> شما را داشته باشد هم می‌تواند آن را بخواند، حتی اگر هیچ‌وقت اجرایش نکنید.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">I saw <code>db.env</code> in the image and its password in the browser</span><span class="fa"><code>db.env</code> را در ایمیج و رمزش را در مرورگر دیدم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 DOCKERIGNORE ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Keep files out with <code>.dockerignore</code></span><span class="fa">بیرون نگه داشتن فایل‌ها با <code>.dockerignore</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">A file named <code>.dockerignore</code> lists files that <code>docker build</code> must <b>never</b> see, so <code>COPY</code> can't copy them. Create it with <code>nano</code> (the name starts with a dot):</p>
+  <p class="fa">فایلی به نام <code>.dockerignore</code> فایل‌هایی را فهرست می‌کند که <code>docker build</code> <b>هرگز</b> نباید ببیند، پس <code>COPY</code> نمی‌تواند کپی‌شان کند. با <code>nano</code> بسازیدش (نامش با نقطه شروع می‌شود):</p>
+  <div class="code"><span class="lbl">.dockerignore</span><pre><code>db.env
+Dockerfile
+.dockerignore</code></pre></div>
+  <p class="en">One name per line. <code>Dockerfile</code> and <code>.dockerignore</code> are only needed for building, so they don't belong in the image either.</p>
+  <p class="fa">در هر خط یک نام. <code>Dockerfile</code> و <code>.dockerignore</code> فقط برای ساختن لازم‌اند، پس جایشان در ایمیج هم نیست.</p>
+  <p class="en">Rebuild the image, delete <code>site</code> in one command, and run it again (step 3):</p>
+  <p class="fa">ایمیج را دوباره بسازید، <code>site</code> را با یک دستور حذف کنید و دوباره اجرایش کنید (قدم ۳):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t site-app .
+docker rm -f site
+docker run -d --name site -p 8080:8000 site-app</code></pre></div>
+  <p class="en">Check what's inside now (step 4):</p>
+  <p class="fa">ببینید حالا داخلش چیست (قدم ۴):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run --rm site-app ls -a</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>.
+..
+about.html
+index.html</code></pre></div>
+  <p class="en">Reload <a href="http://localhost:8080/db.env" target="_blank">localhost:8080/db.env</a>:</p>
+  <p class="fa"><a href="http://localhost:8080/db.env" target="_blank">localhost:8080/db.env</a> را reload کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8080/db.env</div>
+    <div class="page"><h1>Error response</h1><p>Error code: 404 · Message: File not found.</p></div>
+  </div>
+  <div class="note key">
+    <p class="en">🔑 Whenever you use <code>COPY . .</code>, add a <code>.dockerignore</code>. Put in it: secrets (<code>.env</code> files), <code>.git</code>, caches and anything else the app doesn't need. It's like <code>.gitignore</code>, but for images.</p>
+    <p class="fa">🔑 هر وقت از <code>COPY . .</code> استفاده می‌کنید، یک <code>.dockerignore</code> اضافه کنید. داخلش بگذارید: رمزها (فایل‌های <code>.env</code>)، <code>.git</code>، cacheها و هر چیز دیگری که برنامه لازم ندارد. مثل <code>.gitignore</code> است، ولی برای ایمیج‌ها.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en"><code>db.env</code> is no longer in the image, and <code>/db.env</code> gives 404</span><span class="fa"><code>db.env</code> دیگر در ایمیج نیست و <code>/db.env</code> خطای 404 می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 ENV ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Default settings with <code>ENV</code></span><span class="fa">تنظیمات پیش‌فرض با <code>ENV</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">In Lesson 11 you set environment variables with <code>-e</code> when <b>running</b>. <code>ENV</code> sets one in the <b>image</b>, as a default. Add this line to <code>Dockerfile</code>, right after <code>WORKDIR /app</code>:</p>
+  <p class="fa">در درس ۱۱ متغیرهای محیطی را هنگام <b>اجرا</b> با <code>-e</code> تنظیم کردید. <code>ENV</code> یکی را در <b>ایمیج</b>، به‌عنوان پیش‌فرض، تنظیم می‌کند. این خط را درست بعد از <code>WORKDIR /app</code> به <code>Dockerfile</code> اضافه کنید:</p>
+  <div class="code"><span class="lbl">Dockerfile</span><pre><code>ENV SITE_NAME="My site"</code></pre></div>
+  <p class="en">Rebuild (step 3), then print the variable in a new container:</p>
+  <p class="fa">دوباره بسازید (قدم ۳)، بعد متغیر را در یک کانتینر جدید چاپ کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t site-app .</code></pre></div>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run --rm site-app printenv SITE_NAME
+docker run --rm -e SITE_NAME="Test site" site-app printenv SITE_NAME</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>My site          <span class="c"># the default, from ENV</span>
+Test site        <span class="c"># -e replaced it</span></code></pre></div>
+  <p class="en"><code>ENV</code> gives a default that's always there; <code>-e</code> can still change it for one container. You saw image defaults like this in Lesson 11: PostgreSQL's <code>PG_VERSION</code> and <code>PGDATA</code> came from <code>ENV</code> lines in its Dockerfile.</p>
+  <p class="fa"><code>ENV</code> یک مقدار پیش‌فرض می‌دهد که همیشه هست؛ <code>-e</code> هنوز می‌تواند آن را برای یک کانتینر تغییر دهد. پیش‌فرض‌های این‌چنینی را در درس ۱۱ دیدید: <code>PG_VERSION</code> و <code>PGDATA</code> در PostgreSQL از خط‌های <code>ENV</code> در Dockerfile آن آمده بودند.</p>
+  <div class="note warn">
+    <p class="en">⚠ Never put passwords in <code>ENV</code>: they'd be baked into the image for anyone to read. Pass them at run time (<code>-e</code>, <code>--env-file</code>) instead.</p>
+    <p class="fa">⚠ هرگز رمز را در <code>ENV</code> نگذارید: داخل ایمیج می‌ماند و هر کسی می‌تواند بخواندش. به‌جایش هنگام اجرا بدهید (<code>-e</code>، <code>--env-file</code>).</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en">I saw the default <code>My site</code>, and <code>-e</code> replace it</span><span class="fa">مقدار پیش‌فرض <code>My site</code> را دیدم و اینکه <code>-e</code> جایگزینش کرد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 7 CLEAN UP ================= -->
+<section class="card step" id="s7">
+  <h2><span class="num">7</span>
+    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f site
+docker image rm site-app</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s7-1"><span><span class="en"><code>site</code> and <code>site-app</code> are deleted</span><span class="fa"><code>site</code> و <code>site-app</code> حذف شدند</span></span></label>
+  </div>
+</section>
+
+<div class="note tip stuck">
+  <p class="en">📥 <b>Stuck?</b> The finished files of this lesson are in the course folder under <code>examples/20-copy-project/</code>. Compare them with yours. Or try the finished version: go into that folder and run <code>docker build -t site-app .</code>.</p>
+  <p class="fa">📥 <b>گیر کرده‌اید؟</b> فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/20-copy-project/</code> هستند. آن‌ها را با فایل‌های خودتان مقایسه کنید. یا نسخه‌ی کامل را امتحان کنید: به همان پوشه بروید و <code>docker build -t site-app .</code> را اجرا کنید.</p>
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>COPY . .</code></td><td><span class="en">Copy the whole folder into the <code>WORKDIR</code></span><span class="fa">کپی کل پوشه به <code>WORKDIR</code></span></td></tr>
+      <tr><td><code>.dockerignore</code></td><td><span class="en">Files the build must never see: secrets, <code>.git</code>, caches</span><span class="fa">فایل‌هایی که build هرگز نباید ببیند: رمزها، <code>.git</code>، cacheها</span></td></tr>
+      <tr><td><code>EXPOSE PORT</code></td><td><span class="en">Document the app's port (doesn't publish it)</span><span class="fa">مستند کردن پورت برنامه (منتشرش نمی‌کند)</span></td></tr>
+      <tr><td><code>ENV NAME=value</code></td><td><span class="en">A default environment variable in the image; <code>-e</code> overrides it. No passwords!</span><span class="fa">یک متغیر محیطی پیش‌فرض در ایمیج؛ <code>-e</code> جایگزینش می‌کند. رمز نگذارید!</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">Your images keep secrets out!</span><span class="fa">ایمیج‌های شما رمزها را بیرون نگه می‌دارند!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 17 · Your first Dockerfile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="17">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Write a Dockerfile</span><span class="fa">۱ · نوشتن Dockerfile</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Build your image</span><span class="fa">۲ · ساختن ایمیج</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · See your image</span><span class="fa">۳ · دیدن ایمیج</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Run it</span><span class="fa">۴ · اجرای آن</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Edit the page?</span><span class="fa">۵ · ویرایش صفحه؟</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Rebuild to update</span><span class="fa">۶ · ساخت دوباره</span></a></li>
+    <li><a href="#s7"><span class="tick">✓</span><span class="en">7 · Clean up</span><span class="fa">۷ · تمیزکاری</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 17 — Your first Dockerfile</span>
+    <span class="fa">درس ۱۷ — اولین Dockerfile شما</span>
+  </h1>
+  <p class="en">In Lesson 16 you made an image by hand with <code>commit</code>, but nobody could see what was inside or repeat it. A <b>Dockerfile</b> fixes that: you <b>write down</b> the steps, and Docker builds the image from them. Anyone can read it and build exactly the same image again.</p>
+  <p class="fa">در درس ۱۶ با <code>commit</code> یک ایمیج را با دست ساختید، ولی هیچ‌کس نمی‌توانست ببیند داخلش چیست یا آن را تکرار کند. <b>Dockerfile</b> این را حل می‌کند: مراحل را <b>می‌نویسید</b> و Docker ایمیج را از روی آن‌ها می‌سازد. هر کسی می‌تواند آن را بخواند و دقیقاً همان ایمیج را دوباره بسازد.</p>
+  <div class="flow">
+    <div class="box"><b>Dockerfile</b><small><span class="en">the recipe you write</span><span class="fa">دستور پختی که می‌نویسید</span></small></div>
+    <div class="arrow"><small><code>docker build</code></small></div>
+    <div class="box img"><b><span class="en">Your image</span><span class="fa">ایمیج شما</span></b><small><code>my-site</code></small></div>
+    <div class="arrow"><small><code>docker run</code></small></div>
+    <div class="box ctr"><b><span class="en">Container</span><span class="fa">کانتینر</span></b></div>
+  </div>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 WRITE ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Write a Dockerfile</span><span class="fa">نوشتن Dockerfile</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Go into your <code>my-site</code> folder from Lesson 10 and create a file named exactly <code>Dockerfile</code>:</p>
+  <p class="fa">به پوشه‌ی <code>my-site</code> از درس ۱۰ بروید و فایلی با نام دقیقاً <code>Dockerfile</code> بسازید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>cd ~/my-site
+nano Dockerfile</code></pre></div>
+  <p class="en">Type these two lines:</p>
+  <p class="fa">این دو خط را تایپ کنید:</p>
+  <div class="code"><span class="lbl">Dockerfile</span><pre><code>FROM nginx
+COPY index.html /usr/share/nginx/html/index.html</code></pre></div>
+  <p class="en">Save with <kbd>Ctrl</kbd>+<kbd>O</kbd>, <kbd>Enter</kbd>, and exit with <kbd>Ctrl</kbd>+<kbd>X</kbd>.</p>
+  <p class="fa">با <kbd>Ctrl</kbd>+<kbd>O</kbd> و <kbd>Enter</kbd> ذخیره کنید و با <kbd>Ctrl</kbd>+<kbd>X</kbd> خارج شوید.</p>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>FROM nginx</code></td><td><span class="en">Start from the <code>nginx</code> image. Everything nginx has, your image has too</span><span class="fa">از ایمیج <code>nginx</code> شروع کن. هر چه nginx دارد، ایمیج شما هم دارد</span></td></tr>
+      <tr><td><code>COPY index.html …</code></td><td><span class="en">Copy <code>index.html</code> from this folder <b>into the image</b>, where nginx looks for its home page</span><span class="fa"><code>index.html</code> را از این پوشه <b>داخل ایمیج</b> کپی کن، جایی که nginx صفحه‌ی اصلی را پیدا می‌کند</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="en">Check the folder. You should see both files:</p>
+  <p class="fa">پوشه را بررسی کنید. باید هر دو فایل را ببینید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>ls</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>Dockerfile  index.html</code></pre></div>
+  <div class="note tip">
+    <p class="en">No <code>index.html</code>? You skipped Lesson 10. Create it: <code>echo '&lt;h1&gt;Changed on my PC!&lt;/h1&gt;' &gt; index.html</code></p>
+    <p class="fa"><code>index.html</code> ندارید؟ درس ۱۰ را رد کرده‌اید. بسازیدش: <code>echo '&lt;h1&gt;Changed on my PC!&lt;/h1&gt;' &gt; index.html</code></p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>ls</code> shows <code>Dockerfile</code> and <code>index.html</code></span><span class="fa"><code>ls</code> فایل‌های <code>Dockerfile</code> و <code>index.html</code> را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 BUILD ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Build your image</span><span class="fa">ساختن ایمیج</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Still in <code>~/my-site</code>, run:</p>
+  <p class="fa">در همان <code>~/my-site</code> اجرا کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker build -t my-site .</code></pre></div>
+  <dl class="flags">
+    <dt><code>-t my-site</code></dt>
+    <dd><span class="en"><b>Tag</b>: the name of your new image. No tag after it, so it becomes <code>my-site:latest</code>.</span><span class="fa"><b>Tag</b>: نام ایمیج جدید شما. تگی بعدش نیامده، پس <code>my-site:latest</code> می‌شود.</span></dd>
+    <dt><code>.</code></dt>
+    <dd><span class="en"><b>This folder</b>. Docker reads the <code>Dockerfile</code> here and can <code>COPY</code> files from here. Don't forget it!</span><span class="fa"><b>همین پوشه</b>. Docker فایل <code>Dockerfile</code> را اینجا می‌خواند و فایل‌ها را از اینجا <code>COPY</code> می‌کند. فراموشش نکنید!</span></dd>
+  </dl>
+  <div class="code"><span class="lbl">output</span><pre><code> => [internal] load build definition from Dockerfile
+ ...
+ => [1/2] FROM docker.io/library/nginx:latest@sha256:f9ea18bfa4fad...   <span class="c"># line 1 of your Dockerfile</span>
+ => [2/2] COPY index.html /usr/share/nginx/html/index.html               <span class="c"># line 2</span>
+ => exporting to image
+ ...
+ => => naming to docker.io/library/my-site:latest                        <span class="c"># your image's name</span></code></pre></div>
+  <p class="en"><code>[1/2]</code> and <code>[2/2]</code> are the two lines of your Dockerfile, run in order.</p>
+  <p class="fa"><code>[1/2]</code> و <code>[2/2]</code> همان دو خط Dockerfile شما هستند که به ترتیب اجرا شدند.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The build finished with <code>naming to … my-site:latest</code></span><span class="fa">ساخت با <code>naming to … my-site:latest</code> تمام شد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 SEE IMAGE ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">See your image</span><span class="fa">دیدن ایمیج</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">List only the <code>my-site</code> image, like you did with <code>hello-world</code> in Lesson 1:</p>
+  <p class="fa">فقط ایمیج <code>my-site</code> را فهرست کنید، مثل کاری که در درس ۱ با <code>hello-world</code> کردید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image ls my-site</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>IMAGE            ID             DISK USAGE   CONTENT SIZE   EXTRA
+my-site:latest   6ba373bd396d        240MB         63.9MB</code></pre></div>
+  <p class="en">Your own image, right next to the ones you pulled from Docker Hub.</p>
+  <p class="fa">ایمیج خودتان، درست کنار ایمیج‌هایی که از Docker Hub دانلود کردید.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I see <code>my-site:latest</code></span><span class="fa"><code>my-site:latest</code> را می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 RUN ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Run it, without <code>-v</code></span><span class="fa">اجرای آن، بدون <code>-v</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Run your image in the background, named <code>web</code>, on <code>localhost:8080</code>. Use <code>my-site</code> instead of <code>nginx</code>, and <b>no</b> <code>-v</code>:</p>
+  <p class="fa">ایمیج خودتان را در پس‌زمینه، با نام <code>web</code> و روی <code>localhost:8080</code> اجرا کنید. به‌جای <code>nginx</code> از <code>my-site</code> استفاده کنید، و <b>بدون</b> <code>-v</code>:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 my-site</code></pre></div>
+  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a>:</p>
+  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را باز کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Changed on my PC!</h1></div>
+  </div>
+  <p class="en">Your page, with no <code>-v</code>. It's <b>inside the image</b>.</p>
+  <p class="fa">صفحه‌ی شما، بدون <code>-v</code>. <b>داخل ایمیج</b> است.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">The browser shows my page, and I didn't use <code>-v</code></span><span class="fa">مرورگر صفحه‌ی من را نشان می‌دهد و از <code>-v</code> استفاده نکردم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 EDIT ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Edit the page on your PC: does it change?</span><span class="fa">ویرایش صفحه روی کامپیوتر: تغییر می‌کند؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">In Lesson 10 this changed the page right away. Replace the text in <code>index.html</code> with <code>&lt;h1&gt;Version 2&lt;/h1&gt;</code>:</p>
+  <p class="fa">در درس ۱۰ این کار صفحه را بلافاصله عوض کرد. متن <code>index.html</code> را با <code>&lt;h1&gt;Version 2&lt;/h1&gt;</code> جایگزین کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>echo '&lt;h1&gt;Version 2&lt;/h1&gt;' &gt; index.html</code></pre></div>
+  <p class="en">Reload the browser:</p>
+  <p class="fa">مرورگر را reload کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Changed on my PC!</h1></div>
+  </div>
+  <p class="en"><b>No change!</b> <code>COPY</code> made a copy of the file <b>when you built the image</b>. The image keeps that copy; it doesn't look at your folder anymore.</p>
+  <p class="fa"><b>تغییری نکرد!</b> <code>COPY</code> <b>هنگام ساختن ایمیج</b> از فایل یک کپی گرفت. ایمیج همان کپی را نگه می‌دارد و دیگر به پوشه‌ی شما نگاه نمی‌کند.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th></th>
+      <th><span class="en">Lesson 10 (<code>-v</code>)</span><span class="fa">درس ۱۰ (<code>-v</code>)</span></th>
+      <th><span class="en">Lesson 17 (<code>COPY</code>)</span><span class="fa">درس ۱۷ (<code>COPY</code>)</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><span class="en">The page lives</span><span class="fa">صفحه کجاست</span></td><td><span class="en">on your PC, shared</span><span class="fa">روی کامپیوتر شما، به اشتراک گذاشته شده</span></td><td><span class="en">inside the image, a copy</span><span class="fa">داخل ایمیج، یک کپی</span></td></tr>
+      <tr><td><span class="en">Edit the file</span><span class="fa">ویرایش فایل</span></td><td><span class="en">shows up right away</span><span class="fa">بلافاصله دیده می‌شود</span></td><td><span class="en">needs a rebuild</span><span class="fa">نیاز به ساخت دوباره دارد</span></td></tr>
+      <tr><td><span class="en">Good for</span><span class="fa">مناسب برای</span></td><td><span class="en">working on your files</span><span class="fa">کار روی فایل‌ها</span></td><td><span class="en">a finished version to share or deploy</span><span class="fa">نسخه‌ی نهایی برای اشتراک یا انتشار</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en">After editing and reloading, the page did <b>not</b> change</span><span class="fa">بعد از ویرایش و reload، صفحه تغییر <b>نکرد</b></span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 REBUILD ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Rebuild to update</span><span class="fa">ساخت دوباره برای به‌روزرسانی</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Build the image again, so it gets a fresh copy of <code>index.html</code>:</p>
+  <p class="fa">ایمیج را دوباره بسازید تا یک کپی تازه از <code>index.html</code> بگیرد:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t my-site .</code></pre></div>
+  <p class="en">The running container still uses the <b>old</b> image. Replace it: delete <code>web</code> in one command, then run your image again like in step 4:</p>
+  <p class="fa">کانتینر در حال اجرا هنوز از ایمیج <b>قبلی</b> استفاده می‌کند. عوضش کنید: <code>web</code> را با یک دستور حذف کنید و بعد ایمیج‌تان را مثل قدم ۴ دوباره اجرا کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web
+docker run -d --name web -p 8080:80 my-site</code></pre></div>
+  <p class="en">Reload the browser:</p>
+  <p class="fa">مرورگر را reload کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Version 2</h1></div>
+  </div>
+  <div class="note key">
+    <p class="en">🔑 To update an image: <b>edit → build → replace the container</b>.</p>
+    <p class="fa">🔑 برای به‌روزرسانی ایمیج: <b>ویرایش ← ساخت ← جایگزینی کانتینر</b>.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en">After rebuilding and replacing the container, I see “Version 2”</span><span class="fa">بعد از ساخت دوباره و جایگزینی کانتینر، «Version 2» را می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 7 CLEAN UP ================= -->
+<section class="card step" id="s7">
+  <h2><span class="num">7</span>
+    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web</code></pre></div>
+  <div class="note key">
+    <p class="en">🔑 Keep the <code>my-site</code> image and the <code>~/my-site</code> folder. We'll use them in the next lesson.</p>
+    <p class="fa">🔑 ایمیج <code>my-site</code> و پوشه‌ی <code>~/my-site</code> را نگه دارید. در درس بعد از آن‌ها استفاده می‌کنیم.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s7-1"><span><span class="en"><code>web</code> is deleted; <code>my-site</code> is still in <code>docker image ls</code></span><span class="fa"><code>web</code> حذف شد؛ <code>my-site</code> هنوز در <code>docker image ls</code> هست</span></span></label>
+  </div>
+</section>
+
+<div class="note tip stuck">
+  <p class="en">📥 <b>Stuck?</b> The finished files of this lesson are in the course folder under <code>examples/17-dockerfile/</code>. Compare them with yours. Or try the finished version: go into that folder and run <code>docker build -t my-site .</code>.</p>
+  <p class="fa">📥 <b>گیر کرده‌اید؟</b> فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/17-dockerfile/</code> هستند. آن‌ها را با فایل‌های خودتان مقایسه کنید. یا نسخه‌ی کامل را امتحان کنید: به همان پوشه بروید و <code>docker build -t my-site .</code> را اجرا کنید.</p>
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>FROM IMAGE</code></td><td><span class="en">The image to start from</span><span class="fa">ایمیجی که از آن شروع می‌کنیم</span></td></tr>
+      <tr><td><code>COPY FILE PATH</code></td><td><span class="en">Copy a file from your folder into the image</span><span class="fa">کپی یک فایل از پوشه‌ی شما به داخل ایمیج</span></td></tr>
+      <tr><td><code>docker build -t NAME .</code></td><td><span class="en">Build an image from the Dockerfile in this folder</span><span class="fa">ساختن ایمیج از Dockerfile همین پوشه</span></td></tr>
+      <tr><td><span class="en">Update</span><span class="fa">به‌روزرسانی</span></td><td><span class="en">edit → build → replace the container</span><span class="fa">ویرایش ← ساخت ← جایگزینی کانتینر</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You built your own image!</span><span class="fa">ایمیج خودتان را ساختید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

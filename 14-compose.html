@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 14 · Docker Compose</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="14">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Make a project folder</span><span class="fa">۱ · پوشه‌ی پروژه</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Write compose.yaml</span><span class="fa">۲ · نوشتن compose.yaml</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Start it: up</span><span class="fa">۳ · اجرا: up</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Check it</span><span class="fa">۴ · بررسی</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Stop it: down</span><span class="fa">۵ · توقف: down</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 14 — Docker Compose</span>
+    <span class="fa">درس ۱۴ — Docker Compose</span>
+  </h1>
+  <p class="en">Your <code>docker run</code> commands keep getting longer. Remember this one from Lesson 10?</p>
+  <p class="fa">دستورهای <code>docker run</code> شما مدام طولانی‌تر می‌شوند. این یکی از درس ۱۰ یادتان هست؟</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 -v ~/my-site:/usr/share/nginx/html nginx</code></pre></div>
+  <p class="en">Hard to remember, easy to mistype, hard to share. <b>Docker Compose</b> lets you write all of it <b>in a file</b> once, then start everything with one short command.</p>
+  <p class="fa">به خاطر سپردنش سخت است، راحت اشتباه تایپ می‌شود و اشتراکش سخت است. <b>Docker Compose</b> اجازه می‌دهد همه‌ی این‌ها را یک بار <b>در یک فایل</b> بنویسید و بعد همه‌چیز را با یک دستور کوتاه اجرا کنید.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 FOLDER ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Make a project folder</span><span class="fa">ساختن پوشه‌ی پروژه</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">A Compose project lives in its own folder. Make <code>~/compose-demo</code> with an <code>html</code> folder inside, and go into it:</p>
+  <p class="fa">هر پروژه‌ی Compose در پوشه‌ی خودش است. پوشه‌ی <code>~/compose-demo</code> را با یک پوشه‌ی <code>html</code> داخلش بسازید و واردش شوید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>mkdir -p ~/compose-demo/html
+cd ~/compose-demo</code></pre></div>
+  <p class="en">Put a page in <code>html/index.html</code> with the text <code>&lt;h1&gt;Hello from Compose!&lt;/h1&gt;</code>:</p>
+  <p class="fa">یک صفحه با متن <code>&lt;h1&gt;Hello from Compose!&lt;/h1&gt;</code> در <code>html/index.html</code> بگذارید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>echo '&lt;h1&gt;Hello from Compose!&lt;/h1&gt;' &gt; html/index.html</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en">I'm in <code>~/compose-demo</code> and <code>html/index.html</code> exists</span><span class="fa">در <code>~/compose-demo</code> هستم و <code>html/index.html</code> وجود دارد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 YAML ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Write <code>compose.yaml</code></span><span class="fa">نوشتن <code>compose.yaml</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">bash</span><pre><code>nano compose.yaml</code></pre></div>
+  <p class="en">Type this, <b>with exactly these spaces</b> (YAML uses indentation, like Python):</p>
+  <p class="fa">این را تایپ کنید، <b>دقیقاً با همین فاصله‌ها</b> (YAML مثل Python از تورفتگی استفاده می‌کند):</p>
+  <div class="code"><span class="lbl">compose.yaml</span><pre><code>services:
+  web:
+    image: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/usr/share/nginx/html</code></pre></div>
+  <p class="en">Save (<kbd>Ctrl</kbd>+<kbd>O</kbd>, <kbd>Enter</kbd>) and exit (<kbd>Ctrl</kbd>+<kbd>X</kbd>). Every line matches a part of the old <code>docker run</code>:</p>
+  <p class="fa">ذخیره کنید (<kbd>Ctrl</kbd>+<kbd>O</kbd> و <kbd>Enter</kbd>) و خارج شوید (<kbd>Ctrl</kbd>+<kbd>X</kbd>). هر خط با بخشی از <code>docker run</code> قبلی جور است:</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th><code>compose.yaml</code></th>
+      <th><code>docker run</code></th>
+      <th><span class="en">Meaning</span><span class="fa">معنی</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><code>services:</code></td><td></td><td><span class="en">The list of containers in this project</span><span class="fa">فهرست کانتینرهای این پروژه</span></td></tr>
+      <tr><td><code>web:</code></td><td><code>--name web</code></td><td><span class="en">One service, called <code>web</code></span><span class="fa">یک سرویس به نام <code>web</code></span></td></tr>
+      <tr><td><code>image: nginx</code></td><td><code>nginx</code></td><td><span class="en">The image to run</span><span class="fa">ایمیجی که اجرا می‌شود</span></td></tr>
+      <tr><td><code>ports: - "8080:80"</code></td><td><code>-p 8080:80</code></td><td><span class="en">Publish a port (Lesson 4)</span><span class="fa">منتشر کردن پورت (درس ۴)</span></td></tr>
+      <tr><td><code>volumes: - ./html:…</code></td><td><code>-v …:…</code></td><td><span class="en">Share a folder (Lessons 8 and 10). <code>./html</code> = the <code>html</code> folder <b>next to this file</b></span><span class="fa">اشتراک پوشه (درس‌های ۸ و ۱۰). <code>./html</code> یعنی پوشه‌ی <code>html</code> <b>کنار همین فایل</b></span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="en">No <code>-d</code> here: that goes on the command in the next step.</p>
+  <p class="fa"><code>-d</code> اینجا نیست: در دستور قدم بعد می‌آید.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en"><code>compose.yaml</code> is saved in <code>~/compose-demo</code></span><span class="fa"><code>compose.yaml</code> در <code>~/compose-demo</code> ذخیره شد</span></span></label>
+    <label><input type="checkbox" data-id="s2-2"><span><span class="en">I can match each YAML line to a <code>docker run</code> flag</span><span class="fa">می‌توانم هر خط YAML را به یک فلگ <code>docker run</code> وصل کنم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 UP ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Start it: <code>docker compose up</code></span><span class="fa">اجرا: <code>docker compose up</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">In the same folder as <code>compose.yaml</code>, run:</p>
+  <p class="fa">در همان پوشه‌ای که <code>compose.yaml</code> هست اجرا کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker compose up -d</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>[+] up 2/2
+ ✔ Network compose-demo_default Created       <span class="c"># a network, made for you (Lesson 13)</span>
+ ✔ Container compose-demo-web-1 Started       <span class="c"># your container</span></code></pre></div>
+  <p class="en"><code>-d</code> means the same as in Lesson 3: run in the background. Compose did two things for you:</p>
+  <p class="fa"><code>-d</code> همان معنی درس ۳ را دارد: اجرا در پس‌زمینه. Compose دو کار برایتان کرد:</p>
+  <ul>
+    <li><span class="en">Created a <b>network</b> for the project, <code>compose-demo_default</code>, named after the folder.</span><span class="fa">یک <b>شبکه</b> برای پروژه ساخت، <code>compose-demo_default</code>، که از نام پوشه می‌آید.</span></li>
+    <li><span class="en">Created and started the <b>container</b> <code>compose-demo-web-1</code>: folder name, service name, number.</span><span class="fa"><b>کانتینر</b> <code>compose-demo-web-1</code> را ساخت و اجرا کرد: نام پوشه، نام سرویس، شماره.</span></li>
+  </ul>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I see <code>Network … Created</code> and <code>Container … Started</code></span><span class="fa"><code>Network … Created</code> و <code>Container … Started</code> را می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 CHECK ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Check it</span><span class="fa">بررسی</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">List this project's containers:</p>
+  <p class="fa">کانتینرهای این پروژه را فهرست کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker compose ps</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>NAME                 IMAGE     SERVICE   STATUS         PORTS
+compose-demo-web-1   nginx     web       Up 2 seconds   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp</code></pre></div>
+  <p class="en">Like <code>docker ps</code>, but only for <b>this project</b>. Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a>:</p>
+  <p class="fa">مثل <code>docker ps</code>، ولی فقط برای <b>همین پروژه</b>. <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را باز کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Hello from Compose!</h1></div>
+  </div>
+  <p class="en">It's a normal container. Everything you learned still works on it, e.g. <code>docker logs compose-demo-web-1</code>.</p>
+  <p class="fa">یک کانتینر معمولی است. هر چه یاد گرفتید رویش کار می‌کند، مثلاً <code>docker logs compose-demo-web-1</code>.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">The browser shows “Hello from Compose!”</span><span class="fa">مرورگر «Hello from Compose!» را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 DOWN ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Stop it: <code>docker compose down</code></span><span class="fa">توقف: <code>docker compose down</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker compose down</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code> Container compose-demo-web-1 Removed
+ Network compose-demo_default Removed</code></pre></div>
+  <p class="en">One command stopped and deleted the container <b>and</b> the network. Check that the container is gone from <b>all</b> containers:</p>
+  <p class="fa">یک دستور کانتینر <b>و</b> شبکه را متوقف و حذف کرد. بررسی کنید که کانتینر از <b>همه‌ی</b> کانتینرها حذف شده:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps -a</code></pre></div>
+  <div class="note key">
+    <p class="en">🔑 With Compose, the whole setup lives in <code>compose.yaml</code>. <code>up -d</code> to start, <code>down</code> to remove. Run <code>docker compose up -d</code> again any time: same result, nothing to remember. Your <code>html</code> folder is untouched (Lesson 8).</p>
+    <p class="fa">🔑 با Compose، کل تنظیمات در <code>compose.yaml</code> است. <code>up -d</code> برای اجرا، <code>down</code> برای حذف. هر وقت خواستید دوباره <code>docker compose up -d</code> بزنید: همان نتیجه، بدون نیاز به حفظ کردن چیزی. پوشه‌ی <code>html</code> شما دست‌نخورده می‌ماند (درس ۸).</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en"><code>compose-demo-web-1</code> is gone from <code>docker ps -a</code></span><span class="fa"><code>compose-demo-web-1</code> از <code>docker ps -a</code> حذف شده</span></span></label>
+  </div>
+</section>
+
+<div class="note tip stuck">
+  <p class="en">📥 <b>Stuck?</b> The finished files of this lesson are in the course folder under <code>examples/14-compose/</code>. Compare them with yours. Or try the finished version: go into that folder and run <code>docker compose up -d</code>.</p>
+  <p class="fa">📥 <b>گیر کرده‌اید؟</b> فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/14-compose/</code> هستند. آن‌ها را با فایل‌های خودتان مقایسه کنید. یا نسخه‌ی کامل را امتحان کنید: به همان پوشه بروید و <code>docker compose up -d</code> را اجرا کنید.</p>
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>compose.yaml</code></td><td><span class="en">Your containers' settings, written in a file</span><span class="fa">تنظیمات کانتینرهای شما، نوشته‌شده در یک فایل</span></td></tr>
+      <tr><td><code>docker compose up -d</code></td><td><span class="en">Create and start everything in the background</span><span class="fa">ساختن و اجرای همه‌چیز در پس‌زمینه</span></td></tr>
+      <tr><td><code>docker compose ps</code></td><td><span class="en">This project's containers</span><span class="fa">کانتینرهای همین پروژه</span></td></tr>
+      <tr><td><code>docker compose down</code></td><td><span class="en">Stop and delete the containers and the network</span><span class="fa">توقف و حذف کانتینرها و شبکه</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You used Docker Compose!</span><span class="fa">از Docker Compose استفاده کردید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

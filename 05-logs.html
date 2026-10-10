@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 5 · Logs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="05">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Start nginx</span><span class="fa">۱ · اجرای nginx</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Read the logs</span><span class="fa">۲ · خواندن لاگ‌ها</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Your visit in the log</span><span class="fa">۳ · بازدید شما در لاگ</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Follow live</span><span class="fa">۴ · دنبال کردن زنده</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Still running?</span><span class="fa">۵ · هنوز روشن است؟</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Clean up</span><span class="fa">۶ · تمیزکاری</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 5 — Logs</span>
+    <span class="fa">درس ۵ — لاگ‌ها</span>
+  </h1>
+  <p class="en">In Lesson 3, nginx printed its log to your terminal. With <code>-d</code> that log seemed to disappear. It didn't: Docker keeps everything a container prints. You'll read it with <code>docker logs</code>, and even watch your own browser visits appear.</p>
+  <p class="fa">در درس ۳، nginx لاگش را در ترمینال شما چاپ کرد. با <code>-d</code> به نظر رسید که لاگ ناپدید شد. ناپدید نشد: Docker هر چیزی را که کانتینر چاپ می‌کند نگه می‌دارد. آن را با <code>docker logs</code> می‌خوانید و حتی بازدیدهای مرورگر خودتان را در آن می‌بینید.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 START ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Start nginx</span><span class="fa">اجرای nginx</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Start nginx in the background, named <code>web</code>, reachable at <code>localhost:8080</code>, like in Lesson 4:</p>
+  <p class="fa">nginx را در پس‌زمینه، با نام <code>web</code> و در دسترس روی <code>localhost:8080</code> اجرا کنید، مثل درس ۴:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 nginx</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>web</code> is running</span><span class="fa"><code>web</code> در حال اجراست</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 READ LOGS ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Read the logs</span><span class="fa">خواندن لاگ‌ها</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker logs web</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>/docker-entrypoint.sh: Configuration complete; ready for start up
+2026/10/10 09:38:55 [notice] 1#1: nginx/1.31.6
+2026/10/10 09:38:55 [notice] 1#1: start worker processes
+...</code></pre></div>
+  <p class="en">These are the <b>same lines</b> you saw in Lesson 3 when the terminal was stuck. With <code>-d</code>, Docker saved them instead of showing them. <code>docker logs</code> prints everything saved so far, then gives you your prompt back.</p>
+  <p class="fa">این‌ها <b>همان خط‌هایی</b> هستند که در درس ۳، وقتی ترمینال گیر کرده بود، دیدید. با <code>-d</code>، Docker آن‌ها را به‌جای نمایش، ذخیره کرد. <code>docker logs</code> هر چیزی را که تا الان ذخیره شده چاپ می‌کند و بعد prompt را به شما برمی‌گرداند.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">I see nginx's startup lines and got my prompt back</span><span class="fa">خط‌های شروع nginx را می‌بینم و prompt برگشت</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 VISIT ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">See your visit in the log</span><span class="fa">بازدید خودتان را در لاگ ببینید</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> in your browser, then read the logs again:</p>
+  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را در مرورگر باز کنید و بعد دوباره لاگ‌ها را بخوانید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker logs web</code></pre></div>
+  <p class="en">At the bottom there are new lines:</p>
+  <p class="fa">در پایین خروجی، خط‌های جدیدی آمده:</p>
+  <div class="code"><span class="lbl">output</span><pre><code>172.17.0.1 - - [10/Oct/2026:09:38:58 +0000] "GET / HTTP/1.1" 200 896 "-" "Mozilla/5.0 (X11; Linux x86_64) …"
+2026/10/10 09:38:58 [error] 29#29: *1 open() "/usr/share/nginx/html/favicon.ico" failed (2: No such file or directory), …
+172.17.0.1 - - [10/Oct/2026:09:38:58 +0000] "GET /favicon.ico HTTP/1.1" 404 555 "http://localhost:8080/" "Mozilla/5.0 …"</code></pre></div>
+  <p class="en">The first line is <b>your visit</b>:</p>
+  <p class="fa">خط اول <b>بازدید شما</b> است:</p>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>172.17.0.1</code></td><td><span class="en">Who asked: that's you, seen from inside the container's network</span><span class="fa">چه کسی درخواست داد: خود شما، از دید شبکه‌ی داخل کانتینر</span></td></tr>
+      <tr><td><code>[10/Oct/2026:09:38:58 +0000]</code></td><td><span class="en">When (in UTC time)</span><span class="fa">چه زمانی (به وقت UTC)</span></td></tr>
+      <tr><td><code>"GET / HTTP/1.1"</code></td><td><span class="en">What was asked: the home page <code>/</code></span><span class="fa">چه چیزی خواسته شد: صفحه‌ی اصلی <code>/</code></span></td></tr>
+      <tr><td><code>200</code></td><td><span class="en">The answer: <b>200 = OK</b>, the page was sent</span><span class="fa">پاسخ: <b>200 یعنی OK</b>، صفحه ارسال شد</span></td></tr>
+      <tr><td><code>"Mozilla/5.0 …"</code></td><td><span class="en">Which browser asked</span><span class="fa">کدام مرورگر درخواست داد</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <details class="q">
+    <summary><span class="en">❓ What is the <code>favicon.ico</code> error with <code>404</code>?</span><span class="fa">❓ خطای <code>favicon.ico</code> با <code>404</code> چیست؟</span></summary>
+    <p class="en">Your browser also asks every website for a small icon to show on the tab, called <code>favicon.ico</code>. nginx's default site doesn't have one, so it answers <b>404 = Not Found</b> and writes an <code>[error]</code> line. It's harmless. It's a good first example of an error in a log.</p>
+    <p class="fa">مرورگر شما از هر وب‌سایت یک آیکون کوچک هم برای نمایش روی تب می‌خواهد، به نام <code>favicon.ico</code>. سایت پیش‌فرض nginx این آیکون را ندارد، پس با <b>404 یعنی Not Found</b> جواب می‌دهد و یک خط <code>[error]</code> می‌نویسد. بی‌خطر است. نمونه‌ی خوبی از یک خطا در لاگ است.</p>
+  </details>
+  <div class="note tip">
+    <p class="en">💡 Log too long? Show only the last lines with <code>--tail</code>, e.g. <code>docker logs --tail 3 web</code>.</p>
+    <p class="fa">💡 لاگ خیلی طولانی است؟ با <code>--tail</code> فقط خط‌های آخر را نشان دهید، مثلاً <code>docker logs --tail 3 web</code>.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I found a <code>"GET / HTTP/1.1" 200</code> line for my visit</span><span class="fa">یک خط <code>"GET / HTTP/1.1" 200</code> برای بازدیدم پیدا کردم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 FOLLOW ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Follow the log live</span><span class="fa">دنبال کردن زنده‌ی لاگ</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Running <code>docker logs</code> again and again is tiring. Add <code>-f</code> (<b>follow</b>) to keep watching:</p>
+  <p class="fa">اجرای دوباره و دوباره‌ی <code>docker logs</code> خسته‌کننده است. <code>-f</code> (<b>follow</b>، یعنی دنبال کن) را اضافه کنید تا مدام تماشا کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker logs -f web</code></pre></div>
+  <p class="en">The terminal is <b>stuck</b> again, like in Lesson 3. Now <b>reload the browser tab</b> a few times and watch: a new line appears for each visit, live.</p>
+  <p class="fa">ترمینال دوباره <b>گیر کرده</b>، مثل درس ۳. حالا چند بار <b>تب مرورگر را reload کنید</b> و تماشا کنید: برای هر بازدید، یک خط جدید زنده ظاهر می‌شود.</p>
+  <div class="code"><span class="lbl">output</span><pre><code>...
+172.17.0.1 - - [10/Oct/2026:09:39:06 +0000] "GET / HTTP/1.1" 200 896 "-" "Mozilla/5.0 …"   <span class="c"># ← new, after a reload</span>
+<span class="c">█   ← waiting for more</span></code></pre></div>
+  <p class="en">When you're done watching, press <kbd>Ctrl</kbd>+<kbd>C</kbd> to get your terminal back.</p>
+  <p class="fa">وقتی تماشا تمام شد، <kbd>Ctrl</kbd>+<kbd>C</kbd> را بزنید تا ترمینال به شما برگردد.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">New lines appeared live when I reloaded the page</span><span class="fa">با reload کردن صفحه، خط‌های جدید زنده ظاهر شدند</span></span></label>
+    <label><input type="checkbox" data-id="s4-2"><span><span class="en">I pressed <kbd>Ctrl</kbd>+<kbd>C</kbd> and got my prompt back</span><span class="fa"><kbd>Ctrl</kbd>+<kbd>C</kbd> را زدم و prompt برگشت</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 STILL RUNNING ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Is the container still running?</span><span class="fa">کانتینر هنوز روشن است؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">In Lesson 3, <kbd>Ctrl</kbd>+<kbd>C</kbd> <b>stopped</b> nginx. What about now? List the running containers:</p>
+  <p class="fa">در درس ۳، <kbd>Ctrl</kbd>+<kbd>C</kbd> nginx را <b>متوقف کرد</b>. الان چطور؟ کانتینرهای در حال اجرا را فهرست کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS                                     NAMES
+bdc691275a8c   nginx     "/docker-entrypoint.…"   14 seconds ago   Up 13 seconds   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   web</code></pre></div>
+  <p class="en">Still <code>Up</code>, and the page still loads in the browser.</p>
+  <p class="fa">هنوز <code>Up</code> است، و صفحه هنوز در مرورگر باز می‌شود.</p>
+  <div class="note key">
+    <p class="en">🔑 In Lesson 3 your terminal was <b>attached to the container</b>, so <kbd>Ctrl</kbd>+<kbd>C</kbd> stopped it. With <code>docker logs -f</code> your terminal is only <b>watching the log</b>, so <kbd>Ctrl</kbd>+<kbd>C</kbd> stops the watching, not the container.</p>
+    <p class="fa">🔑 در درس ۳ ترمینال شما <b>به کانتینر چسبیده بود</b>، پس <kbd>Ctrl</kbd>+<kbd>C</kbd> آن را متوقف کرد. با <code>docker logs -f</code> ترمینال فقط <b>لاگ را تماشا می‌کند</b>، پس <kbd>Ctrl</kbd>+<kbd>C</kbd> فقط تماشا را متوقف می‌کند، نه کانتینر را.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en"><code>web</code> is still <code>Up</code> after <kbd>Ctrl</kbd>+<kbd>C</kbd></span><span class="fa"><code>web</code> بعد از <kbd>Ctrl</kbd>+<kbd>C</kbd> هنوز <code>Up</code> است</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 CLEAN UP ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Stop and delete <code>web</code> in <b>one</b> command, then check it's gone from all containers:</p>
+  <p class="fa"><code>web</code> را با <b>یک</b> دستور متوقف و حذف کنید، بعد بررسی کنید که از همه‌ی کانتینرها حذف شده:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web
+docker ps -a</code></pre></div>
+  <div class="note tip">
+    <p class="en">The logs are stored <b>with the container</b>. Once you delete it, its logs are gone too.</p>
+    <p class="fa">لاگ‌ها <b>همراه کانتینر</b> ذخیره می‌شوند. وقتی کانتینر را حذف کنید، لاگ‌هایش هم حذف می‌شوند.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en"><code>web</code> is gone from <code>docker ps -a</code></span><span class="fa"><code>web</code> از <code>docker ps -a</code> حذف شده</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>docker logs NAME</code></td><td><span class="en">Print everything the container has printed so far</span><span class="fa">چاپ همه‌ی چیزهایی که کانتینر تا الان چاپ کرده</span></td></tr>
+      <tr><td><code>docker logs -f NAME</code></td><td><span class="en">Follow the log live; <kbd>Ctrl</kbd>+<kbd>C</kbd> stops watching, not the container</span><span class="fa">دنبال کردن زنده‌ی لاگ؛ <kbd>Ctrl</kbd>+<kbd>C</kbd> تماشا را متوقف می‌کند، نه کانتینر را</span></td></tr>
+      <tr><td><code>docker logs --tail N NAME</code></td><td><span class="en">Only the last N lines</span><span class="fa">فقط N خط آخر</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You can read a container's logs!</span><span class="fa">حالا می‌توانید لاگ‌های کانتینر را بخوانید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

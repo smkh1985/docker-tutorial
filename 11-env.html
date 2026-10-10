@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 11 · Environment variables</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="11">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Run PostgreSQL</span><span class="fa">۱ · اجرای PostgreSQL</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Why did it stop?</span><span class="fa">۲ · چرا متوقف شد؟</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Fix it with -e</span><span class="fa">۳ · رفع با ‎-e</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · See the variables</span><span class="fa">۴ · دیدن متغیرها</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Use an env file</span><span class="fa">۵ · استفاده از env file</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Keep secrets safe</span><span class="fa">۶ · امن نگه داشتن رمزها</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 11 — Settings with environment variables</span>
+    <span class="fa">درس ۱۱ — تنظیمات با متغیرهای محیطی</span>
+  </h1>
+  <p class="en">Many ready-made images need <b>settings</b> before they can start: a password, a user name, a database name… You give them these settings as <b>environment variables</b>, without changing the image.</p>
+  <p class="fa">خیلی از ایمیج‌های آماده قبل از شروع به <b>تنظیمات</b> نیاز دارند: یک رمز عبور، یک نام کاربری، یک نام دیتابیس… این تنظیمات را به‌صورت <b>متغیرهای محیطی</b> (environment variable) به آن‌ها می‌دهید، بدون تغییر ایمیج.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 RUN ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Run PostgreSQL</span><span class="fa">اجرای PostgreSQL</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en"><b>PostgreSQL</b> is one of the most used databases in the world. Start it in the background and name it <code>db</code>:</p>
+  <p class="fa"><b>PostgreSQL</b> یکی از پراستفاده‌ترین دیتابیس‌های دنیاست. آن را در پس‌زمینه اجرا کنید و نامش را <code>db</code> بگذارید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name db postgres:alpine</code></pre></div>
+  <p class="en">The first time it downloads the image (about 120 MB). Now check whether it's running. List <b>all</b> containers:</p>
+  <p class="fa">بار اول ایمیج را دانلود می‌کند (حدود ۱۲۰ مگابایت). حالا بررسی کنید که در حال اجراست یا نه. <b>همه‌ی</b> کانتینرها را فهرست کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps -a</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>NAMES     STATUS                       <span class="c"># other columns left out</span>
+db        Exited (1) 3 seconds ago</code></pre></div>
+  <p class="en">❌ <code>Exited (1)</code>: it stopped right away, and <code>1</code> means <b>an error</b> (<code>0</code> was “OK” in Lesson 2).</p>
+  <p class="fa">❌ <code>Exited (1)</code>: بلافاصله متوقف شد، و <code>1</code> یعنی <b>خطا</b> (در درس ۲، <code>0</code> یعنی «OK» بود).</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>db</code> shows <code>Exited (1)</code></span><span class="fa"><code>db</code> وضعیت <code>Exited (1)</code> را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 WHY ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Why did it stop? Read the logs</span><span class="fa">چرا متوقف شد؟ لاگ‌ها را بخوانید</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">When a container stops with an error, the first thing to do is read what it printed (Lesson 5):</p>
+  <p class="fa">وقتی کانتینری با خطا متوقف می‌شود، اولین کار خواندن چیزی است که چاپ کرده (درس ۵):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker logs db</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>Error: Database is uninitialized and superuser password is not specified.
+       You must specify POSTGRES_PASSWORD to a non-empty value for the
+       superuser. For example, "-e POSTGRES_PASSWORD=password" on "docker run".
+...</code></pre></div>
+  <p class="en">PostgreSQL refuses to start <b>without a password</b>, and it tells you exactly what to do: set <code>POSTGRES_PASSWORD</code> with <code>-e</code>.</p>
+  <p class="fa">PostgreSQL <b>بدون رمز عبور</b> اجرا نمی‌شود، و دقیقاً می‌گوید چه کار کنید: <code>POSTGRES_PASSWORD</code> را با <code>-e</code> تنظیم کنید.</p>
+  <p class="en">Delete the failed container:</p>
+  <p class="fa">کانتینر شکست‌خورده را حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm db</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The logs say <code>You must specify POSTGRES_PASSWORD</code></span><span class="fa">لاگ‌ها می‌گویند <code>You must specify POSTGRES_PASSWORD</code></span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 -e ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Fix it with <code>-e</code></span><span class="fa">رفع با <code>-e</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name db -e POSTGRES_PASSWORD=secret postgres:alpine</code></pre></div>
+  <p class="en"><code>-e</code> means <b>environment variable</b>, written <code>NAME=value</code>. The program inside the container reads it when it starts. Check it's running:</p>
+  <p class="fa"><code>-e</code> یعنی <b>متغیر محیطی</b> (environment variable)، به شکل <code>NAME=value</code>. برنامه‌ی داخل کانتینر هنگام شروع آن را می‌خواند. بررسی کنید که در حال اجراست:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>NAMES     STATUS          <span class="c"># other columns left out</span>
+db        Up 4 seconds</code></pre></div>
+  <p class="en">✅ <code>Up</code>. The last line of <code>docker logs db</code> now says <code>database system is ready to accept connections</code>.</p>
+  <p class="fa">✅ <code>Up</code>. آخرین خط <code>docker logs db</code> حالا می‌گوید <code>database system is ready to accept connections</code>.</p>
+  <div class="note tip">
+    <p class="en">💡 Which variables does an image understand? Its page on <a href="https://hub.docker.com/_/postgres" target="_blank">Docker Hub</a> lists them, e.g. <code>POSTGRES_PASSWORD</code>, <code>POSTGRES_USER</code>, <code>POSTGRES_DB</code>.</p>
+    <p class="fa">💡 یک ایمیج چه متغیرهایی را می‌فهمد؟ صفحه‌اش در <a href="https://hub.docker.com/_/postgres" target="_blank">Docker Hub</a> آن‌ها را فهرست کرده، مثلاً <code>POSTGRES_PASSWORD</code>، <code>POSTGRES_USER</code>، <code>POSTGRES_DB</code>.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">With <code>-e POSTGRES_PASSWORD=secret</code>, <code>db</code> is <code>Up</code></span><span class="fa">با <code>-e POSTGRES_PASSWORD=secret</code>، <code>db</code> در وضعیت <code>Up</code> است</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 SEE ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">See the variables inside the container</span><span class="fa">دیدن متغیرها داخل کانتینر</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Run one command inside <code>db</code>: <code>env</code> lists all environment variables:</p>
+  <p class="fa">یک دستور داخل <code>db</code> اجرا کنید: <code>env</code> همه‌ی متغیرهای محیطی را فهرست می‌کند:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker exec db env</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=35f390d3120d
+POSTGRES_PASSWORD=secret              <span class="c"># ← yours, from -e</span>
+LANG=en_US.utf8
+PG_VERSION=18.6                       <span class="c"># set by the image itself</span>
+PGDATA=/var/lib/postgresql/18/docker
+...</code></pre></div>
+  <p class="en">Your variable is there. The others were set by the image's authors, e.g. <code>PG_VERSION</code>. <code>PGDATA</code> is where PostgreSQL keeps its data: that's where a volume would go (Lesson 9).</p>
+  <p class="fa">متغیر شما آنجاست. بقیه را سازندگان ایمیج تنظیم کرده‌اند، مثلاً <code>PG_VERSION</code>. <code>PGDATA</code> جایی است که PostgreSQL داده‌هایش را نگه می‌دارد: یک volume باید همان‌جا قرار بگیرد (درس ۹).</p>
+  <p class="en">Delete <code>db</code> in one command:</p>
+  <p class="fa"><code>db</code> را با یک دستور حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f db</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">I see <code>POSTGRES_PASSWORD=secret</code> in the output of <code>env</code></span><span class="fa"><code>POSTGRES_PASSWORD=secret</code> را در خروجی <code>env</code> می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 ENV FILE ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Many settings? Use an env file</span><span class="fa">تنظیمات زیاد؟ از env file استفاده کنید</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Let's also choose our own user name and database name. With <code>-e</code> the command gets long:</p>
+  <p class="fa">بیایید نام کاربر و نام دیتابیس را هم خودمان انتخاب کنیم. با <code>-e</code> دستور طولانی می‌شود:</p>
+  <div class="code"><span class="lbl">just look, don't run</span><pre><code>docker run -d --name db -e POSTGRES_USER=ali -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=shop postgres:alpine</code></pre></div>
+  <p class="en">Instead, put the settings in a file, one <code>NAME=value</code> per line. Make a folder and create the file <code>db.env</code>:</p>
+  <p class="fa">به‌جای آن، تنظیمات را در یک فایل بگذارید، در هر خط یک <code>NAME=value</code>. یک پوشه بسازید و فایل <code>db.env</code> را ایجاد کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>mkdir ~/pg-demo
+cd ~/pg-demo
+nano db.env</code></pre></div>
+  <div class="code"><span class="lbl">db.env</span><pre><code>POSTGRES_USER=ali
+POSTGRES_PASSWORD=secret
+POSTGRES_DB=shop</code></pre></div>
+  <p class="en">Save and exit (<kbd>Ctrl</kbd>+<kbd>O</kbd>, <kbd>Enter</kbd>, <kbd>Ctrl</kbd>+<kbd>X</kbd>). No spaces around <code>=</code>, and no quotes. Now run with <code>--env-file</code>:</p>
+  <p class="fa">ذخیره کنید و خارج شوید (<kbd>Ctrl</kbd>+<kbd>O</kbd>، <kbd>Enter</kbd>، <kbd>Ctrl</kbd>+<kbd>X</kbd>). دور <code>=</code> فاصله نگذارید و از کوتیشن استفاده نکنید. حالا با <code>--env-file</code> اجرا کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name db --env-file db.env postgres:alpine</code></pre></div>
+  <p class="en">Short, and the settings are easy to read and change. Did they work? Ask PostgreSQL who you are and which database you're in (wait a few seconds for it to start first):</p>
+  <p class="fa">کوتاه است و تنظیمات راحت خوانده و عوض می‌شوند. کار کرد؟ از PostgreSQL بپرسید شما کی هستید و در کدام دیتابیس هستید (اول چند ثانیه صبر کنید تا اجرا شود):</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker exec db psql -U ali -d shop -c "SELECT current_user, current_database();"</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code> current_user | current_database
+--------------+------------------
+ ali          | shop
+(1 row)</code></pre></div>
+  <p class="en">✅ User <code>ali</code> and database <code>shop</code>, both from <code>db.env</code>. (<code>psql</code> is PostgreSQL's command-line tool, like <code>redis-cli</code> in Lesson 9.)</p>
+  <p class="fa">✅ کاربر <code>ali</code> و دیتابیس <code>shop</code>، هر دو از <code>db.env</code>. (<code>psql</code> ابزار خط فرمان PostgreSQL است، مثل <code>redis-cli</code> در درس ۹.)</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en"><code>db.env</code> has my three settings</span><span class="fa"><code>db.env</code> سه تنظیم من را دارد</span></span></label>
+    <label><input type="checkbox" data-id="s5-2"><span><span class="en"><code>psql</code> shows <code>ali | shop</code></span><span class="fa"><code>psql</code> نشان می‌دهد <code>ali | shop</code></span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 SECRETS ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Keep secrets safe, and clean up</span><span class="fa">امن نگه داشتن رمزها، و تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Environment variables are <b>not hidden</b>. Anyone who can use Docker on this PC can read them:</p>
+  <p class="fa">متغیرهای محیطی <b>پنهان نیستند</b>. هر کسی که روی این کامپیوتر به Docker دسترسی دارد می‌تواند آن‌ها را بخواند:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker inspect db</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>            "Env": [
+                "POSTGRES_USER=ali",
+                "POSTGRES_PASSWORD=secret",       <span class="c"># in plain text!</span>
+                "POSTGRES_DB=shop",
+                ...</code></pre></div>
+  <div class="note warn">
+    <p class="en">⚠ An env file holds <b>passwords</b>. Never put it in git or share it: add its name to <code>.gitignore</code>. Use real, strong passwords outside of practice.</p>
+    <p class="fa">⚠ env file <b>رمزهای عبور</b> را در خود دارد. هرگز آن را در git نگذارید یا به اشتراک نگذارید: نامش را به <code>.gitignore</code> اضافه کنید. بیرون از تمرین از رمزهای واقعی و قوی استفاده کنید.</p>
+  </div>
+  <p class="en">Clean up: delete <code>db</code> in one command:</p>
+  <p class="fa">تمیزکاری: <code>db</code> را با یک دستور حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f db</code></pre></div>
+  <p class="en">You can delete the image too (it's big): <code>docker image rm postgres:alpine</code> (Lesson 1).</p>
+  <p class="fa">می‌توانید ایمیج را هم حذف کنید (بزرگ است): <code>docker image rm postgres:alpine</code> (درس ۱).</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en">I know env files must not go into git</span><span class="fa">می‌دانم env file نباید در git قرار بگیرد</span></span></label>
+    <label><input type="checkbox" data-id="s6-2"><span><span class="en"><code>db</code> is deleted</span><span class="fa"><code>db</code> حذف شد</span></span></label>
+  </div>
+</section>
+
+<div class="note tip stuck">
+  <p class="en">📥 <b>Stuck?</b> The finished files of this lesson are in the course folder under <code>examples/11-env/</code>. Compare them with yours.</p>
+  <p class="fa">📥 <b>گیر کرده‌اید؟</b> فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/11-env/</code> هستند. آن‌ها را با فایل‌های خودتان مقایسه کنید.</p>
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>-e NAME=value</code></td><td><span class="en">Give the container one setting (environment variable)</span><span class="fa">دادن یک تنظیم (متغیر محیطی) به کانتینر</span></td></tr>
+      <tr><td><code>--env-file FILE</code></td><td><span class="en">Give it many settings from a file (<code>NAME=value</code> per line)</span><span class="fa">دادن تنظیمات زیاد از یک فایل (هر خط <code>NAME=value</code>)</span></td></tr>
+      <tr><td><code>docker exec NAME env</code></td><td><span class="en">See the variables inside a container</span><span class="fa">دیدن متغیرهای داخل کانتینر</span></td></tr>
+      <tr><td><code>Exited (1)</code> → <code>docker logs</code></td><td><span class="en">A container stopped with an error? Read its logs first</span><span class="fa">کانتینر با خطا متوقف شد؟ اول لاگ‌هایش را بخوانید</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You configured a real database!</span><span class="fa">یک دیتابیس واقعی را تنظیم کردید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

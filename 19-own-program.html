@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 19 · Package your own program</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="19">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Write a program</span><span class="fa">۱ · نوشتن یک برنامه</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Write the Dockerfile</span><span class="fa">۲ · نوشتن Dockerfile</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Build and run</span><span class="fa">۳ · ساخت و اجرا</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Change and rebuild</span><span class="fa">۴ · تغییر و ساخت دوباره</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Fix the order</span><span class="fa">۵ · درست کردن ترتیب</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Clean up</span><span class="fa">۶ · تمیزکاری</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 19 — Package your own program</span>
+    <span class="fa">درس ۱۹ — بسته‌بندی برنامه‌ی خودتان</span>
+  </h1>
+  <p class="en">In Lesson 17 your image only served a file. Real images <b>run a program</b>, and that program needs things installed. You'll package a small Python program with three new Dockerfile instructions: <code>WORKDIR</code>, <code>RUN</code> and <code>CMD</code>. Then it runs on any PC with Docker, even with no Python installed.</p>
+  <p class="fa">در درس ۱۷ ایمیج شما فقط یک فایل را سرو می‌کرد. ایمیج‌های واقعی <b>یک برنامه اجرا می‌کنند</b>، و آن برنامه به چیزهای نصب‌شده نیاز دارد. یک برنامه‌ی کوچک Python را با سه دستور جدید Dockerfile بسته‌بندی می‌کنید: <code>WORKDIR</code>، <code>RUN</code> و <code>CMD</code>. بعد روی هر کامپیوتری که Docker دارد اجرا می‌شود، حتی بدون نصب Python.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 PROGRAM ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Write a small program</span><span class="fa">نوشتن یک برنامه‌ی کوچک</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Make a project folder called <code>hello-app</code> in your home folder and go into it:</p>
+  <p class="fa">یک پوشه‌ی پروژه به نام <code>hello-app</code> در پوشه‌ی خانه‌تان بسازید و واردش شوید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>mkdir ~/hello-app
+cd ~/hello-app</code></pre></div>
+  <p class="en">Create <code>app.py</code> with <code>nano</code>:</p>
+  <p class="fa">با <code>nano</code> فایل <code>app.py</code> را بسازید:</p>
+  <div class="code"><span class="lbl">app.py</span><pre><code>import cowsay
+
+cowsay.cow("Hello from my own image!")</code></pre></div>
+  <p class="en">It uses <code>cowsay</code>, a small Python library that draws a talking cow. It is <b>not</b> part of Python, so it must be installed first. That's the job of the Dockerfile.</p>
+  <p class="fa">از <code>cowsay</code> استفاده می‌کند، یک کتابخانه‌ی کوچک Python که یک گاو سخنگو می‌کشد. جزو Python <b>نیست</b>، پس اول باید نصب شود. این کار Dockerfile است.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>app.py</code> is saved in <code>~/hello-app</code></span><span class="fa"><code>app.py</code> در <code>~/hello-app</code> ذخیره شد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 DOCKERFILE ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Write the Dockerfile</span><span class="fa">نوشتن Dockerfile</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">In the same folder, create <code>Dockerfile</code> with <code>nano</code>:</p>
+  <p class="fa">در همان پوشه، با <code>nano</code> فایل <code>Dockerfile</code> را بسازید:</p>
+  <div class="code"><span class="lbl">Dockerfile</span><pre><code>FROM python:3.13-slim
+WORKDIR /app
+COPY app.py .
+RUN pip install cowsay
+CMD ["python", "app.py"]</code></pre></div>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>FROM python:3.13-slim</code></td><td><span class="en">Start from the official Python image, a <b>slim</b> (smaller) version with Python 3.13 already installed</span><span class="fa">از ایمیج رسمی Python شروع کن، نسخه‌ی <b>slim</b> (کوچک‌تر) که Python 3.13 از قبل رویش نصب است</span></td></tr>
+      <tr><td><code>WORKDIR /app</code></td><td><span class="en"><b>New:</b> create the folder <code>/app</code> in the image and work there from now on, like <code>mkdir</code> + <code>cd</code></span><span class="fa"><b>جدید:</b> پوشه‌ی <code>/app</code> را در ایمیج بساز و از این به بعد همان‌جا کار کن، مثل <code>mkdir</code> + <code>cd</code></span></td></tr>
+      <tr><td><code>COPY app.py .</code></td><td><span class="en">Copy your program in (Lesson 17). <code>.</code> means “here”, the <code>WORKDIR</code>: <code>/app</code></span><span class="fa">برنامه‌تان را کپی کن (درس ۱۷). <code>.</code> یعنی «همین‌جا»، یعنی <code>WORKDIR</code>: <code>/app</code></span></td></tr>
+      <tr><td><code>RUN pip install cowsay</code></td><td><span class="en"><b>New:</b> run a command <b>while building</b>. Here: install <code>cowsay</code> into the image</span><span class="fa"><b>جدید:</b> یک دستور را <b>هنگام ساختن</b> اجرا کن. اینجا: <code>cowsay</code> را داخل ایمیج نصب کن</span></td></tr>
+      <tr><td><code>CMD ["python", "app.py"]</code></td><td><span class="en"><b>New:</b> the command a container runs <b>when it starts</b>. You saw nginx's <code>CMD</code> in <code>docker history</code> (Lesson 16)</span><span class="fa"><b>جدید:</b> دستوری که کانتینر <b>هنگام شروع</b> اجرا می‌کند. <code>CMD</code> مربوط به nginx را در <code>docker history</code> دیدید (درس ۱۶)</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note key">
+    <p class="en">🔑 <code>RUN</code> happens <b>once, when you build</b> the image. <code>CMD</code> happens <b>every time a container starts</b>.</p>
+    <p class="fa">🔑 <code>RUN</code> <b>یک بار، هنگام ساختن</b> ایمیج اجرا می‌شود. <code>CMD</code> <b>هر بار که یک کانتینر شروع می‌شود</b> اجرا می‌شود.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en"><code>Dockerfile</code> is saved next to <code>app.py</code></span><span class="fa"><code>Dockerfile</code> کنار <code>app.py</code> ذخیره شد</span></span></label>
+    <label><input type="checkbox" data-id="s2-2"><span><span class="en">I know the difference between <code>RUN</code> and <code>CMD</code></span><span class="fa">فرق <code>RUN</code> و <code>CMD</code> را می‌دانم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 BUILD RUN ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Build and run</span><span class="fa">ساخت و اجرا</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Build the image and call it <code>hello-app</code> (Lesson 17):</p>
+  <p class="fa">ایمیج را بسازید و نامش را <code>hello-app</code> بگذارید (درس ۱۷):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t hello-app .</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code> => [1/4] FROM docker.io/library/python:3.13-slim@sha256:70729b46c69b4f1e
+ => [2/4] WORKDIR /app
+ => [3/4] COPY app.py .
+ => [4/4] RUN pip install cowsay          <span class="c"># installing, at build time</span>
+ ...
+ => => naming to docker.io/library/hello-app:latest</code></pre></div>
+  <p class="en">Now run it in a new container, and delete the container when it's done (Lesson 7):</p>
+  <p class="fa">حالا آن را در یک کانتینر جدید اجرا کنید و وقتی تمام شد کانتینر را حذف کنید (درس ۷):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run --rm hello-app</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>  ________________________
+| Hello from my own image! |
+  ========================
+                        \
+                         \
+                           ^__^
+                           (oo)\_______
+                           (__)\       )\/\
+                               ||----w |
+                               ||     ||</code></pre></div>
+  <p class="en">🐄 The container ran your <code>CMD</code>: <code>python app.py</code>. Python and <code>cowsay</code> were already inside the image.</p>
+  <p class="fa">🐄 کانتینر <code>CMD</code> شما را اجرا کرد: <code>python app.py</code>. Python و <code>cowsay</code> از قبل داخل ایمیج بودند.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">The cow said “Hello from my own image!”</span><span class="fa">گاو گفت «Hello from my own image!»</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 CHANGE REBUILD ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Change the program and rebuild</span><span class="fa">تغییر برنامه و ساخت دوباره</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Open <code>app.py</code> with <code>nano</code> and change the text to <code>"Version 2 of my app!"</code>. Then build again, the same way as in step 3:</p>
+  <p class="fa"><code>app.py</code> را با <code>nano</code> باز کنید و متن را به <code>"Version 2 of my app!"</code> تغییر دهید. بعد دوباره، مثل قدم ۳، بسازید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t hello-app .</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>[+] Building 12.4s (9/9) FINISHED
+ => [1/4] FROM docker.io/library/python:3.13-slim@sha256:70729b46c69b4f1e
+ => CACHED [2/4] WORKDIR /app
+ => [3/4] COPY app.py .                   <span class="c"># your code changed</span>
+ => [4/4] RUN pip install cowsay          <span class="c"># ← installing AGAIN?!</span></code></pre></div>
+  <p class="en">You only changed one line of <b>your code</b>, so why did Docker install <code>cowsay</code> <b>again</b>?</p>
+  <p class="fa">شما فقط یک خط از <b>کدتان</b> را عوض کردید، پس چرا Docker دوباره <code>cowsay</code> را نصب کرد؟</p>
+  <p class="en">Each line of the Dockerfile makes one <b>layer</b>. Docker reuses (<code>CACHED</code>) a layer if nothing it depends on changed. But once one layer changes, <b>every layer after it is rebuilt</b>. <code>app.py</code> changed, so the <code>COPY</code> layer changed, so the <code>RUN</code> layer after it was redone, even though <code>cowsay</code> didn't change at all.</p>
+  <p class="fa">هر خط Dockerfile یک <b>لایه</b> می‌سازد. Docker لایه‌ای را که هیچ چیزِ وابسته‌اش تغییر نکرده دوباره استفاده می‌کند (<code>CACHED</code>). ولی وقتی یک لایه تغییر کند، <b>همه‌ی لایه‌های بعد از آن دوباره ساخته می‌شوند</b>. <code>app.py</code> عوض شد، پس لایه‌ی <code>COPY</code> عوض شد، پس لایه‌ی <code>RUN</code> بعد از آن دوباره انجام شد، با اینکه <code>cowsay</code> اصلاً تغییری نکرده بود.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en"><code>RUN pip install cowsay</code> ran again after a code change</span><span class="fa"><code>RUN pip install cowsay</code> بعد از تغییر کد دوباره اجرا شد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 FIX ORDER ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Fix the order</span><span class="fa">درست کردن ترتیب</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Open <code>Dockerfile</code> and move <code>COPY app.py .</code> to the line <b>after</b> <code>RUN pip install cowsay</code>:</p>
+  <p class="fa"><code>Dockerfile</code> را باز کنید و <code>COPY app.py .</code> را به خط <b>بعد از</b> <code>RUN pip install cowsay</code> ببرید:</p>
+  <div class="code"><span class="lbl">Dockerfile</span><pre><code>FROM python:3.13-slim
+WORKDIR /app
+RUN pip install cowsay
+COPY app.py .
+CMD ["python", "app.py"]</code></pre></div>
+  <p class="en">Build once to apply the new order. <code>pip install</code> runs one last time, because its position changed:</p>
+  <p class="fa">یک بار بسازید تا ترتیب جدید اعمال شود. <code>pip install</code> یک بار دیگر اجرا می‌شود، چون جایش عوض شد:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t hello-app .</code></pre></div>
+  <p class="en">Now change <code>app.py</code> again, to <code>"Version 3 of my app!"</code>, and build again:</p>
+  <p class="fa">حالا دوباره <code>app.py</code> را تغییر دهید، به <code>"Version 3 of my app!"</code>، و دوباره بسازید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t hello-app .</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>[+] Building 5.6s (9/9) FINISHED
+ => [1/4] FROM docker.io/library/python:3.13-slim@sha256:70729b46c69b4f1e
+ => CACHED [2/4] WORKDIR /app
+ => CACHED [3/4] RUN pip install cowsay   <span class="c"># ← reused!</span>
+ => [4/4] COPY app.py .                   <span class="c"># only your code</span></code></pre></div>
+  <p class="en">✅ <code>pip install</code> is <code>CACHED</code> now: only your code was copied. The build took 5.6 s instead of 12.4 s. With big projects, that's minutes saved on every build. Run it (same as step 3):</p>
+  <p class="fa">✅ حالا <code>pip install</code> در وضعیت <code>CACHED</code> است: فقط کد شما کپی شد. ساخت به‌جای ۱۲٫۴ ثانیه ۵٫۶ ثانیه طول کشید. در پروژه‌های بزرگ، این یعنی صرفه‌جویی چند دقیقه در هر ساخت. اجرایش کنید (مثل قدم ۳):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run --rm hello-app</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>  ____________________
+| Version 3 of my app! |
+  ====================
+  ...</code></pre></div>
+  <div class="note key">
+    <p class="en">🔑 <b>Order matters.</b> Put what changes <b>rarely</b> first (installing libraries), and what changes <b>often</b> last (your code).</p>
+    <p class="fa">🔑 <b>ترتیب مهم است.</b> چیزی را که <b>به‌ندرت</b> عوض می‌شود اول بگذارید (نصب کتابخانه‌ها) و چیزی را که <b>زیاد</b> عوض می‌شود آخر (کد شما).</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en">After the fix, a code change shows <code>CACHED</code> for <code>pip install</code></span><span class="fa">بعد از اصلاح، تغییر کد برای <code>pip install</code> عبارت <code>CACHED</code> را نشان می‌دهد</span></span></label>
+    <label><input type="checkbox" data-id="s5-2"><span><span class="en">The cow now says “Version 3 of my app!”</span><span class="fa">گاو حالا می‌گوید «Version 3 of my app!»</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 CLEAN UP ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Thanks to <code>--rm</code> there are no containers to delete. Delete the image if you like (Lesson 1):</p>
+  <p class="fa">به لطف <code>--rm</code> کانتینری برای حذف وجود ندارد. اگر خواستید ایمیج را حذف کنید (درس ۱):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image rm hello-app</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en">I'm done with <code>hello-app</code></span><span class="fa">کارم با <code>hello-app</code> تمام شد</span></span></label>
+  </div>
+</section>
+
+<div class="note tip stuck">
+  <p class="en">📥 <b>Stuck?</b> The finished files of this lesson are in the course folder under <code>examples/19-own-program/</code>. Compare them with yours. Or try the finished version: go into that folder and run <code>docker build -t hello-app .</code>.</p>
+  <p class="fa">📥 <b>گیر کرده‌اید؟</b> فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/19-own-program/</code> هستند. آن‌ها را با فایل‌های خودتان مقایسه کنید. یا نسخه‌ی کامل را امتحان کنید: به همان پوشه بروید و <code>docker build -t hello-app .</code> را اجرا کنید.</p>
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>WORKDIR /path</code></td><td><span class="en">Create a folder in the image and work there</span><span class="fa">ساختن یک پوشه در ایمیج و کار کردن همان‌جا</span></td></tr>
+      <tr><td><code>RUN command</code></td><td><span class="en">Run a command at <b>build</b> time (e.g. install libraries)</span><span class="fa">اجرای یک دستور هنگام <b>ساخت</b> (مثلاً نصب کتابخانه‌ها)</span></td></tr>
+      <tr><td><code>CMD ["program", "arg"]</code></td><td><span class="en">The command a container runs when it <b>starts</b></span><span class="fa">دستوری که کانتینر هنگام <b>شروع</b> اجرا می‌کند</span></td></tr>
+      <tr><td><code>CACHED</code></td><td><span class="en">Unchanged layers are reused: put rarely-changing steps first</span><span class="fa">لایه‌های بدون تغییر دوباره استفاده می‌شوند: مراحلی که کمتر عوض می‌شوند را اول بگذارید</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You packaged your own program!</span><span class="fa">برنامه‌ی خودتان را بسته‌بندی کردید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

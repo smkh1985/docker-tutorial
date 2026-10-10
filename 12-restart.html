@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 12 · Restart policies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="12">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · A program that crashes</span><span class="fa">۱ · برنامه‌ای که crash می‌کند</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Add --restart</span><span class="fa">۲ · اضافه کردن ‎--restart</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · You stop it</span><span class="fa">۳ · خودتان متوقفش کنید</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Which policy?</span><span class="fa">۴ · کدام سیاست؟</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 12 — Restart policies</span>
+    <span class="fa">درس ۱۲ — سیاست‌های راه‌اندازی مجدد</span>
+  </h1>
+  <p class="en">Programs crash, and computers reboot. By default, a container that stops <b>stays stopped</b>: your database or website is down until you notice. A <b>restart policy</b> tells Docker to bring it back by itself.</p>
+  <p class="fa">برنامه‌ها crash می‌کنند و کامپیوترها ری‌استارت می‌شوند. به‌طور پیش‌فرض، کانتینری که متوقف شود <b>متوقف می‌ماند</b>: دیتابیس یا وب‌سایت شما تا وقتی متوجه نشوید از کار افتاده است. یک <b>سیاست راه‌اندازی مجدد</b> (restart policy) به Docker می‌گوید خودش آن را برگرداند.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 CRASH ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">A program that crashes</span><span class="fa">برنامه‌ای که crash می‌کند</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Let's fake a crashing app. This container prints <code>started</code>, waits 3 seconds, then quits with an error (code 1):</p>
+  <p class="fa">بیایید یک برنامه‌ی crash‌کننده بسازیم. این کانتینر <code>started</code> را چاپ می‌کند، ۳ ثانیه صبر می‌کند و بعد با خطا (کد 1) تمام می‌شود:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name crashy alpine sh -c "echo started; sleep 3; exit 1"</code></pre></div>
+  <p class="en">The part after the image is the command to run (Lesson 7). <code>sh -c "…"</code> runs several commands, separated by <code>;</code>.</p>
+  <p class="fa">بخش بعد از ایمیج دستوری است که اجرا می‌شود (درس ۷). <code>sh -c "…"</code> چند دستور را که با <code>;</code> جدا شده‌اند اجرا می‌کند.</p>
+  <p class="en">Wait a few seconds, then list <b>all</b> containers:</p>
+  <p class="fa">چند ثانیه صبر کنید، بعد <b>همه‌ی</b> کانتینرها را فهرست کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps -a</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>NAMES     STATUS                     <span class="c"># other columns left out</span>
+crashy    Exited (1) 3 seconds ago</code></pre></div>
+  <p class="en">It crashed, and it <b>stays</b> crashed. Its log shows it started only once:</p>
+  <p class="fa">crash کرد و crash‌شده <b>می‌ماند</b>. لاگش نشان می‌دهد فقط یک بار شروع شده:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker logs crashy</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>started</code></pre></div>
+  <p class="en">Delete it:</p>
+  <p class="fa">حذفش کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm crashy</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>crashy</code> stayed <code>Exited (1)</code>, and the log shows <code>started</code> once</span><span class="fa"><code>crashy</code> در وضعیت <code>Exited (1)</code> ماند و لاگ یک بار <code>started</code> را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 RESTART ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Add <code>--restart</code></span><span class="fa">اضافه کردن <code>--restart</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Same container, plus <code>--restart unless-stopped</code>:</p>
+  <p class="fa">همان کانتینر، به‌اضافه‌ی <code>--restart unless-stopped</code>:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name crashy --restart unless-stopped alpine sh -c "echo started; sleep 3; exit 1"</code></pre></div>
+  <p class="en">Wait about 20 seconds, then read the log again:</p>
+  <p class="fa">حدود ۲۰ ثانیه صبر کنید، بعد دوباره لاگ را بخوانید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker logs crashy</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>started
+started
+started
+started
+started</code></pre></div>
+  <p class="en">✅ Every time it crashed, <b>Docker started it again</b>. Each restart waits a bit longer than the previous one, so a broken app doesn't restart thousands of times. Check its status:</p>
+  <p class="fa">✅ هر بار که crash کرد، <b>Docker دوباره راهش انداخت</b>. هر راه‌اندازی مجدد کمی بیشتر از قبلی صبر می‌کند، تا یک برنامه‌ی خراب هزاران بار راه نیفتد. وضعیتش را بررسی کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>NAMES     STATUS          <span class="c"># other columns left out</span>
+crashy    Up 3 seconds</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The log shows <code>started</code> several times</span><span class="fa">لاگ چند بار <code>started</code> را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 YOU STOP IT ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">You stop it: does it come back?</span><span class="fa">خودتان متوقفش کنید: برمی‌گردد؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Stop <code>crashy</code> yourself (it may take up to 10 seconds):</p>
+  <p class="fa"><code>crashy</code> را خودتان متوقف کنید (ممکن است تا ۱۰ ثانیه طول بکشد):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker stop crashy</code></pre></div>
+  <p class="en">Wait a few seconds, then list <b>all</b> containers:</p>
+  <p class="fa">چند ثانیه صبر کنید، بعد <b>همه‌ی</b> کانتینرها را فهرست کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps -a</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>NAMES     STATUS                     <span class="c"># other columns left out</span>
+crashy    Exited (1) 8 seconds ago</code></pre></div>
+  <p class="en">It stays stopped. That's the <b>unless-stopped</b> part: Docker restarts it after crashes, but respects <b>your</b> <code>docker stop</code>.</p>
+  <p class="fa">متوقف می‌ماند. این همان بخش <b>unless-stopped</b> است: Docker بعد از crash آن را دوباره راه می‌اندازد، ولی به <code>docker stop</code> <b>شما</b> احترام می‌گذارد.</p>
+  <p class="en">Delete it:</p>
+  <p class="fa">حذفش کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm crashy</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">After <code>docker stop</code>, <code>crashy</code> did not come back</span><span class="fa">بعد از <code>docker stop</code>، <code>crashy</code> برنگشت</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 WHICH POLICY ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Which policy should I use?</span><span class="fa">از کدام سیاست استفاده کنم؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th><code>--restart</code></th>
+      <th><span class="en">After a crash</span><span class="fa">بعد از crash</span></th>
+      <th><span class="en">After the PC reboots</span><span class="fa">بعد از ری‌استارت کامپیوتر</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><code>no</code> <span class="en">(default)</span><span class="fa">(پیش‌فرض)</span></td><td>❌</td><td>❌</td></tr>
+      <tr><td><code>unless-stopped</code></td><td>✅</td><td><span class="en">✅ unless you had stopped it</span><span class="fa">✅ مگر اینکه خودتان متوقفش کرده باشید</span></td></tr>
+      <tr><td><code>always</code></td><td>✅</td><td><span class="en">✅ even if you had stopped it</span><span class="fa">✅ حتی اگر خودتان متوقفش کرده باشید</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="en">We can't reboot your PC in a lesson, but after a reboot Docker starts again and brings back every container whose policy says so.</p>
+  <p class="fa">در یک درس نمی‌توانیم کامپیوتر شما را ری‌استارت کنیم، ولی بعد از ری‌استارت، Docker دوباره اجرا می‌شود و هر کانتینری را که سیاستش بگوید برمی‌گرداند.</p>
+  <div class="note key">
+    <p class="en">🔑 For anything that should always be running, like a database or a web server, use <code>--restart unless-stopped</code>. For example, the database from Lesson 11:</p>
+    <p class="fa">🔑 برای هر چیزی که باید همیشه در حال اجرا باشد، مثل یک دیتابیس یا وب‌سرور، از <code>--restart unless-stopped</code> استفاده کنید. مثلاً دیتابیس درس ۱۱:</p>
+  </div>
+  <div class="code"><span class="lbl">just look, don't run</span><pre><code>docker run -d --name db --restart unless-stopped --env-file db.env postgres:alpine</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">I know <code>unless-stopped</code> is the usual choice for servers</span><span class="fa">می‌دانم <code>unless-stopped</code> انتخاب معمول برای سرورهاست</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><span class="en">Default</span><span class="fa">پیش‌فرض</span></td><td><span class="en">A stopped container stays stopped</span><span class="fa">کانتینر متوقف‌شده متوقف می‌ماند</span></td></tr>
+      <tr><td><code>--restart unless-stopped</code></td><td><span class="en">Restart after crashes and reboots, but not after your <code>docker stop</code></span><span class="fa">راه‌اندازی مجدد بعد از crash و ری‌استارت، ولی نه بعد از <code>docker stop</code> شما</span></td></tr>
+      <tr><td><code>sh -c "A; B; C"</code></td><td><span class="en">Run several commands in a new container</span><span class="fa">اجرای چند دستور در یک کانتینر جدید</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">Your containers can come back by themselves!</span><span class="fa">کانتینرهای شما می‌توانند خودشان برگردند!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 13 · Networks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="13">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Start a database and an app</span><span class="fa">۱ · اجرای دیتابیس و برنامه</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Connect by name</span><span class="fa">۲ · اتصال با نام</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Connect by IP</span><span class="fa">۳ · اتصال با IP</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · IPs change</span><span class="fa">۴ · IPها عوض می‌شوند</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Create a network</span><span class="fa">۵ · ساختن شبکه</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Join the network</span><span class="fa">۶ · پیوستن به شبکه</span></a></li>
+    <li><a href="#s7"><span class="tick">✓</span><span class="en">7 · Connect by name again</span><span class="fa">۷ · اتصال دوباره با نام</span></a></li>
+    <li><a href="#s8"><span class="tick">✓</span><span class="en">8 · Clean up</span><span class="fa">۸ · تمیزکاری</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 13 — Networks: containers talking to each other</span>
+    <span class="fa">درس ۱۳ — شبکه‌ها: صحبت کانتینرها با هم</span>
+  </h1>
+  <p class="en">Real apps are made of <b>several containers</b>: an app and its database. The app must reach the database, ideally <b>by name</b>. You'll run a <b>PostgreSQL</b> database (Lesson 11) and <b>Adminer</b>, a ready-made web app for looking inside databases, and connect them.</p>
+  <p class="fa">برنامه‌های واقعی از <b>چند کانتینر</b> ساخته می‌شوند: یک برنامه و دیتابیسش. برنامه باید به دیتابیس دسترسی داشته باشد، ترجیحاً <b>با نام</b>. یک دیتابیس <b>PostgreSQL</b> (درس ۱۱) و <b>Adminer</b> را اجرا می‌کنید (یک برنامه‌ی وب آماده برای دیدن داخل دیتابیس‌ها) و آن‌ها را به هم وصل می‌کنید.</p>
+  <div class="flow">
+    <div class="box"><b><span class="en">Your browser</span><span class="fa">مرورگر شما</span></b><small><code>localhost:8080</code></small></div>
+    <div class="arrow"><small><code>-p 8080:8080</code></small></div>
+    <div class="row">
+      <div class="box ctr"><b><code>adminer</code></b><small><span class="en">web app</span><span class="fa">برنامه‌ی وب</span></small></div>
+      <div class="box ctr"><b><code>db</code></b><small>PostgreSQL</small></div>
+    </div>
+    <p style="margin:6px 0 0"><small><span class="en"><code>adminer</code> → <code>db</code>: by name?</span><span class="fa"><code>adminer</code> ← <code>db</code>: با نام؟</span></small></p>
+  </div>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 START ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Start a database and an app</span><span class="fa">اجرای یک دیتابیس و یک برنامه</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Start PostgreSQL in the background, named <code>db</code>, with the password <code>secret</code> (Lesson 11):</p>
+  <p class="fa">PostgreSQL را در پس‌زمینه با نام <code>db</code> و رمز <code>secret</code> اجرا کنید (درس ۱۱):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name db -e POSTGRES_PASSWORD=secret postgres:alpine</code></pre></div>
+  <p class="en">Start Adminer, named <code>adminer</code>. It listens on port 8080 inside its container, so publish it on 8080:</p>
+  <p class="fa">Adminer را با نام <code>adminer</code> اجرا کنید. داخل کانتینرش روی پورت 8080 گوش می‌دهد، پس آن را روی 8080 منتشر کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name adminer -p 8080:8080 adminer</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>db</code> and <code>adminer</code> are both <code>Up</code></span><span class="fa"><code>db</code> و <code>adminer</code> هر دو <code>Up</code> هستند</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 CONNECT BY NAME ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Adminer connects to <code>db</code> by name</span><span class="fa">Adminer با نام به <code>db</code> وصل می‌شود</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> and fill in the login form:</p>
+  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را باز کنید و فرم ورود را پر کنید:</p>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><b>System</b></td><td><code>PostgreSQL</code></td></tr>
+      <tr><td><b>Server</b></td><td><code>db</code> <span class="en">← the container's name</span><span class="fa">← نام کانتینر</span></td></tr>
+      <tr><td><b>Username</b></td><td><code>postgres</code> <span class="en">(the default user)</span><span class="fa">(کاربر پیش‌فرض)</span></td></tr>
+      <tr><td><b>Password</b></td><td><code>secret</code></td></tr>
+      <tr><td><b>Database</b></td><td><span class="en">leave empty</span><span class="fa">خالی بگذارید</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="en">Click <b>Login</b>:</p>
+  <p class="fa">روی <b>Login</b> کلیک کنید:</p>
+  <div class="browser err">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Login</h1><p>SQLSTATE[08006] [7] could not translate host name "db" to address: Name does not resolve</p></div>
+  </div>
+  <p class="en">❌ Adminer doesn't know who <code>db</code> is. By default, containers run on Docker's default network, called <code>bridge</code>, where <b>names don't work</b>.</p>
+  <p class="fa">❌ Adminer نمی‌داند <code>db</code> کیست. به‌طور پیش‌فرض کانتینرها روی شبکه‌ی پیش‌فرض Docker به نام <code>bridge</code> اجرا می‌شوند، جایی که <b>نام‌ها کار نمی‌کنند</b>.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">Adminer said <code>could not translate host name "db"</code></span><span class="fa">Adminer گفت <code>could not translate host name "db"</code></span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 CONNECT BY IP ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Find <code>db</code>'s IP address, and connect by IP</span><span class="fa">پیدا کردن آدرس IP دیتابیس و اتصال با IP</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Every container gets its own <b>IP address</b> on Docker's network. Find <code>db</code>'s: inspect the container and look for <code>"IPAddress"</code> in its long output (like <code>"Mounts"</code> in Lesson 9):</p>
+  <p class="fa">هر کانتینر روی شبکه‌ی Docker <b>آدرس IP</b> خودش را می‌گیرد. آدرس <code>db</code> را پیدا کنید: کانتینر را inspect کنید و در خروجی طولانی‌اش دنبال <code>"IPAddress"</code> بگردید (مثل <code>"Mounts"</code> در درس ۹):</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker inspect db</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>            "Networks": {
+                "bridge": {                         <span class="c"># the default network</span>
+                    "Gateway": "172.17.0.1",
+                    "IPAddress": "172.17.0.5",      <span class="c"># ← db's address (yours will likely differ)</span>
+                    ...</code></pre></div>
+  <p class="en">Back in Adminer, log in with the same form, but this time put <b>the IP</b> in <b>Server</b> (e.g. <code>172.17.0.5</code>, use <b>yours</b>):</p>
+  <p class="fa">به Adminer برگردید و با همان فرم وارد شوید، ولی این بار در <b>Server</b> <b>آدرس IP</b> را بنویسید (مثلاً <code>172.17.0.5</code>؛ از آدرس <b>خودتان</b> استفاده کنید):</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Select database</h1><p>PostgreSQL » 172.17.0.5 · Logged in as: <b>postgres</b></p></div>
+  </div>
+  <p class="en">✅ It works! Containers on the default network <b>can</b> reach each other, just not by name.</p>
+  <p class="fa">✅ کار کرد! کانتینرهای روی شبکه‌ی پیش‌فرض <b>می‌توانند</b> به هم دسترسی داشته باشند، فقط نه با نام.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I found <code>db</code>'s <code>"IPAddress"</code> with <code>docker inspect</code></span><span class="fa"><code>"IPAddress"</code> دیتابیس را با <code>docker inspect</code> پیدا کردم</span></span></label>
+    <label><input type="checkbox" data-id="s3-2"><span><span class="en">Adminer logged in with the IP as Server</span><span class="fa">Adminer با IP به‌عنوان Server وارد شد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 IPS CHANGE ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">But IP addresses change</span><span class="fa">ولی آدرس‌های IP عوض می‌شوند</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Containers get recreated all the time: updates, crashes, restarts. Let's see what happens to the IP. Delete <code>db</code> in one command:</p>
+  <p class="fa">کانتینرها مدام دوباره ساخته می‌شوند: به‌روزرسانی، crash، ری‌استارت. ببینیم برای IP چه اتفاقی می‌افتد. <code>db</code> را با یک دستور حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f db</code></pre></div>
+  <p class="en">Meanwhile another container starts. Run any nginx in the background, named <code>other</code>:</p>
+  <p class="fa">در همین حین یک کانتینر دیگر اجرا می‌شود. یک nginx در پس‌زمینه با نام <code>other</code> اجرا کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name other nginx</code></pre></div>
+  <p class="en">Now start <code>db</code> again, exactly like in step 1, and look at its <code>"IPAddress"</code> again:</p>
+  <p class="fa">حالا <code>db</code> را دقیقاً مثل قدم ۱ دوباره اجرا کنید و دوباره به <code>"IPAddress"</code> آن نگاه کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name db -e POSTGRES_PASSWORD=secret postgres:alpine
+docker inspect db</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>                    "IPAddress": "172.17.0.7",      <span class="c"># ← a NEW address</span></code></pre></div>
+  <p class="en"><code>other</code> took <code>db</code>'s old address. Log in to Adminer with the <b>old</b> IP:</p>
+  <p class="fa"><code>other</code> آدرس قبلی <code>db</code> را گرفت. با IP <b>قبلی</b> در Adminer وارد شوید:</p>
+  <div class="browser err">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Login</h1><p>SQLSTATE[08006] [7] connection to server at "172.17.0.5", port 5432 failed: Connection refused</p></div>
+  </div>
+  <p class="en">❌ The old IP now points to <code>other</code>, which is not a database. Your app would break every time the IP changes. Delete <code>other</code>:</p>
+  <p class="fa">❌ IP قبلی حالا به <code>other</code> اشاره می‌کند که دیتابیس نیست. برنامه‌ی شما هر بار که IP عوض شود خراب می‌شود. <code>other</code> را حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f other</code></pre></div>
+  <div class="note key">
+    <p class="en">🔑 Never rely on a container's IP address. You want a <b>name</b> that always points to the right container.</p>
+    <p class="fa">🔑 هرگز به آدرس IP یک کانتینر تکیه نکنید. چیزی که می‌خواهید یک <b>نام</b> است که همیشه به کانتینر درست اشاره کند.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">The new <code>db</code> got a different IP, and the old IP failed</span><span class="fa"><code>db</code> جدید IP متفاوتی گرفت و IP قبلی کار نکرد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 CREATE NETWORK ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Create your own network</span><span class="fa">ساختن شبکه‌ی خودتان</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker network create mynet</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>5b4d6d66cf605254a3c5ac34bf922fa6a80f702ce4903c5e642dcad025424499   <span class="c"># the new network's ID</span></code></pre></div>
+  <p class="en">Networks have their own list, like images, containers and volumes:</p>
+  <p class="fa">شبکه‌ها هم مثل ایمیج‌ها، کانتینرها و volumeها فهرست خودشان را دارند:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker network ls</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>NETWORK ID     NAME      DRIVER    SCOPE
+ea6d89a95e5f   bridge    bridge    local      <span class="c"># the default network from step 2</span>
+e9fc7164ebde   host      host      local
+5b4d6d66cf60   mynet     bridge    local      <span class="c"># yours</span>
+e1ecff10f049   none      null      local</code></pre></div>
+  <p class="en">You may see more, created by other projects on your PC.</p>
+  <p class="fa">ممکن است شبکه‌های بیشتری ببینید که پروژه‌های دیگر روی کامپیوتر شما ساخته‌اند.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en"><code>docker network ls</code> shows <code>mynet</code></span><span class="fa"><code>docker network ls</code> نام <code>mynet</code> را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 JOIN ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Put both containers on the network</span><span class="fa">قرار دادن هر دو کانتینر روی شبکه</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Delete both containers with one command:</p>
+  <p class="fa">هر دو کانتینر را با یک دستور حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f db adminer</code></pre></div>
+  <p class="en">Start them again, plus <code>--network mynet</code>:</p>
+  <p class="fa">دوباره اجرایشان کنید، به‌اضافه‌ی <code>--network mynet</code>:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name db --network mynet -e POSTGRES_PASSWORD=secret postgres:alpine
+docker run -d --name adminer --network mynet -p 8080:8080 adminer</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en">Both containers run with <code>--network mynet</code></span><span class="fa">هر دو کانتینر با <code>--network mynet</code> اجرا شده‌اند</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 7 CONNECT AGAIN ================= -->
+<section class="card step" id="s7">
+  <h2><span class="num">7</span>
+    <span class="en">Connect again</span><span class="fa">اتصال دوباره</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Reload <a href="http://localhost:8080" target="_blank">localhost:8080</a> and log in with exactly the same form as in step 2 (Server: <code>db</code>):</p>
+  <p class="fa"><a href="http://localhost:8080" target="_blank">localhost:8080</a> را reload کنید و دقیقاً با همان فرم قدم ۲ وارد شوید (Server: <code>db</code>):</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Select database</h1><p>PostgreSQL » db · Logged in as: <b>postgres</b></p><p>Database: postgres</p></div>
+  </div>
+  <p class="en">✅ <b>You're in!</b> On your own network, Docker lets containers find each other <b>by their names</b>. You are now looking inside the PostgreSQL database through Adminer.</p>
+  <p class="fa">✅ <b>وارد شدید!</b> روی شبکه‌ی خودتان، Docker اجازه می‌دهد کانتینرها همدیگر را <b>با نامشان</b> پیدا کنند. حالا از طریق Adminer داخل دیتابیس PostgreSQL را می‌بینید.</p>
+  <div class="note key">
+    <p class="en">🔑 Notice: <code>db</code> has <b>no <code>-p</code></b>! <code>-p</code> (Lesson 4) is only for reaching a container <b>from your PC</b>. Your browser needs Adminer, so Adminer has <code>-p</code>. But Adminer reaches <code>db</code> directly over <code>mynet</code>. The database isn't exposed to your PC at all, which is also safer.</p>
+    <p class="fa">🔑 دقت کنید: <code>db</code> <b><code>-p</code> ندارد</b>! <code>-p</code> (درس ۴) فقط برای دسترسی به کانتینر <b>از کامپیوتر شما</b> است. مرورگر شما به Adminer نیاز دارد، پس Adminer <code>-p</code> دارد. ولی Adminer مستقیماً از طریق <code>mynet</code> به <code>db</code> می‌رسد. دیتابیس اصلاً روی کامپیوتر شما باز نیست، که امن‌تر هم هست.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s7-1"><span><span class="en">Adminer logged in to <code>db</code> and shows <b>Select database</b></span><span class="fa">Adminer به <code>db</code> وارد شد و <b>Select database</b> را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 8 CLEAN UP ================= -->
+<section class="card step" id="s8">
+  <h2><span class="num">8</span>
+    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Delete both containers first, with one command:</p>
+  <p class="fa">اول هر دو کانتینر را با یک دستور حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f db adminer</code></pre></div>
+  <p class="en">Then delete the network:</p>
+  <p class="fa">بعد شبکه را حذف کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker network rm mynet</code></pre></div>
+  <p class="en">Like a volume (Lesson 9), a network can't be deleted while containers still use it. You'd get <code>network mynet has active endpoints</code>. That's why the containers go first.</p>
+  <p class="fa">مثل volume (درس ۹)، شبکه را تا وقتی کانتینرها از آن استفاده می‌کنند نمی‌شود حذف کرد. خطای <code>network mynet has active endpoints</code> می‌گیرید. برای همین اول کانتینرها حذف می‌شوند.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s8-1"><span><span class="en"><code>mynet</code> is gone from <code>docker network ls</code></span><span class="fa"><code>mynet</code> از <code>docker network ls</code> حذف شده</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>docker network create NAME</code></td><td><span class="en">Create a network</span><span class="fa">ساختن یک شبکه</span></td></tr>
+      <tr><td><code>docker run --network NAME …</code></td><td><span class="en">Start a container on that network</span><span class="fa">اجرای کانتینر روی آن شبکه</span></td></tr>
+      <tr><td><span class="en">Container name = address</span><span class="fa">نام کانتینر = آدرس</span></td><td><span class="en">On the same network, containers reach each other by name; no <code>-p</code> needed</span><span class="fa">روی یک شبکه، کانتینرها با نام به هم دسترسی دارند؛ <code>-p</code> لازم نیست</span></td></tr>
+      <tr><td><code>docker network ls</code></td><td><span class="en">List networks</span><span class="fa">فهرست شبکه‌ها</span></td></tr>
+      <tr><td><code>docker network rm NAME</code></td><td><span class="en">Delete a network (not while containers use it)</span><span class="fa">حذف شبکه (نه وقتی کانتینرها از آن استفاده می‌کنند)</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">Your app can talk to its database!</span><span class="fa">برنامه‌ی شما می‌تواند با دیتابیسش صحبت کند!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

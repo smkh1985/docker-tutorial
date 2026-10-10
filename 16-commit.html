@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 16 · Save a container as an image</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="16">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Start nginx</span><span class="fa">۱ · اجرای nginx</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Copy your page in</span><span class="fa">۲ · کپی صفحه به داخل</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Commit</span><span class="fa">۳ · commit</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Run your image</span><span class="fa">۴ · اجرای ایمیج</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · The catch</span><span class="fa">۵ · مشکل کجاست</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Clean up</span><span class="fa">۶ · تمیزکاری</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 16 — Save a container as an image</span>
+    <span class="fa">درس ۱۶ — ذخیره‌ی کانتینر به‌صورت ایمیج</span>
+  </h1>
+  <p class="en">In Lesson 6, your change to nginx's page was lost when you deleted the container. What if you could <b>freeze</b> the changed container into a <b>new image</b>, and start as many copies as you like? That's <code>docker commit</code>.</p>
+  <p class="fa">در درس ۶، تغییری که در صفحه‌ی nginx دادید با حذف کانتینر از بین رفت. چه می‌شد اگر می‌توانستید کانتینر تغییرکرده را به یک <b>ایمیج جدید</b> <b>منجمد</b> کنید و هر چند نسخه که خواستید از آن اجرا کنید؟ این کار <code>docker commit</code> است.</p>
+  <div class="flow">
+    <div class="box ctr"><b><span class="en">Changed container</span><span class="fa">کانتینر تغییرکرده</span></b><small><code>web</code></small></div>
+    <div class="arrow"><small><code>docker commit</code></small></div>
+    <div class="box img"><b><span class="en">New image</span><span class="fa">ایمیج جدید</span></b><small><code>my-web:handmade</code></small></div>
+  </div>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 START ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Start nginx</span><span class="fa">اجرای nginx</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Start nginx in the background, named <code>web</code>, reachable at <code>localhost:8080</code>:</p>
+  <p class="fa">nginx را در پس‌زمینه، با نام <code>web</code> و در دسترس روی <code>localhost:8080</code> اجرا کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 nginx</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>localhost:8080</code> shows “Welcome to nginx!”</span><span class="fa"><code>localhost:8080</code> صفحه‌ی «Welcome to nginx!» را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 CP ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Copy your page in with <code>docker cp</code></span><span class="fa">کپی صفحه به داخل با <code>docker cp</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Make a folder <code>commit-demo</code> in your home folder and go into it:</p>
+  <p class="fa">یک پوشه به نام <code>commit-demo</code> در پوشه‌ی خانه‌تان بسازید و واردش شوید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>mkdir ~/commit-demo
+cd ~/commit-demo</code></pre></div>
+  <p class="en">Create <code>index.html</code> with the text <code>&lt;h1&gt;Saved with commit!&lt;/h1&gt;</code> (remember the single quotes from Lesson 6):</p>
+  <p class="fa"><code>index.html</code> را با متن <code>&lt;h1&gt;Saved with commit!&lt;/h1&gt;</code> بسازید (کوتیشن تکی درس ۶ یادتان باشد):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>echo '&lt;h1&gt;Saved with commit!&lt;/h1&gt;' &gt; index.html</code></pre></div>
+  <p class="en">Now copy the file <b>from your PC into the container</b>:</p>
+  <p class="fa">حالا فایل را <b>از کامپیوترتان به داخل کانتینر</b> کپی کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker cp index.html web:/usr/share/nginx/html/index.html</code></pre></div>
+  <p class="en"><code>docker cp FROM TO</code> works like the normal <code>cp</code>. <code>web:</code> in front of a path means “inside the container <code>web</code>”. Reload the browser:</p>
+  <p class="fa"><code>docker cp FROM TO</code> مثل <code>cp</code> معمولی کار می‌کند. <code>web:</code> قبل از یک مسیر یعنی «داخل کانتینر <code>web</code>». مرورگر را reload کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Saved with commit!</h1></div>
+  </div>
+  <details class="q">
+    <summary><span class="en">❓ Can I copy out of a container too?</span><span class="fa">❓ می‌توانم از کانتینر به بیرون هم کپی کنم؟</span></summary>
+    <p class="en">Yes, just swap the order: <code>docker cp web:/etc/nginx/nginx.conf .</code> copies nginx's config file to the current folder on your PC.</p>
+    <p class="fa">بله، فقط ترتیب را عوض کنید: <code>docker cp web:/etc/nginx/nginx.conf .</code> فایل تنظیمات nginx را به پوشه‌ی فعلی روی کامپیوتر شما کپی می‌کند.</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The browser shows “Saved with commit!”</span><span class="fa">مرورگر «Saved with commit!» را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 COMMIT ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Commit: save the container as an image</span><span class="fa">commit: ذخیره‌ی کانتینر به‌صورت ایمیج</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker commit web my-web:handmade</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>sha256:29c20f0b1052ab139b6aa90b8092cb60cf14d17d50ce2f74355a82d89c1a8fc4   <span class="c"># the new image's ID</span></code></pre></div>
+  <p class="en"><code>docker commit CONTAINER NAME:TAG</code> takes everything inside the container <b>right now</b>, including your page, and saves it as a new image. List it (Lesson 1):</p>
+  <p class="fa"><code>docker commit CONTAINER NAME:TAG</code> هر چیزی را که <b>همین الان</b> داخل کانتینر است، از جمله صفحه‌ی شما، به‌صورت یک ایمیج جدید ذخیره می‌کند. فهرستش کنید (درس ۱):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image ls my-web</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>IMAGE             ID             DISK USAGE   CONTENT SIZE   EXTRA
+my-web:handmade   29c20f0b1052        240MB         63.9MB</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I see <code>my-web:handmade</code> in my images</span><span class="fa"><code>my-web:handmade</code> را در ایمیج‌هایم می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 RUN ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Run a new container from your image</span><span class="fa">اجرای کانتینر جدید از ایمیج شما</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Delete <code>web</code> in one command:</p>
+  <p class="fa"><code>web</code> را با یک دستور حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web</code></pre></div>
+  <p class="en">Start a new <code>web</code> like in step 1, but from <code>my-web:handmade</code> instead of <code>nginx</code>:</p>
+  <p class="fa">یک <code>web</code> جدید مثل قدم ۱ اجرا کنید، ولی به‌جای <code>nginx</code> از <code>my-web:handmade</code>:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 my-web:handmade</code></pre></div>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Saved with commit!</h1></div>
+  </div>
+  <p class="en">✅ A <b>brand-new</b> container, and your page is there. In Lesson 6 it was lost; now it's saved <b>in the image</b>.</p>
+  <p class="fa">✅ یک کانتینر <b>کاملاً جدید</b>، و صفحه‌ی شما آنجاست. در درس ۶ از بین رفت؛ حالا <b>در ایمیج</b> ذخیره شده.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">The new container shows “Saved with commit!”</span><span class="fa">کانتینر جدید «Saved with commit!» را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 THE CATCH ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">The catch: what's inside?</span><span class="fa">مشکل کجاست: داخلش چیست؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">An image is built in <b>layers</b>, one per step. <code>docker history</code> lists them, newest first:</p>
+  <p class="fa">یک ایمیج از <b>لایه‌ها</b> ساخته می‌شود، یکی برای هر مرحله. <code>docker history</code> آن‌ها را فهرست می‌کند، جدیدترین اول:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker history my-web:handmade</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>IMAGE          CREATED         CREATED BY                         SIZE
+29c20f0b1052   5 seconds ago   nginx -g daemon off;               81.9kB    <span class="c"># ← your commit</span>
+f9ea18bfa4fa   4 days ago      CMD ["nginx" "-g" "daemon off;"]   0B        <span class="c"># ← nginx's own steps</span>
+&lt;missing&gt;      4 days ago      STOPSIGNAL SIGQUIT                 0B
+&lt;missing&gt;      4 days ago      EXPOSE map[80/tcp:{}]              0B
+...</code></pre></div>
+  <p class="en">nginx's layers show the exact steps its authors wrote (<code>EXPOSE</code>, <code>CMD</code>…). <b>Your</b> layer only says <code>nginx -g daemon off;</code>, which is just the program that was running. It says <b>nothing</b> about what you changed.</p>
+  <p class="fa">لایه‌های nginx دقیقاً مراحلی را که سازندگانش نوشته‌اند نشان می‌دهند (<code>EXPOSE</code>، <code>CMD</code> و …). لایه‌ی <b>شما</b> فقط می‌گوید <code>nginx -g daemon off;</code>، یعنی همان برنامه‌ای که در حال اجرا بود. <b>هیچ چیزی</b> درباره‌ی تغییری که دادید نمی‌گوید.</p>
+  <div class="note warn">
+    <p class="en">⚠ <b>Problems with <code>commit</code>:</b></p>
+    <p class="fa">⚠ <b>مشکلات <code>commit</code>:</b></p>
+    <ul>
+      <li><span class="en">Nobody can see <b>what</b> you changed or <b>how</b>, not even you a month later.</span><span class="fa">هیچ‌کس نمی‌تواند ببیند <b>چه چیزی</b> را و <b>چطور</b> تغییر دادید، حتی خودتان یک ماه بعد.</span></li>
+      <li><span class="en">To make version 2, you'd have to repeat every manual step by hand.</span><span class="fa">برای ساختن نسخه‌ی ۲ باید همه‌ی مراحل دستی را دوباره با دست انجام دهید.</span></li>
+      <li><span class="en">Anything else you did in the container (test files, mistakes) is saved too.</span><span class="fa">هر کار دیگری که در کانتینر کردید (فایل‌های آزمایشی، اشتباه‌ها) هم ذخیره می‌شود.</span></li>
+    </ul>
+  </div>
+  <div class="note key">
+    <p class="en">🔑 <code>commit</code> is fine for a quick experiment. For real images, the steps should be <b>written down</b>, so anyone can read them and build the same image again. That's what a <b>Dockerfile</b> is: the next lesson.</p>
+    <p class="fa">🔑 <code>commit</code> برای یک آزمایش سریع خوب است. برای ایمیج‌های واقعی، مراحل باید <b>نوشته شوند</b> تا هر کسی بتواند آن‌ها را بخواند و همان ایمیج را دوباره بسازد. <b>Dockerfile</b> همین است: موضوع درس بعد.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en">I see that my commit layer doesn't say what I changed</span><span class="fa">می‌بینم که لایه‌ی commit من نمی‌گوید چه چیزی را تغییر دادم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 CLEAN UP ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Delete <code>web</code>, then delete your handmade image (Lesson 1):</p>
+  <p class="fa"><code>web</code> را حذف کنید، بعد ایمیج دست‌ساز خودتان را حذف کنید (درس ۱):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web
+docker image rm my-web:handmade</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en"><code>web</code> and <code>my-web:handmade</code> are deleted</span><span class="fa"><code>web</code> و <code>my-web:handmade</code> حذف شدند</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>docker cp FROM TO</code></td><td><span class="en">Copy files between your PC and a container (<code>NAME:/path</code>)</span><span class="fa">کپی فایل بین کامپیوتر شما و کانتینر (<code>NAME:/path</code>)</span></td></tr>
+      <tr><td><code>docker commit CONTAINER NAME:TAG</code></td><td><span class="en">Save a container's current state as a new image</span><span class="fa">ذخیره‌ی وضعیت فعلی کانتینر به‌صورت ایمیج جدید</span></td></tr>
+      <tr><td><code>docker history IMAGE</code></td><td><span class="en">Show the layers an image is made of</span><span class="fa">نمایش لایه‌هایی که ایمیج از آن‌ها ساخته شده</span></td></tr>
+      <tr><td><span class="en">The catch</span><span class="fa">مشکل</span></td><td><span class="en">A commit doesn't record what you did; a Dockerfile does</span><span class="fa">commit ثبت نمی‌کند چه کاری کردید؛ Dockerfile ثبت می‌کند</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You made your first image by hand!</span><span class="fa">اولین ایمیج‌تان را با دست ساختید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

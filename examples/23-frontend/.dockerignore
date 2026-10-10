@@ -1,0 +1,5 @@
+db.env
+frontend
+Dockerfile
+.dockerignore
+compose.yaml

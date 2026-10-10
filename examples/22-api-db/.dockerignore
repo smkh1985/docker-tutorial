@@ -1,0 +1,4 @@
+db.env
+Dockerfile
+.dockerignore
+compose.yaml

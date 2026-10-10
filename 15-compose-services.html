@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 15 · Compose: an app and its database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="15">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Project folder + env file</span><span class="fa">۱ · پوشه‌ی پروژه + env file</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Write compose.yaml</span><span class="fa">۲ · نوشتن compose.yaml</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Start everything</span><span class="fa">۳ · اجرای همه‌چیز</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Log in by service name</span><span class="fa">۴ · ورود با نام سرویس</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Save some data</span><span class="fa">۵ · ذخیره‌ی داده</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · down, then up</span><span class="fa">۶ · down و دوباره up</span></a></li>
+    <li><a href="#s7"><span class="tick">✓</span><span class="en">7 · Remove everything</span><span class="fa">۷ · حذف همه‌چیز</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 15 — Compose: an app and its database</span>
+    <span class="fa">درس ۱۵ — Compose: یک برنامه و دیتابیسش</span>
+  </h1>
+  <p class="en">In Lesson 13 you connected Adminer to PostgreSQL with <b>four</b> commands: a network, two long <code>docker run</code>s… Now you'll write it all <b>once</b> in a <code>compose.yaml</code>, with the env file (Lesson 11) and a named volume (Lesson 9), and start it with <b>one</b> command.</p>
+  <p class="fa">در درس ۱۳ با <b>چهار</b> دستور Adminer را به PostgreSQL وصل کردید: یک شبکه، دو <code>docker run</code> طولانی… حالا همه را <b>یک بار</b> در یک <code>compose.yaml</code> می‌نویسید، با env file (درس ۱۱) و یک named volume (درس ۹)، و با <b>یک</b> دستور اجرا می‌کنید.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 FOLDER ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Project folder and env file</span><span class="fa">پوشه‌ی پروژه و env file</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Make a project folder called <code>compose-db</code> in your home folder and go into it (Lesson 14):</p>
+  <p class="fa">یک پوشه‌ی پروژه به نام <code>compose-db</code> در پوشه‌ی خانه‌تان بسازید و واردش شوید (درس ۱۴):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>mkdir ~/compose-db
+cd ~/compose-db</code></pre></div>
+  <p class="en">Create <code>db.env</code> with <code>nano</code>, with the same three settings as in Lesson 11:</p>
+  <p class="fa">با <code>nano</code> فایل <code>db.env</code> را با همان سه تنظیم درس ۱۱ بسازید:</p>
+  <div class="code"><span class="lbl">db.env</span><pre><code>POSTGRES_USER=ali
+POSTGRES_PASSWORD=secret
+POSTGRES_DB=shop</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>db.env</code> is in <code>~/compose-db</code></span><span class="fa"><code>db.env</code> در <code>~/compose-db</code> است</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 YAML ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Write <code>compose.yaml</code></span><span class="fa">نوشتن <code>compose.yaml</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Create <code>compose.yaml</code> with <code>nano</code> in the same folder (mind the spaces):</p>
+  <p class="fa">با <code>nano</code> فایل <code>compose.yaml</code> را در همان پوشه بسازید (به فاصله‌ها دقت کنید):</p>
+  <div class="code"><span class="lbl">compose.yaml</span><pre><code>services:
+  db:
+    image: postgres:alpine
+    env_file: db.env
+    volumes:
+      - pgdata:/var/lib/postgresql
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:</code></pre></div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th><code>compose.yaml</code></th>
+      <th><span class="en">Same as</span><span class="fa">معادل</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><code>db:</code> / <code>adminer:</code></td><td><span class="en">two services, like <code>--name db</code> and <code>--name adminer</code></span><span class="fa">دو سرویس، مثل <code>--name db</code> و <code>--name adminer</code></span></td></tr>
+      <tr><td><code>env_file: db.env</code></td><td><code>--env-file db.env</code> <span class="en">(Lesson 11)</span><span class="fa">(درس ۱۱)</span></td></tr>
+      <tr><td><code>- pgdata:/var/lib/postgresql</code></td><td><span class="en">a named volume on PostgreSQL's data folder, like <code>-v</code> (Lesson 9)</span><span class="fa">یک named volume روی پوشه‌ی داده‌ی PostgreSQL، مثل <code>-v</code> (درس ۹)</span></td></tr>
+      <tr><td><code>- "8080:8080"</code></td><td><code>-p 8080:8080</code> <span class="en">(only Adminer, for your browser)</span><span class="fa">(فقط Adminer، برای مرورگر شما)</span></td></tr>
+      <tr><td><code>volumes: pgdata:</code></td><td><span class="en">At the bottom, without indentation: <b>declare</b> the named volume. Compose requires this</span><span class="fa">در پایین، بدون تورفتگی: named volume را <b>اعلام</b> می‌کند. Compose این را لازم دارد</span></td></tr>
+      <tr><td><span class="en">no network?</span><span class="fa">شبکه نیست؟</span></td><td><span class="en">Compose creates one for the project and puts every service on it (Lesson 14)</span><span class="fa">Compose یکی برای پروژه می‌سازد و همه‌ی سرویس‌ها را رویش می‌گذارد (درس ۱۴)</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en"><code>compose.yaml</code> is saved next to <code>db.env</code></span><span class="fa"><code>compose.yaml</code> کنار <code>db.env</code> ذخیره شد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 UP ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Start everything</span><span class="fa">اجرای همه‌چیز</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Start the project in the background (Lesson 14):</p>
+  <p class="fa">پروژه را در پس‌زمینه اجرا کنید (درس ۱۴):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker compose up -d</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>[+] up 4/4
+ ✔ Network compose-db_default     Created
+ ✔ Volume compose-db_pgdata       Created
+ ✔ Container compose-db-adminer-1 Started
+ ✔ Container compose-db-db-1      Started</code></pre></div>
+  <p class="en">One command, four things: a <b>network</b>, a <b>volume</b> and <b>two containers</b>. List the project's containers:</p>
+  <p class="fa">یک دستور، چهار چیز: یک <b>شبکه</b>، یک <b>volume</b> و <b>دو کانتینر</b>. کانتینرهای پروژه را فهرست کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker compose ps</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>NAME                   SERVICE   STATUS         PORTS
+compose-db-adminer-1   adminer   Up 6 seconds   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+compose-db-db-1        db        Up 7 seconds   5432/tcp</code></pre></div>
+  <p class="en"><code>db</code> shows only <code>5432/tcp</code>: PostgreSQL's port, <b>not</b> published to your PC (Lesson 13).</p>
+  <p class="fa"><code>db</code> فقط <code>5432/tcp</code> را نشان می‌دهد: پورت PostgreSQL، که روی کامپیوتر شما منتشر <b>نشده</b> (درس ۱۳).</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">Both <code>db</code> and <code>adminer</code> are <code>Up</code></span><span class="fa">هر دو <code>db</code> و <code>adminer</code> در وضعیت <code>Up</code> هستند</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 LOGIN ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Log in by service name</span><span class="fa">ورود با نام سرویس</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> and log in. This time use the settings from <code>db.env</code>:</p>
+  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را باز کنید و وارد شوید. این بار از تنظیمات <code>db.env</code> استفاده کنید:</p>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><b>System</b></td><td><code>PostgreSQL</code></td></tr>
+      <tr><td><b>Server</b></td><td><code>db</code> <span class="en">← the <b>service</b> name from <code>compose.yaml</code></span><span class="fa">← نام <b>سرویس</b> در <code>compose.yaml</code></span></td></tr>
+      <tr><td><b>Username</b></td><td><code>ali</code></td></tr>
+      <tr><td><b>Password</b></td><td><code>secret</code></td></tr>
+      <tr><td><b>Database</b></td><td><code>shop</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Schema: public</h1><p>PostgreSQL » db » shop · Logged in as: <b>ali</b></p></div>
+  </div>
+  <p class="en">✅ Adminer found <code>db</code> by its <b>service name</b>, with no <code>docker network create</code> and no <code>--network</code>. The <code>shop</code> database is empty for now.</p>
+  <p class="fa">✅ Adminer، <code>db</code> را با <b>نام سرویسش</b> پیدا کرد، بدون <code>docker network create</code> و بدون <code>--network</code>. دیتابیس <code>shop</code> فعلاً خالی است.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">I'm logged in to <code>shop</code> as <code>ali</code></span><span class="fa">با کاربر <code>ali</code> وارد <code>shop</code> شدم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 SAVE DATA ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Save some data</span><span class="fa">ذخیره‌ی مقداری داده</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Create a table <code>products</code> and add one product, using <code>psql</code> (Lesson 11) inside the <code>db</code> service:</p>
+  <p class="fa">با <code>psql</code> (درس ۱۱) داخل سرویس <code>db</code>، یک جدول <code>products</code> بسازید و یک محصول اضافه کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker compose exec db psql -U ali -d shop -c "CREATE TABLE products (name text);" -c "INSERT INTO products VALUES ('coffee');"</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CREATE TABLE
+INSERT 0 1</code></pre></div>
+  <p class="en"><code>docker compose exec</code> is like <code>docker exec</code>, but you use the <b>service name</b> (<code>db</code>). Reload Adminer: the table <code>products</code> is there, with <code>coffee</code> in it.</p>
+  <p class="fa"><code>docker compose exec</code> مثل <code>docker exec</code> است، ولی از <b>نام سرویس</b> (<code>db</code>) استفاده می‌کنید. Adminer را reload کنید: جدول <code>products</code> آنجاست و <code>coffee</code> داخلش.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en">I see the <code>products</code> table in Adminer</span><span class="fa">جدول <code>products</code> را در Adminer می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 DOWN UP ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en"><code>down</code>, then <code>up</code> again: is the data still there?</span><span class="fa"><code>down</code> و دوباره <code>up</code>: داده‌ها هنوز هستند؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Stop and delete the project's containers and network (Lesson 14):</p>
+  <p class="fa">کانتینرها و شبکه‌ی پروژه را متوقف و حذف کنید (درس ۱۴):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker compose down</code></pre></div>
+  <p class="en">The containers and the network are gone, but <b>not the volume</b>. Check the list of volumes:</p>
+  <p class="fa">کانتینرها و شبکه حذف شدند، ولی <b>volume نه</b>. فهرست volumeها را بررسی کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker volume ls</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>DRIVER    VOLUME NAME
+local     compose-db_pgdata</code></pre></div>
+  <p class="en">Start the project again, and ask for the products:</p>
+  <p class="fa">پروژه را دوباره اجرا کنید و محصولات را بپرسید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker compose up -d</code></pre></div>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker compose exec db psql -U ali -d shop -c "SELECT * FROM products;"</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>  name
+--------
+ coffee
+(1 row)</code></pre></div>
+  <p class="en">✅ Brand-new containers, but <code>coffee</code> is still there: Compose reused the same volume.</p>
+  <p class="fa">✅ کانتینرهای کاملاً جدید، ولی <code>coffee</code> هنوز هست: Compose از همان volume دوباره استفاده کرد.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en">After <code>down</code> and <code>up</code>, <code>SELECT</code> still shows <code>coffee</code></span><span class="fa">بعد از <code>down</code> و <code>up</code>، <code>SELECT</code> هنوز <code>coffee</code> را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 7 DOWN -V ================= -->
+<section class="card step" id="s7">
+  <h2><span class="num">7</span>
+    <span class="en">Remove everything, including the data</span><span class="fa">حذف همه‌چیز، حتی داده‌ها</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Add <code>-v</code> to <code>down</code> to delete the project's <b>volumes</b> too:</p>
+  <p class="fa"><code>-v</code> را به <code>down</code> اضافه کنید تا <b>volume</b>های پروژه هم حذف شوند:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker compose down -v</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code> …
+ Volume compose-db_pgdata Removed      <span class="c"># the database is gone</span>
+ Network compose-db_default Removed</code></pre></div>
+  <div class="note warn">
+    <p class="en">⚠ <code>down -v</code> deletes the project's databases <b>for good</b>. Use plain <code>down</code> for everyday stopping; use <code>down -v</code> only when you really want a fresh start.</p>
+    <p class="fa">⚠ <code>down -v</code> دیتابیس‌های پروژه را <b>برای همیشه</b> حذف می‌کند. برای توقف روزمره از <code>down</code> ساده استفاده کنید؛ <code>down -v</code> را فقط وقتی بزنید که واقعاً یک شروع تازه می‌خواهید.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s7-1"><span><span class="en"><code>compose-db_pgdata</code> is gone from <code>docker volume ls</code></span><span class="fa"><code>compose-db_pgdata</code> از <code>docker volume ls</code> حذف شده</span></span></label>
+  </div>
+</section>
+
+<div class="note tip stuck">
+  <p class="en">📥 <b>Stuck?</b> The finished files of this lesson are in the course folder under <code>examples/15-compose-services/</code>. Compare them with yours. Or try the finished version: go into that folder and run <code>docker compose up -d</code>.</p>
+  <p class="fa">📥 <b>گیر کرده‌اید؟</b> فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/15-compose-services/</code> هستند. آن‌ها را با فایل‌های خودتان مقایسه کنید. یا نسخه‌ی کامل را امتحان کنید: به همان پوشه بروید و <code>docker compose up -d</code> را اجرا کنید.</p>
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><span class="en">Several services</span><span class="fa">چند سرویس</span></td><td><span class="en">One <code>compose.yaml</code>; they reach each other by <b>service name</b></span><span class="fa">یک <code>compose.yaml</code>؛ با <b>نام سرویس</b> به هم دسترسی دارند</span></td></tr>
+      <tr><td><code>env_file:</code></td><td><span class="en">Like <code>--env-file</code></span><span class="fa">مثل <code>--env-file</code></span></td></tr>
+      <tr><td><code>volumes:</code> <span class="en">(top level)</span><span class="fa">(سطح بالا)</span></td><td><span class="en">Declare the named volumes the services use</span><span class="fa">اعلام named volumeهایی که سرویس‌ها استفاده می‌کنند</span></td></tr>
+      <tr><td><code>docker compose exec SERVICE …</code></td><td><span class="en">Run a command in a service's container</span><span class="fa">اجرای دستور در کانتینر یک سرویس</span></td></tr>
+      <tr><td><code>docker compose down</code></td><td><span class="en">Remove containers + network, <b>keep</b> volumes</span><span class="fa">حذف کانتینرها + شبکه، volumeها <b>می‌مانند</b></span></td></tr>
+      <tr><td><code>docker compose down -v</code></td><td><span class="en">Also delete the volumes (data gone!)</span><span class="fa">حذف volumeها هم (داده‌ها از بین می‌روند!)</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You ran an app and its database with Compose!</span><span class="fa">یک برنامه و دیتابیسش را با Compose اجرا کردید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

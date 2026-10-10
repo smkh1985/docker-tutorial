@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 1 · Images</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="01">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Image vs container</span><span class="fa">۱ · ایمیج و کانتینر</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · List your images</span><span class="fa">۲ · فهرست ایمیج‌ها</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Pull an image</span><span class="fa">۳ · دانلود ایمیج</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Check it's there</span><span class="fa">۴ · بررسی دانلود</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Delete it</span><span class="fa">۵ · حذف ایمیج</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 1 — Images</span>
+    <span class="fa">درس ۱ — ایمیج‌ها</span>
+  </h1>
+  <p class="en">You'll learn what an image is, list the images on your PC, download one from Docker Hub, and delete it again.</p>
+  <p class="fa">یاد می‌گیرید ایمیج چیست، ایمیج‌های روی کامپیوترتان را فهرست می‌کنید، یکی را از Docker Hub دانلود می‌کنید و دوباره حذفش می‌کنید.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+  <p class="en">🖱 Hover over any part of a command to see what it does. ✔ Tick the checkboxes as you go.</p>
+  <p class="fa">🖱 نشانگر ماوس را روی هر بخش از دستور ببرید تا توضیحش را ببینید. ✔ همین‌طور که جلو می‌روید تیک‌ها را بزنید.</p>
+</section>
+
+<!-- ================= 1 IMAGE VS CONTAINER ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Image vs container</span><span class="fa">ایمیج و کانتینر</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">An <b>image</b> is a read-only package: a program plus everything it needs to run. It just sits on your disk.</p>
+  <p class="fa"><b>ایمیج</b> یک بسته‌ی فقط‌خواندنی است: یک برنامه به‌همراه هر چیزی که برای اجرا لازم دارد. فقط روی دیسک شما ذخیره شده است.</p>
+  <p class="en">A <b>container</b> is a running copy made from an image. From one image you can start many containers, like baking many cakes from one recipe.</p>
+  <p class="fa"><b>کانتینر</b> یک نسخه‌ی در حال اجراست که از روی ایمیج ساخته می‌شود. از یک ایمیج می‌توانید چندین کانتینر بسازید، مثل پختن چند کیک از روی یک دستور پخت.</p>
+  <div class="flow">
+    <div class="box img"><b><span class="en">Image</span><span class="fa">ایمیج</span></b><small><span class="en">the recipe · on disk · read-only</span><span class="fa">دستور پخت · روی دیسک · فقط‌خواندنی</span></small></div>
+    <div class="arrow"><small><code>docker run</code> <span class="en">(next lesson)</span><span class="fa">(درس بعد)</span></small></div>
+    <div class="row">
+      <div class="box ctr"><b><span class="en">Container 1</span><span class="fa">کانتینر ۱</span></b></div>
+      <div class="box ctr"><b><span class="en">Container 2</span><span class="fa">کانتینر ۲</span></b></div>
+      <div class="box ctr"><b><span class="en">Container 3</span><span class="fa">کانتینر ۳</span></b></div>
+    </div>
+  </div>
+  <p class="en">This lesson is <b>only about images</b>. Containers come next.</p>
+  <p class="fa">این درس <b>فقط درباره‌ی ایمیج‌هاست</b>. کانتینرها در درس بعد.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en">I can explain image vs container in one sentence</span><span class="fa">می‌توانم فرق ایمیج و کانتینر را در یک جمله توضیح دهم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 LIST ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">List your images</span><span class="fa">فهرست ایمیج‌ها</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Show every image on your PC:</p>
+  <p class="fa">همه‌ی ایمیج‌های روی کامپیوترتان را نشان دهید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker image ls</code></pre></div>
+  <p class="en">If your list is long, show just one image by adding its name. Let's find <code>hello-world</code>, which was downloaded when you tested Docker in Lesson 0:</p>
+  <p class="fa">اگر فهرست شما طولانی است، با اضافه کردن نام فقط یک ایمیج را نشان دهید. بیایید <code>hello-world</code> را پیدا کنیم که موقع تست Docker در درس ۰ دانلود شد:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker image ls hello-world</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>IMAGE                ID             DISK USAGE   CONTENT SIZE   EXTRA
+hello-world:latest   5e2309035332       25.9kB         9.49kB</code></pre></div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th><span class="en">Column</span><span class="fa">ستون</span></th>
+      <th><span class="en">Meaning</span><span class="fa">معنی</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><code>IMAGE</code></td><td><span class="en">The name, written <code>name:tag</code>. The tag is usually a version; <code>latest</code> is the default</span><span class="fa">نام ایمیج، به شکل <code>name:tag</code>. تگ معمولاً نسخه است؛ <code>latest</code> پیش‌فرض است</span></td></tr>
+      <tr><td><code>ID</code></td><td><span class="en">A unique ID. You can use it instead of the name</span><span class="fa">یک شناسه‌ی یکتا. می‌توانید به‌جای نام از آن استفاده کنید</span></td></tr>
+      <tr><td><code>DISK USAGE</code></td><td><span class="en">Space it takes on your disk (unpacked)</span><span class="fa">فضایی که روی دیسک شما می‌گیرد (باز شده)</span></td></tr>
+      <tr><td><code>CONTENT SIZE</code></td><td><span class="en">Compressed size, roughly what gets downloaded</span><span class="fa">حجم فشرده، تقریباً همان مقداری که دانلود می‌شود</span></td></tr>
+      <tr><td><code>EXTRA</code></td><td><span class="en"><code>U</code> means a container is <b>u</b>sing this image</span><span class="fa"><code>U</code> یعنی یک کانتینر از این ایمیج استفاده می‌کند (<b>u</b>se)</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note tip">
+    <p class="en">Don't see <code>hello-world</code>? Run <code>docker pull hello-world</code> (you'll learn this command in the next step) and try again.</p>
+    <p class="fa"><code>hello-world</code> را نمی‌بینید؟ <code>docker pull hello-world</code> را اجرا کنید (این دستور را در قدم بعد یاد می‌گیرید) و دوباره امتحان کنید.</p>
+  </div>
+  <details class="q">
+    <summary><span class="en">❓ Online tutorials show <code>docker images</code> with REPOSITORY / TAG / SIZE columns. Why is mine different?</span><span class="fa">❓ آموزش‌های اینترنتی <code>docker images</code> را با ستون‌های REPOSITORY / TAG / SIZE نشان می‌دهند. چرا مال من فرق دارد؟</span></summary>
+    <p class="en"><code>docker images</code> is the older name of the same command. Docker 29 changed the default columns. Both show the same images.</p>
+    <p class="fa"><code>docker images</code> نام قدیمی همین دستور است. Docker نسخه‌ی 29 ستون‌های پیش‌فرض را تغییر داد. هر دو همان ایمیج‌ها را نشان می‌دهند.</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">I see <code>hello-world:latest</code> in my list</span><span class="fa"><code>hello-world:latest</code> را در فهرستم می‌بینم</span></span></label>
+    <label><input type="checkbox" data-id="s2-2"><span><span class="en">I know what <code>latest</code> and <code>DISK USAGE</code> mean</span><span class="fa">می‌دانم <code>latest</code> و <code>DISK USAGE</code> یعنی چه</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 PULL ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Pull an image from Docker Hub</span><span class="fa">دانلود ایمیج از Docker Hub</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en"><a href="https://hub.docker.com" target="_blank">Docker Hub</a> is the public library of images. <b>Pull</b> means download. Let's pull <b>Alpine</b>, a tiny Linux of only a few MB:</p>
+  <p class="fa"><a href="https://hub.docker.com" target="_blank">Docker Hub</a> کتابخانه‌ی عمومی ایمیج‌هاست. <b>Pull</b> یعنی دانلود. بیایید <b>Alpine</b> را دانلود کنیم؛ یک لینوکس خیلی کوچک که فقط چند مگابایت است:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker pull alpine</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>Using default tag: latest                  <span class="c"># no tag given → latest</span>
+latest: Pulling from library/alpine
+e2de96513ba9: Pull complete                <span class="c"># an image is made of parts (layers)</span>
+Digest: sha256:294b683cb724975bec92...
+Status: Downloaded newer image for alpine:latest
+docker.io/library/alpine:latest            <span class="c"># the full name</span></code></pre></div>
+  <p class="en">You typed <code>alpine</code>, but Docker pulled <code>alpine:latest</code>. Without a tag, Docker always uses <code>latest</code>.</p>
+  <p class="fa">شما <code>alpine</code> را نوشتید ولی Docker ایمیج <code>alpine:latest</code> را دانلود کرد. اگر تگ ندهید، Docker همیشه <code>latest</code> را برمی‌دارد.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">The pull ended with <code>Status: Downloaded</code></span><span class="fa">دانلود با <code>Status: Downloaded</code> تمام شد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 CHECK ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Check it's there</span><span class="fa">بررسی کنید دانلود شده</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image ls alpine</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>IMAGE           ID             DISK USAGE   CONTENT SIZE   EXTRA
+alpine:latest   294b683cb724         13MB         3.94MB</code></pre></div>
+  <p class="en">A whole Linux system in 13 MB. Run <code>docker image ls</code> without a name too: both <code>hello-world</code> and <code>alpine</code> are in the list.</p>
+  <p class="fa">یک سیستم لینوکس کامل در ۱۳ مگابایت. <code>docker image ls</code> را بدون نام هم اجرا کنید: هر دو ایمیج <code>hello-world</code> و <code>alpine</code> در فهرست هستند.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">I see <code>alpine:latest</code> in my list</span><span class="fa"><code>alpine:latest</code> را در فهرستم می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 DELETE ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Delete it</span><span class="fa">حذف ایمیج</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker image rm alpine</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>Untagged: alpine:latest                    <span class="c"># the name is removed</span>
+Deleted: sha256:294b683cb724975bec92...    <span class="c"># the files are removed</span></code></pre></div>
+  <p class="en">Check it's gone. Only the header line is left:</p>
+  <p class="fa">بررسی کنید که حذف شده. فقط خط عنوان ستون‌ها باقی می‌ماند:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image ls alpine</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>IMAGE   ID             DISK USAGE   CONTENT SIZE   EXTRA</code></pre></div>
+  <div class="note tip">
+    <p class="en"><code>docker rmi alpine</code> is a shorter way to write the same thing.</p>
+    <p class="fa"><code>docker rmi alpine</code> شکل کوتاه‌تر همین دستور است.</p>
+  </div>
+  <div class="note key">
+    <p class="en">🔑 Keep <code>hello-world</code>. In the next lesson you'll run it as a container.</p>
+    <p class="fa">🔑 <code>hello-world</code> را نگه دارید. در درس بعد آن را به‌صورت کانتینر اجرا می‌کنید.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en">I deleted <code>alpine</code> and it's no longer in the list</span><span class="fa"><code>alpine</code> را حذف کردم و دیگر در فهرست نیست</span></span></label>
+    <label><input type="checkbox" data-id="s5-2"><span><span class="en"><code>hello-world</code> is still there</span><span class="fa"><code>hello-world</code> هنوز هست</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>docker image ls</code></td><td><span class="en">List images</span><span class="fa">فهرست ایمیج‌ها</span></td></tr>
+      <tr><td><code>docker image ls NAME</code></td><td><span class="en">Show one image</span><span class="fa">نمایش یک ایمیج</span></td></tr>
+      <tr><td><code>docker pull NAME</code></td><td><span class="en">Download an image (tag <code>latest</code> if none given)</span><span class="fa">دانلود ایمیج (اگر تگ ندهید <code>latest</code>)</span></td></tr>
+      <tr><td><code>docker image rm NAME</code></td><td><span class="en">Delete an image</span><span class="fa">حذف ایمیج</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You can manage images!</span><span class="fa">حالا می‌توانید ایمیج‌ها را مدیریت کنید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

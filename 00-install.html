@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0 · Install Docker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="00">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s0"><span class="tick">✓</span><span class="en">What we'll install</span><span class="fa">چه چیزهایی نصب می‌کنیم</span></a></li>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Check your system</span><span class="fa">۱ · بررسی سیستم</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Prerequisites</span><span class="fa">۲ · پیش‌نیازها</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Docker's apt repo</span><span class="fa">۳ · مخزن apt داکر</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Install Docker Engine</span><span class="fa">۴ · نصب Docker Engine</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Docker without sudo</span><span class="fa">۵ · Docker بدون sudo</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">macOS / Windows / Debian</span><span class="fa">macOS / Windows / Debian</span></a></li>
+    <li><a href="#s7"><span class="tick">✓</span><span class="en">Troubleshooting</span><span class="fa">رفع اشکال</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 0 — Install Docker</span>
+    <span class="fa">درس ۰ — نصب Docker</span>
+  </h1>
+  <p class="en">Before any Docker lesson, set up your machine <b>once</b>. You'll check your system, install the prerequisites, install <b>Docker Engine</b> from Docker's official repository, and test it.</p>
+  <p class="fa">قبل از شروع درس‌های Docker، سیستم خود را <b>یک بار</b> آماده کنید. سیستم را بررسی می‌کنید، پیش‌نیازها را نصب می‌کنید، <b>Docker Engine</b> را از مخزن رسمی Docker نصب می‌کنید و آن را تست می‌کنید.</p>
+  <p class="en">The commands are for <b>Ubuntu Linux</b> (and Ubuntu-based distros like Linux Mint). Using Debian, macOS or Windows? See <a href="#s6">this section</a>.</p>
+  <p class="fa">دستورها برای <b>لینوکس Ubuntu</b> (و توزیع‌های مبتنی بر Ubuntu مثل Linux Mint) هستند. اگر Debian، macOS یا Windows دارید، <a href="#s6">این بخش</a> را ببینید.</p>
+  <div class="note tip">
+    <p class="en">🖱 <b>Hover over (or tap) any part of a command</b>, such as <code>-y</code> or <code>-aG</code>, to see what it does.</p>
+    <p class="fa">🖱 <b>نشانگر ماوس را روی هر بخش از یک دستور ببرید (یا لمس کنید)</b>، مثلاً <code>-y</code> یا <code>-aG</code>، تا توضیح آن را ببینید.</p>
+  </div>
+  <p class="en">✔ Tick the checkboxes as you go. Your progress is saved in this browser.</p>
+  <p class="fa">✔ همین‌طور که جلو می‌روید تیک‌ها را بزنید. پیشرفت شما در همین مرورگر ذخیره می‌شود.</p>
+</section>
+
+<!-- ================= WHAT WE'LL INSTALL ================= -->
+<section class="card" id="s0">
+  <h2><span class="num">i</span>
+    <span class="en">What we'll install</span><span class="fa">چه چیزهایی نصب می‌کنیم</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">“Docker” is really a few programs working together. One <code>apt install</code> gives you all of them:</p>
+  <p class="fa">«Docker» در واقع چند برنامه است که با هم کار می‌کنند. یک <code>apt install</code> همه‌ی آن‌ها را نصب می‌کند:</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th><span class="en">Package</span><span class="fa">بسته</span></th>
+      <th><span class="en">What it is</span><span class="fa">چیست</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><code>docker-ce</code></td><td><span class="en">The <b>Docker daemon</b> (<code>dockerd</code>): a background service that builds images and runs containers</span><span class="fa"><b>سرویس Docker</b> (<code>dockerd</code>): برنامه‌ای که در پس‌زمینه اجرا می‌شود و ایمیج می‌سازد و کانتینر اجرا می‌کند</span></td></tr>
+      <tr><td><code>docker-ce-cli</code></td><td><span class="en">The <code>docker</code> command you type. It only sends requests to the daemon</span><span class="fa">دستور <code>docker</code> که شما تایپ می‌کنید. فقط درخواست‌ها را به سرویس می‌فرستد</span></td></tr>
+      <tr><td><code>containerd.io</code></td><td><span class="en">The low-level runtime that actually starts and stops containers</span><span class="fa">runtime سطح پایین که در واقع کانتینرها را روشن و خاموش می‌کند</span></td></tr>
+      <tr><td><code>docker-buildx-plugin</code></td><td><span class="en">The modern image builder behind <code>docker build</code></span><span class="fa">سازنده‌ی مدرن ایمیج که پشت <code>docker build</code> کار می‌کند</span></td></tr>
+      <tr><td><code>docker-compose-plugin</code></td><td><span class="en"><code>docker compose</code>: run several containers together from one YAML file</span><span class="fa"><code>docker compose</code>: اجرای چند کانتینر با هم از روی یک فایل YAML</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note warn">
+    <p class="en">You need <code>sudo</code> rights, an internet connection, a <b>64-bit</b> CPU, and at least <b>2 GB of RAM and 10 GB of free disk</b>.</p>
+    <p class="fa">به دسترسی <code>sudo</code>، اینترنت، پردازنده‌ی <b>۶۴ بیتی</b>، و حداقل <b>۲ گیگابایت RAM و ۱۰ گیگابایت فضای خالی دیسک</b> نیاز دارید.</p>
+  </div>
+</section>
+
+<!-- ================= 1 CHECK SYSTEM ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Check your system</span><span class="fa">بررسی سیستم</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Run these one by one and compare with the expected values:</p>
+  <p class="fa">این دستورها را یکی‌یکی اجرا کنید و با مقدارهای مورد انتظار مقایسه کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>uname -m              <span class="c"># CPU type: x86_64 or aarch64</span>
+cat /etc/os-release   <span class="c"># distro name and version</span>
+nproc                 <span class="c"># number of CPU cores</span>
+free -h               <span class="c"># memory: look at "available"</span>
+df -h /               <span class="c"># free disk space: look at "Avail"</span></code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en">My CPU is 64-bit (<code>x86_64</code> or <code>aarch64</code>)</span><span class="fa">پردازنده‌ی من ۶۴ بیتی است (<code>x86_64</code> یا <code>aarch64</code>)</span></span></label>
+    <label><input type="checkbox" data-id="s1-2"><span><span class="en">My OS is Ubuntu 22.04+ (or I'll follow the Debian notes)</span><span class="fa">سیستم‌عامل من Ubuntu 22.04 یا جدیدتر است (یا نکته‌های Debian را دنبال می‌کنم)</span></span></label>
+    <label><input type="checkbox" data-id="s1-3"><span><span class="en">I have enough free memory and disk</span><span class="fa">حافظه و فضای دیسک کافی دارم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 PREREQUISITES ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Remove old versions and install prerequisites</span><span class="fa">حذف نسخه‌های قدیمی و نصب پیش‌نیازها</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <h3><span class="en">2.1 · Remove conflicting packages</span><span class="fa">۲.۱ · حذف بسته‌های ناسازگار</span></h3>
+  <p class="en">Ubuntu ships its own unofficial Docker packages. They conflict with the official ones, so remove them if present. It's safe to run even if none are installed.</p>
+  <p class="fa">Ubuntu بسته‌های غیررسمی Docker خودش را دارد. این‌ها با بسته‌های رسمی تداخل دارند، پس اگر نصب هستند حذفشان کنید. اگر هیچ‌کدام نصب نباشد هم اجرای این دستور بی‌خطر است.</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>sudo apt remove $(dpkg --get-selections docker.io docker-compose docker-compose-v2 docker-doc podman-docker containerd runc | cut -f1)
+sudo snap remove docker   <span class="c"># only if you installed Docker as a snap</span></code></pre></div>
+  <details class="q">
+    <summary><span class="en">❓ What does the <code>$(dpkg … | cut -f1)</code> part do?</span><span class="fa">❓ بخش <code>$(dpkg … | cut -f1)</code> چه کار می‌کند؟</span></summary>
+    <p class="en">It runs first and prints <b>only the names from that list that are actually installed</b>. Those names are passed to <code>apt remove</code>, so apt never complains about a package you don't have.</p>
+    <p class="fa">این بخش اول اجرا می‌شود و <b>فقط نام بسته‌هایی از آن فهرست را که واقعاً نصب هستند</b> چاپ می‌کند. همین نام‌ها به <code>apt remove</code> داده می‌شوند، پس apt درباره‌ی بسته‌ای که ندارید خطا نمی‌دهد.</p>
+  </details>
+  <h3><span class="en">2.2 · Install the prerequisites</span><span class="fa">۲.۲ · نصب پیش‌نیازها</span></h3>
+  <p class="en"><code>ca-certificates</code> lets your system trust HTTPS websites, and <code>curl</code> downloads files. We need both to fetch Docker's signing key.</p>
+  <p class="fa"><code>ca-certificates</code> باعث می‌شود سیستم به سایت‌های HTTPS اعتماد کند و <code>curl</code> فایل دانلود می‌کند. برای گرفتن کلید امضای Docker به هر دو نیاز داریم.</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>sudo apt update
+sudo apt install -y ca-certificates curl</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">I removed any conflicting Docker packages</span><span class="fa">بسته‌های ناسازگار Docker را حذف کردم</span></span></label>
+    <label><input type="checkbox" data-id="s2-2"><span><span class="en"><code>curl --version</code> prints a version</span><span class="fa"><code>curl --version</code> نسخه را نمایش می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 APT REPO ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Add Docker's official apt repository</span><span class="fa">اضافه کردن مخزن رسمی apt داکر</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">We tell <code>apt</code> where to download Docker from, and give it Docker's key so it can check the packages are genuine.</p>
+  <p class="fa">به <code>apt</code> می‌گوییم Docker را از کجا دانلود کند و کلید Docker را به آن می‌دهیم تا بتواند اصل بودن بسته‌ها را بررسی کند.</p>
+
+  <h3><span class="en">3.1 · Download Docker's signing key</span><span class="fa">۳.۱ · دانلود کلید امضای Docker</span></h3>
+  <div class="code"><span class="lbl">bash</span><pre><code>sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc</code></pre></div>
+
+  <h3><span class="en">3.2 · Add the repository</span><span class="fa">۳.۲ · اضافه کردن مخزن</span></h3>
+  <p class="en">Copy and paste the whole block at once. It writes a small config file for apt:</p>
+  <p class="fa">کل این بلوک را یک‌جا کپی و paste کنید. یک فایل تنظیمات کوچک برای apt می‌نویسد:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>sudo tee /etc/apt/sources.list.d/docker.sources &lt;&lt;EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release &amp;&amp; echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+sudo apt update</code></pre></div>
+  <details class="q">
+    <summary><span class="en">❓ What does the <code>Suites: $( … )</code> line do?</span><span class="fa">❓ خط <code>Suites: $( … )</code> چه کار می‌کند؟</span></summary>
+    <p class="en">It reads <code>/etc/os-release</code> and inserts your Ubuntu <b>codename</b>, e.g. <code>noble</code> for 24.04. On Linux Mint it picks the Ubuntu codename Mint is based on, which is what Docker's repository expects.</p>
+    <p class="fa">فایل <code>/etc/os-release</code> را می‌خواند و <b>اسم رمز</b> نسخه‌ی Ubuntu شما را قرار می‌دهد، مثلاً <code>noble</code> برای 24.04. روی Linux Mint اسم رمز Ubuntuای را برمی‌دارد که Mint بر پایه‌ی آن ساخته شده؛ همان چیزی که مخزن Docker انتظار دارد.</p>
+  </details>
+  <p class="en">Check the file looks right, with a real codename and not an empty <code>Suites:</code> line:</p>
+  <p class="fa">بررسی کنید فایل درست است و خط <code>Suites:</code> خالی نیست و یک اسم رمز واقعی دارد:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>cat /etc/apt/sources.list.d/docker.sources</code></pre></div>
+  <div class="note key">
+    <p class="en">✅ In the output of <code>sudo apt update</code> you should see a line containing <code>download.docker.com</code> with no errors.</p>
+    <p class="fa">✅ در خروجی <code>sudo apt update</code> باید خطی شامل <code>download.docker.com</code> ببینید، بدون خطا.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">The key file <code>/etc/apt/keyrings/docker.asc</code> exists</span><span class="fa">فایل کلید <code>/etc/apt/keyrings/docker.asc</code> وجود دارد</span></span></label>
+    <label><input type="checkbox" data-id="s3-2"><span><span class="en"><code>docker.sources</code> has my distro's codename on the <code>Suites:</code> line</span><span class="fa">در <code>docker.sources</code> خط <code>Suites:</code> اسم رمز توزیع من را دارد</span></span></label>
+    <label><input type="checkbox" data-id="s3-3"><span><span class="en"><code>sudo apt update</code> reads <code>download.docker.com</code> with no errors</span><span class="fa"><code>sudo apt update</code> بدون خطا <code>download.docker.com</code> را می‌خواند</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 INSTALL ENGINE ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Install Docker Engine</span><span class="fa">نصب Docker Engine</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">bash</span><pre><code>sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</code></pre></div>
+  <p class="en">The Docker service starts automatically. Check that it's running and will start on every boot:</p>
+  <p class="fa">سرویس Docker به‌طور خودکار روشن می‌شود. بررسی کنید که در حال اجراست و با هر بار روشن شدن سیستم هم اجرا می‌شود:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>systemctl is-active docker    <span class="c"># expect: active</span>
+systemctl is-enabled docker   <span class="c"># expect: enabled</span></code></pre></div>
+  <p class="en">If either one says something else, start and enable it:</p>
+  <p class="fa">اگر هر کدام چیز دیگری نشان داد، سرویس را روشن و فعال کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>sudo systemctl enable --now docker.service containerd.service</code></pre></div>
+  <div class="note tip">
+    <p class="en">Want to know which version you got? <code>sudo docker version</code> shows two parts: <b>Client</b> (the CLI) and <b>Server</b> (the daemon). If Server is missing, the daemon isn't running.</p>
+    <p class="fa">می‌خواهید بدانید چه نسخه‌ای نصب شد؟ <code>sudo docker version</code> دو بخش نشان می‌دهد: <b>Client</b> (دستور CLI) و <b>Server</b> (سرویس). اگر بخش Server نباشد، سرویس اجرا نمی‌شود.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">The packages installed with no errors</span><span class="fa">بسته‌ها بدون خطا نصب شدند</span></span></label>
+    <label><input type="checkbox" data-id="s4-2"><span><span class="en">The docker service is <code>active</code> and <code>enabled</code></span><span class="fa">سرویس docker در وضعیت <code>active</code> و <code>enabled</code> است</span></span></label>
+    <label><input type="checkbox" data-id="s4-3"><span><span class="en"><code>sudo docker version</code> shows both Client and Server</span><span class="fa"><code>sudo docker version</code> هر دو بخش Client و Server را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 NO SUDO ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Run Docker without <code>sudo</code></span><span class="fa">اجرای Docker بدون <code>sudo</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">The <code>docker</code> CLI talks to the daemon through a file called <code>/var/run/docker.sock</code>. Only <code>root</code> and members of the <code>docker</code> group may use it, so add yourself to that group:</p>
+  <p class="fa">دستور <code>docker</code> از طریق فایلی به نام <code>/var/run/docker.sock</code> با سرویس صحبت می‌کند. فقط <code>root</code> و اعضای گروه <code>docker</code> اجازه‌ی استفاده از آن را دارند، پس خودتان را به این گروه اضافه کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>sudo usermod -aG docker $USER
+newgrp docker          <span class="c"># or log out and log back in</span>
+groups                 <span class="c"># "docker" should be in the list</span></code></pre></div>
+  <div class="note tip">
+    <p class="en"><code>newgrp</code> only affects the current terminal. If another terminal says <i>permission denied</i>, log out and log back in (or reboot).</p>
+    <p class="fa"><code>newgrp</code> فقط روی همین ترمینال اثر دارد. اگر ترمینال دیگری خطای <i>permission denied</i> داد، یک بار log out و دوباره log in کنید (یا سیستم را ری‌استارت کنید).</p>
+  </div>
+  <h3><span class="en">Test it</span><span class="fa">تست کنید</span></h3>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run --rm hello-world</code></pre></div>
+  <p class="en">✅ You should see <i>“Hello from Docker!”</i>. Docker is installed. What actually happened here is the topic of the next lessons.</p>
+  <p class="fa">✅ باید پیام <i>«Hello from Docker!»</i> را ببینید. Docker نصب شد. اینکه دقیقاً چه اتفاقی افتاد موضوع درس‌های بعدی است.</p>
+  <div class="note warn">
+    <p class="en">⚠ Being in the <code>docker</code> group is <b>as powerful as root</b>: anyone in it can start a container that reads any file on the machine. That's fine on your own laptop. On a shared server, only add trusted users.</p>
+    <p class="fa">⚠ عضویت در گروه <code>docker</code> <b>به اندازه‌ی root قدرت دارد</b>: هر عضو آن می‌تواند کانتینری اجرا کند که هر فایلی روی سیستم را بخواند. روی لپ‌تاپ شخصی مشکلی نیست. روی سرور مشترک فقط کاربران مورد اعتماد را اضافه کنید.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en"><code>groups</code> lists <code>docker</code></span><span class="fa"><code>groups</code> گروه <code>docker</code> را نشان می‌دهد</span></span></label>
+    <label><input type="checkbox" data-id="s5-2"><span><span class="en"><code>docker run --rm hello-world</code> prints “Hello from Docker!” <b>without</b> <code>sudo</code></span><span class="fa"><code>docker run --rm hello-world</code> <b>بدون</b> <code>sudo</code> پیام «Hello from Docker!» را چاپ می‌کند</span></span></label>
+  </div>
+</section>
+
+<!-- ================= OTHER OS ================= -->
+<section class="card" id="s6">
+  <h2><span class="num">🖥</span><span class="en">Debian, macOS or Windows</span><span class="fa">Debian، macOS یا Windows</span></h2>
+  <h3>Debian</h3>
+  <p class="en">Follow the same steps, but in Step 3 replace <code>linux/ubuntu</code> with <code>linux/debian</code> in <b>both</b> URLs (the key and <code>URIs:</code>). The <code>Suites:</code> line works as is.</p>
+  <p class="fa">همین قدم‌ها را دنبال کنید، فقط در قدم ۳ در <b>هر دو</b> آدرس (کلید و <code>URIs:</code>) عبارت <code>linux/ubuntu</code> را با <code>linux/debian</code> عوض کنید. خط <code>Suites:</code> بدون تغییر کار می‌کند.</p>
+  <h3>macOS</h3>
+  <p class="en">Install <a href="https://www.docker.com/products/docker-desktop/" target="_blank">Docker Desktop</a> (pick Apple Silicon or Intel), open it once, and wait for the whale icon to say <i>running</i>.</p>
+  <p class="fa"><a href="https://www.docker.com/products/docker-desktop/" target="_blank">Docker Desktop</a> را نصب کنید (نسخه‌ی Apple Silicon یا Intel)، یک بار بازش کنید و صبر کنید تا آیکون نهنگ وضعیت <i>running</i> را نشان دهد.</p>
+  <h3>Windows</h3>
+  <p class="en">Docker Desktop needs <b>WSL 2</b>. In PowerShell <b>as Administrator</b>:</p>
+  <p class="fa">Docker Desktop به <b>WSL 2</b> نیاز دارد. در PowerShell <b>با دسترسی Administrator</b>:</p>
+  <div class="code"><span class="lbl">powershell</span><pre><code>wsl --install            <span class="c"># then reboot</span>
+winget install Docker.DockerDesktop</code></pre></div>
+  <p class="en">After installing, run <code>docker run --rm hello-world</code> to test it.</p>
+  <p class="fa">بعد از نصب، با <code>docker run --rm hello-world</code> آن را تست کنید.</p>
+</section>
+
+<!-- ================= TROUBLESHOOTING ================= -->
+<section class="card" id="s7">
+  <h2><span class="num">!</span><span class="en">Troubleshooting</span><span class="fa">رفع اشکال</span></h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th><span class="en">Problem</span><span class="fa">مشکل</span></th>
+      <th><span class="en">Fix</span><span class="fa">راه‌حل</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><code>permission denied ... docker.sock</code></td>
+        <td><span class="en">You're not in the <code>docker</code> group in this terminal yet. Redo <a href="#s5">Step 5</a>, then log out and log back in</span><span class="fa">هنوز در این ترمینال عضو گروه <code>docker</code> نیستید. <a href="#s5">قدم ۵</a> را دوباره انجام دهید و یک بار log out و دوباره log in کنید</span></td></tr>
+      <tr><td><code>Cannot connect to the Docker daemon</code></td>
+        <td><span class="en">The daemon isn't running. Run <code>sudo systemctl start docker</code> and check <code>sudo journalctl -u docker</code> for errors</span><span class="fa">سرویس اجرا نمی‌شود. <code>sudo systemctl start docker</code> را اجرا کنید و خطاها را با <code>sudo journalctl -u docker</code> ببینید</span></td></tr>
+      <tr><td><span class="en"><code>apt update</code>: <code>404 Not Found</code> or <code>does not have a Release file</code></span><span class="fa"><code>apt update</code>: خطای <code>404 Not Found</code> یا <code>does not have a Release file</code></span></td>
+        <td><span class="en">Wrong distro or codename in <code>docker.sources</code>. Check it with <code>cat</code>; on Debian use <code>linux/debian</code></span><span class="fa">توزیع یا اسم رمز در <code>docker.sources</code> اشتباه است. با <code>cat</code> بررسی کنید؛ روی Debian از <code>linux/debian</code> استفاده کنید</span></td></tr>
+      <tr><td><span class="en"><code>apt update</code>: <code>Conflicting values set for option Signed-By</code></span><span class="fa"><code>apt update</code>: خطای <code>Conflicting values set for option Signed-By</code></span></td>
+        <td><span class="en">An older Docker repo file is still there. Look at <code>ls /etc/apt/sources.list.d/</code> and remove the old <code>docker.list</code> with <code>sudo rm</code></span><span class="fa">یک فایل قدیمی مخزن Docker هنوز وجود دارد. <code>ls /etc/apt/sources.list.d/</code> را ببینید و فایل قدیمی <code>docker.list</code> را با <code>sudo rm</code> حذف کنید</span></td></tr>
+      <tr><td><code>toomanyrequests: ... pull rate limit</code></td>
+        <td><span class="en">Docker Hub limits anonymous downloads. Create a free account and run <code>docker login</code>, or wait a few hours</span><span class="fa">Docker Hub تعداد دانلود بدون حساب کاربری را محدود می‌کند. یک حساب رایگان بسازید و <code>docker login</code> کنید، یا چند ساعت صبر کنید</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note warn">
+    <p class="en"><b>Start over completely.</b> This uninstalls Docker <b>and deletes all images, containers and volumes</b>:</p>
+    <p class="fa"><b>شروع کاملاً از اول.</b> این دستورها Docker را حذف می‌کنند <b>و همه‌ی ایمیج‌ها، کانتینرها و volumeها را پاک می‌کنند</b>:</p>
+  </div>
+  <div class="code"><span class="lbl">bash</span><pre><code>sudo apt purge -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo rm -rf /var/lib/docker /var/lib/containerd</code></pre></div>
+</section>
+
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">Docker is ready!</span><span class="fa">Docker آماده است!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

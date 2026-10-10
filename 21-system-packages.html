@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 21 · System packages and a safer image</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="21">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · A missing tool</span><span class="fa">۱ · یک ابزار ناموجود</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Install it with apt-get</span><span class="fa">۲ · نصب با apt-get</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Why one RUN?</span><span class="fa">۳ · چرا یک RUN؟</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Who am I?</span><span class="fa">۴ · من کی هستم؟</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Run as a normal user</span><span class="fa">۵ · اجرا با کاربر معمولی</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Clean up</span><span class="fa">۶ · تمیزکاری</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 21 — System packages and a safer image</span>
+    <span class="fa">درس ۲۱ — بسته‌های سیستمی و یک ایمیج امن‌تر</span>
+  </h1>
+  <p class="en">In Lesson 19 you installed a <b>Python</b> library with <code>pip</code>. Programs often also need <b>system</b> tools, installed with Linux's package manager <code>apt-get</code>. You'll install one the right way, then make your image safer by not running as <code>root</code>.</p>
+  <p class="fa">در درس ۱۹ یک کتابخانه‌ی <b>Python</b> را با <code>pip</code> نصب کردید. برنامه‌ها اغلب به ابزارهای <b>سیستمی</b> هم نیاز دارند که با مدیر بسته‌ی لینوکس، <code>apt-get</code>، نصب می‌شوند. یکی را به روش درست نصب می‌کنید، بعد ایمیج‌تان را با اجرا نکردن به‌عنوان <code>root</code> امن‌تر می‌کنید.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 MISSING ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">A missing tool</span><span class="fa">یک ابزار ناموجود</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en"><code>figlet</code> is a small Linux tool that prints text as big letters. Try it in a new <code>python:3.13-slim</code> container (Lesson 7):</p>
+  <p class="fa"><code>figlet</code> یک ابزار کوچک لینوکس است که متن را با حروف بزرگ چاپ می‌کند. آن را در یک کانتینر جدید <code>python:3.13-slim</code> امتحان کنید (درس ۷):</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run --rm python:3.13-slim figlet Hi</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>docker: Error response from daemon: … exec: "figlet": executable file not found in $PATH</code></pre></div>
+  <p class="en">❌ Not there. <b>Slim</b> images contain only the basics, so you install what your app needs.</p>
+  <p class="fa">❌ نیست. ایمیج‌های <b>slim</b> فقط چیزهای پایه را دارند، پس هر چه برنامه‌تان لازم دارد را خودتان نصب می‌کنید.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en">I got <code>"figlet": executable file not found</code></span><span class="fa">خطای <code>"figlet": executable file not found</code> را گرفتم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 APT ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Install it with <code>apt-get</code></span><span class="fa">نصب با <code>apt-get</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Make a folder <code>fig-app</code> in your home folder and go into it:</p>
+  <p class="fa">یک پوشه به نام <code>fig-app</code> در پوشه‌ی خانه‌تان بسازید و واردش شوید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>mkdir ~/fig-app
+cd ~/fig-app</code></pre></div>
+  <p class="en">Create <code>Dockerfile</code> with <code>nano</code>:</p>
+  <p class="fa">با <code>nano</code> فایل <code>Dockerfile</code> را بسازید:</p>
+  <div class="code"><span class="lbl">Dockerfile</span><pre><code>FROM python:3.13-slim
+RUN apt-get update &amp;&amp; apt-get install -y figlet &amp;&amp; rm -rf /var/lib/apt/lists/*
+CMD ["figlet", "Hello!"]</code></pre></div>
+  <p class="en">The <code>RUN</code> line is three commands joined by <code>&amp;&amp;</code> (“and then, if it worked”):</p>
+  <p class="fa">خط <code>RUN</code> سه دستور است که با <code>&amp;&amp;</code> («و بعد، اگر موفق بود») به هم وصل شده‌اند:</p>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>apt-get update</code></td><td><span class="en">Download the list of available packages (Lesson 0 did the same on your PC)</span><span class="fa">فهرست بسته‌های موجود را دانلود کن (درس ۰ همین کار را روی کامپیوتر شما کرد)</span></td></tr>
+      <tr><td><code>apt-get install -y figlet</code></td><td><span class="en">Install <code>figlet</code>. <code>-y</code> answers “yes”, because nobody can type during a build</span><span class="fa"><code>figlet</code> را نصب کن. <code>-y</code> جواب «بله» می‌دهد، چون هنگام build کسی نمی‌تواند تایپ کند</span></td></tr>
+      <tr><td><code>rm -rf /var/lib/apt/lists/*</code></td><td><span class="en">Delete that downloaded list: it's not needed anymore and only makes the image bigger</span><span class="fa">آن فهرست دانلودشده را پاک کن: دیگر لازم نیست و فقط ایمیج را بزرگ‌تر می‌کند</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="en">Build the image <code>fig-app</code> and run it, deleting the container afterwards:</p>
+  <p class="fa">ایمیج <code>fig-app</code> را بسازید و اجرایش کنید و بعد کانتینر را حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t fig-app .
+docker run --rm fig-app</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code> _   _      _ _       _
+| | | | ___| | | ___ | |
+| |_| |/ _ \ | |/ _ \| |
+|  _  |  __/ | | (_) |_|
+|_| |_|\___|_|_|\___/(_)</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">I see “Hello!” in big letters</span><span class="fa">«Hello!» را با حروف بزرگ می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 WHY ONE RUN ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Why one <code>RUN</code> with <code>&amp;&amp;</code>?</span><span class="fa">چرا یک <code>RUN</code> با <code>&amp;&amp;</code>؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Each <code>RUN</code> makes a <b>layer</b> (Lesson 19), and a layer is never made smaller by a later one. If you write the steps as separate <code>RUN</code> lines, the downloaded package list stays saved in its own layer, even if a later line deletes it. We built both versions and compared:</p>
+  <p class="fa">هر <code>RUN</code> یک <b>لایه</b> می‌سازد (درس ۱۹) و هیچ لایه‌ای با لایه‌های بعدی کوچک‌تر نمی‌شود. اگر مراحل را در خط‌های <code>RUN</code> جدا بنویسید، فهرست بسته‌های دانلودشده در لایه‌ی خودش ذخیره می‌ماند، حتی اگر خط بعدی آن را پاک کند. هر دو نسخه را ساختیم و مقایسه کردیم:</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Dockerfile</th><th><span class="en">Image size</span><span class="fa">اندازه‌ی ایمیج</span></th></tr></thead>
+    <tbody>
+      <tr><td><code>RUN apt-get update</code><br><code>RUN apt-get install -y figlet</code></td><td><b>216 MB</b></td></tr>
+      <tr><td><code>RUN apt-get update &amp;&amp; apt-get install -y figlet &amp;&amp; rm -rf /var/lib/apt/lists/*</code></td><td><b>178 MB</b> ✅</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note key">
+    <p class="en">🔑 Install system packages in <b>one</b> <code>RUN</code>: <code>update</code> <code>&amp;&amp;</code> <code>install -y</code> <code>&amp;&amp;</code> clean up. You'll see this pattern in almost every real Dockerfile.</p>
+    <p class="fa">🔑 بسته‌های سیستمی را در <b>یک</b> <code>RUN</code> نصب کنید: <code>update</code> <code>&amp;&amp;</code> <code>install -y</code> <code>&amp;&amp;</code> پاک‌سازی. این الگو را تقریباً در هر Dockerfile واقعی می‌بینید.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I know why <code>update</code>, <code>install</code> and cleanup go in one <code>RUN</code></span><span class="fa">می‌دانم چرا <code>update</code>، <code>install</code> و پاک‌سازی در یک <code>RUN</code> می‌آیند</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 WHOAMI ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Who am I inside the container?</span><span class="fa">داخل کانتینر من کی هستم؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Run <code>whoami</code> in a new <code>fig-app</code> container:</p>
+  <p class="fa"><code>whoami</code> را در یک کانتینر جدید <code>fig-app</code> اجرا کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run --rm fig-app whoami</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>root</code></pre></div>
+  <p class="en">Your program runs as <code>root</code>, the all-powerful user (you saw <code>root@…</code> in Lesson 6). If someone finds a bug in your app and breaks in, they're <code>root</code> inside the container, which makes it much easier to do damage.</p>
+  <p class="fa">برنامه‌ی شما به‌عنوان <code>root</code>، کاربر همه‌کاره، اجرا می‌شود (در درس ۶ <code>root@…</code> را دیدید). اگر کسی باگی در برنامه‌تان پیدا کند و وارد شود، داخل کانتینر <code>root</code> است، که آسیب زدن را خیلی راحت‌تر می‌کند.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en"><code>whoami</code> printed <code>root</code></span><span class="fa"><code>whoami</code> عبارت <code>root</code> را چاپ کرد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 USER ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Run as a normal user with <code>USER</code></span><span class="fa">اجرا با کاربر معمولی با <code>USER</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Add two lines before <code>CMD</code>: create a normal user called <code>app</code>, then switch to it:</p>
+  <p class="fa">دو خط قبل از <code>CMD</code> اضافه کنید: یک کاربر معمولی به نام <code>app</code> بسازید، بعد به آن سوئیچ کنید:</p>
+  <div class="code"><span class="lbl">Dockerfile</span><pre><code>FROM python:3.13-slim
+RUN apt-get update &amp;&amp; apt-get install -y figlet &amp;&amp; rm -rf /var/lib/apt/lists/*
+RUN useradd --create-home app
+USER app
+CMD ["figlet", "Hello!"]</code></pre></div>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>RUN useradd --create-home app</code></td><td><span class="en">Create a Linux user named <code>app</code>, with a home folder</span><span class="fa">یک کاربر لینوکس به نام <code>app</code> با پوشه‌ی خانه بساز</span></td></tr>
+      <tr><td><code>USER app</code></td><td><span class="en"><b>New:</b> from here on, and when the container runs, be <code>app</code> instead of <code>root</code></span><span class="fa"><b>جدید:</b> از اینجا به بعد، و هنگام اجرای کانتینر، به‌جای <code>root</code>، کاربر <code>app</code> باش</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="en"><code>USER</code> comes <b>after</b> <code>apt-get</code>: installing needs <code>root</code>, running doesn't. Rebuild, and ask again (step 4):</p>
+  <p class="fa"><code>USER</code> <b>بعد از</b> <code>apt-get</code> می‌آید: نصب کردن <code>root</code> لازم دارد، اجرا کردن نه. دوباره بسازید و دوباره بپرسید (قدم ۴):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t fig-app .
+docker run --rm fig-app whoami</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>app</code></pre></div>
+  <p class="en">✅ Now it runs as <code>app</code>, and <code>docker run --rm fig-app</code> still prints the banner. A normal user can't install software or change the system. Try it:</p>
+  <p class="fa">✅ حالا به‌عنوان <code>app</code> اجرا می‌شود و <code>docker run --rm fig-app</code> هنوز بنر را چاپ می‌کند. یک کاربر معمولی نمی‌تواند نرم‌افزار نصب کند یا سیستم را تغییر دهد. امتحان کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run --rm fig-app apt-get install -y curl</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>E: Could not open lock file /var/lib/dpkg/lock-frontend - open (13: Permission denied)
+E: Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), are you root?</code></pre></div>
+  <div class="note key">
+    <p class="en">🔑 Install as <code>root</code>, then switch with <code>USER</code> before <code>CMD</code>. Your app does its job, and an attacker gets much less power.</p>
+    <p class="fa">🔑 با <code>root</code> نصب کنید، بعد قبل از <code>CMD</code> با <code>USER</code> سوئیچ کنید. برنامه‌ی شما کارش را انجام می‌دهد و یک مهاجم قدرت خیلی کمتری می‌گیرد.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en"><code>whoami</code> now prints <code>app</code></span><span class="fa"><code>whoami</code> حالا <code>app</code> را چاپ می‌کند</span></span></label>
+    <label><input type="checkbox" data-id="s5-2"><span><span class="en">As <code>app</code>, <code>apt-get install</code> is refused</span><span class="fa">با کاربر <code>app</code>، <code>apt-get install</code> رد می‌شود</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 CLEAN UP ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image rm fig-app</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en"><code>fig-app</code> is deleted</span><span class="fa"><code>fig-app</code> حذف شد</span></span></label>
+  </div>
+</section>
+
+<div class="note tip stuck">
+  <p class="en">📥 <b>Stuck?</b> The finished files of this lesson are in the course folder under <code>examples/21-system-packages/</code>. Compare them with yours. Or try the finished version: go into that folder and run <code>docker build -t fig-app .</code>.</p>
+  <p class="fa">📥 <b>گیر کرده‌اید؟</b> فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/21-system-packages/</code> هستند. آن‌ها را با فایل‌های خودتان مقایسه کنید. یا نسخه‌ی کامل را امتحان کنید: به همان پوشه بروید و <code>docker build -t fig-app .</code> را اجرا کنید.</p>
+</div>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>RUN apt-get update &amp;&amp; apt-get install -y PKG &amp;&amp; rm -rf /var/lib/apt/lists/*</code></td><td><span class="en">Install system packages, in one layer, cleaned up</span><span class="fa">نصب بسته‌های سیستمی، در یک لایه، با پاک‌سازی</span></td></tr>
+      <tr><td><code>A &amp;&amp; B</code></td><td><span class="en">Run B only if A worked</span><span class="fa">B را فقط اگر A موفق بود اجرا کن</span></td></tr>
+      <tr><td><code>RUN useradd --create-home app</code> + <code>USER app</code></td><td><span class="en">Run the app as a normal user, not <code>root</code></span><span class="fa">اجرای برنامه با کاربر معمولی، نه <code>root</code></span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">Your images are smaller and safer!</span><span class="fa">ایمیج‌های شما کوچک‌تر و امن‌تر شدند!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 3 · Run in the background</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="03">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Run in the foreground</span><span class="fa">۱ · اجرا در پیش‌زمینه</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Check from a 2nd terminal</span><span class="fa">۲ · بررسی از ترمینال دوم</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Stop with Ctrl+C</span><span class="fa">۳ · توقف با Ctrl+C</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Run in the background</span><span class="fa">۴ · اجرا در پس‌زمینه</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Stop and delete</span><span class="fa">۵ · توقف و حذف</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 3 — Run in the background</span>
+    <span class="fa">درس ۳ — اجرای کانتینر در پس‌زمینه</span>
+  </h1>
+  <p class="en"><code>hello-world</code> printed a message and exited right away. Most real containers, like web servers, <b>keep running</b>. First you'll see what that does to your terminal, then fix it with <code>-d</code>.</p>
+  <p class="fa"><code>hello-world</code> یک پیام چاپ کرد و بلافاصله تمام شد. بیشتر کانتینرهای واقعی، مثل وب‌سرورها، <b>روشن می‌مانند</b>. اول می‌بینید این کار با ترمینال شما چه می‌کند، بعد با <code>-d</code> حلش می‌کنید.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 FOREGROUND ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Run nginx in the foreground</span><span class="fa">اجرای nginx در پیش‌زمینه</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en"><b>nginx</b> is a popular web server. Once started, it runs until you stop it. As in Lesson 2, we name the container with <code>--name</code>; this time it's <code>web</code>.</p>
+  <p class="fa"><b>nginx</b> یک وب‌سرور محبوب است. وقتی روشن شود، تا وقتی متوقفش نکنید اجرا می‌ماند. مثل درس ۲ با <code>--name</code> به کانتینر نام می‌دهیم؛ این بار <code>web</code>.</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run --name web nginx</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>Unable to find image 'nginx:latest' locally     <span class="c"># first time only: download</span>
+latest: Pulling from library/nginx
+...
+Status: Downloaded newer image for nginx:latest
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2026/10/10 09:10:49 [notice] 1#1: nginx/1.31.6
+2026/10/10 09:10:49 [notice] 1#1: start worker processes
+...
+<span class="c">█   ← no prompt. The terminal is stuck here.</span></code></pre></div>
+  <p class="en">You don't get your prompt back. Your terminal is <b>attached</b> to the container: it shows nginx's log, and nginx will run until you stop it. You can't type other commands here.</p>
+  <p class="fa">prompt به شما برنمی‌گردد. ترمینال شما به کانتینر <b>چسبیده</b> است: لاگ nginx را نشان می‌دهد و nginx تا وقتی متوقفش نکنید اجرا می‌ماند. اینجا نمی‌توانید دستور دیگری تایپ کنید.</p>
+  <p class="en"><code>docker run</code> also downloaded the image by itself, because it wasn't on your PC. You don't always need <code>docker pull</code> first.</p>
+  <p class="fa"><code>docker run</code> خودش ایمیج را هم دانلود کرد، چون روی کامپیوتر شما نبود. همیشه لازم نیست اول <code>docker pull</code> بزنید.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en">nginx's log is on screen and I have no prompt</span><span class="fa">لاگ nginx روی صفحه است و prompt ندارم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 SECOND TERMINAL ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Check it from a second terminal</span><span class="fa">بررسی از یک ترمینال دوم</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Leave the first terminal as it is. Open a <b>new</b> terminal window or tab (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> in most Linux terminals) and run:</p>
+  <p class="fa">ترمینال اول را همان‌طور رها کنید. یک پنجره یا تب <b>جدید</b> ترمینال باز کنید (در بیشتر ترمینال‌های لینوکس <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd>) و اجرا کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS     NAMES
+17dcab6b72b6   nginx     "/docker-entrypoint.…"   3 seconds ago   Up 2 seconds   80/tcp    web</code></pre></div>
+  <p class="en">This time <code>docker ps</code> <b>without</b> <code>-a</code> is enough, because the container is running. <code>STATUS</code> says <code>Up</code>. <code>PORTS 80/tcp</code> means nginx listens on port 80 <b>inside</b> the container; opening it in your browser comes in a later lesson.</p>
+  <p class="fa">این بار <code>docker ps</code> <b>بدون</b> <code>-a</code> کافی است، چون کانتینر در حال اجراست. <code>STATUS</code> برابر <code>Up</code> است. <code>PORTS 80/tcp</code> یعنی nginx روی پورت 80 <b>داخل</b> کانتینر گوش می‌دهد؛ باز کردن آن در مرورگر در درس‌های بعد.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">In the 2nd terminal, <code>docker ps</code> shows <code>web</code> as <code>Up</code></span><span class="fa">در ترمینال دوم، <code>docker ps</code> کانتینر <code>web</code> را با وضعیت <code>Up</code> نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 CTRL+C ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Stop it with Ctrl+C</span><span class="fa">توقف با Ctrl+C</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">The first terminal is still <b>stuck</b>. To stop the container and get your terminal back, go to that terminal and press <kbd>Ctrl</kbd>+<kbd>C</kbd>:</p>
+  <p class="fa">ترمینال اول هنوز <b>گیر کرده</b> است. برای متوقف کردن کانتینر و برگشتن به ترمینال، به همان ترمینال بروید و <kbd>Ctrl</kbd>+<kbd>C</kbd> را بزنید:</p>
+  <div class="code"><span class="lbl">output</span><pre><code>^C
+2026/10/10 09:10:50 [notice] 1#1: signal 2 (SIGINT) received, exiting
+...
+2026/10/10 09:10:50 [notice] 1#1: exit
+<span class="c">$   ← your prompt is back</span></code></pre></div>
+  <p class="en">nginx shut down. Run the same check as in step 2:</p>
+  <p class="fa">nginx خاموش شد. همان بررسی قدم ۲ را دوباره انجام دهید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</code></pre></div>
+  <p class="en">Only the header line: <code>web</code> is gone from the list. <code>docker ps</code> shows only <b>running</b> containers, and <code>web</code> isn't running anymore. (If you have other running containers, they'll still be listed, but not <code>web</code>.)</p>
+  <p class="fa">فقط خط عنوان: <code>web</code> از فهرست رفته است. <code>docker ps</code> فقط کانتینرهای <b>در حال اجرا</b> را نشان می‌دهد، و <code>web</code> دیگر اجرا نمی‌شود. (اگر کانتینرهای دیگری در حال اجرا دارید، آن‌ها هنوز در فهرست هستند، ولی <code>web</code> نیست.)</p>
+  <p class="en">But it wasn't deleted, only stopped. Want to see it? Use the switch that shows <b>all</b> containers, including stopped ones (you learned it in Lesson 2):</p>
+  <p class="fa">ولی حذف نشده، فقط متوقف شده. می‌خواهید ببینیدش؟ از سوئیچی استفاده کنید که <b>همه‌ی</b> کانتینرها، حتی متوقف‌شده‌ها، را نشان می‌دهد (آن را در درس ۲ یاد گرفتید):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps -a</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS                    PORTS     NAMES
+17dcab6b72b6   nginx     "/docker-entrypoint.…"   5 seconds ago   Exited (0) 1 second ago             web</code></pre></div>
+  <p class="en">Delete it, so the name <code>web</code> is free for the next step:</p>
+  <p class="fa">حذفش کنید تا نام <code>web</code> برای قدم بعد آزاد شود:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm web</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en"><kbd>Ctrl</kbd>+<kbd>C</kbd> stopped nginx and gave me my prompt back</span><span class="fa"><kbd>Ctrl</kbd>+<kbd>C</kbd> nginx را متوقف کرد و prompt به من برگشت</span></span></label>
+    <label><input type="checkbox" data-id="s3-3"><span><span class="en"><code>docker ps</code> doesn't show <code>web</code>, but <code>docker ps -a</code> does</span><span class="fa"><code>docker ps</code> کانتینر <code>web</code> را نشان نمی‌دهد ولی <code>docker ps -a</code> نشان می‌دهد</span></span></label>
+    <label><input type="checkbox" data-id="s3-2"><span><span class="en">I deleted the stopped <code>web</code> container</span><span class="fa">کانتینر متوقف‌شده‌ی <code>web</code> را حذف کردم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 BACKGROUND ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Now run it in the background with <code>-d</code></span><span class="fa">حالا اجرا در پس‌زمینه با <code>-d</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Same command, plus <code>-d</code> (<b>detached</b>):</p>
+  <p class="fa">همان دستور، به‌اضافه‌ی <code>-d</code> (<b>detached</b>، یعنی جدا شده):</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name web nginx</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>1c76533ac4cbf87fdbd0e208968f0b8bb201b670a2777d22770de41178d25b03   <span class="c"># the new container's full ID</span>
+<span class="c">$   ← prompt back right away</span></code></pre></div>
+  <p class="en">Docker prints the container's ID and gives you your terminal back. nginx keeps running in the background:</p>
+  <p class="fa">Docker شناسه‌ی کانتینر را چاپ می‌کند و ترمینال را به شما برمی‌گرداند. nginx در پس‌زمینه اجرا می‌ماند:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS     NAMES
+1c76533ac4cb   nginx     "/docker-entrypoint.…"   9 seconds ago   Up 3 seconds   80/tcp    web</code></pre></div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th></th>
+      <th><span class="en">Without <code>-d</code> (foreground)</span><span class="fa">بدون <code>-d</code> (پیش‌زمینه)</span></th>
+      <th><span class="en">With <code>-d</code> (background)</span><span class="fa">با <code>-d</code> (پس‌زمینه)</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><span class="en">Terminal</span><span class="fa">ترمینال</span></td><td><span class="en">Busy, shows the log</span><span class="fa">مشغول، لاگ را نشان می‌دهد</span></td><td><span class="en">Free right away</span><span class="fa">بلافاصله آزاد</span></td></tr>
+      <tr><td><span class="en">How to stop</span><span class="fa">روش توقف</span></td><td><kbd>Ctrl</kbd>+<kbd>C</kbd></td><td><code>docker stop web</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">I got my prompt back right away</span><span class="fa">prompt بلافاصله به من برگشت</span></span></label>
+    <label><input type="checkbox" data-id="s4-2"><span><span class="en"><code>docker ps</code> shows <code>web</code> as <code>Up</code> in the same terminal</span><span class="fa"><code>docker ps</code> در همان ترمینال <code>web</code> را با وضعیت <code>Up</code> نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 STOP AND DELETE ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Stop and delete it</span><span class="fa">توقف و حذف</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <h3><span class="en">5.1 · Stop it</span><span class="fa">۵.۱ · متوقفش کنید</span></h3>
+  <p class="en">This time the terminal is <b>not stuck</b>, so there is nothing to press <kbd>Ctrl</kbd>+<kbd>C</kbd> on. Stop the container with a command instead (you saw it in the table above):</p>
+  <p class="fa">این بار ترمینال <b>گیر نکرده</b> است، پس <kbd>Ctrl</kbd>+<kbd>C</kbd> اینجا کاری نمی‌کند. کانتینر را با یک دستور متوقف کنید (آن را در جدول بالا دیدید):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker stop web</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>web</code></pre></div>
+
+  <h3><span class="en">5.2 · Is it still running?</span><span class="fa">۵.۲ · هنوز در حال اجراست؟</span></h3>
+  <p class="en">List the <b>running</b> containers:</p>
+  <p class="fa">کانتینرهای <b>در حال اجرا</b> را فهرست کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</code></pre></div>
+  <p class="en">No <code>web</code>: it's not running.</p>
+  <p class="fa"><code>web</code> نیست: در حال اجرا نیست.</p>
+
+  <h3><span class="en">5.3 · Does it still exist?</span><span class="fa">۵.۳ · هنوز وجود دارد؟</span></h3>
+  <p class="en">List <b>all</b> containers, including stopped ones:</p>
+  <p class="fa"><b>همه‌ی</b> کانتینرها را، حتی متوقف‌شده‌ها، فهرست کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps -a</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS                              PORTS     NAMES
+1c76533ac4cb   nginx     "/docker-entrypoint.…"   9 seconds ago   Exited (0) Less than a second ago             web</code></pre></div>
+  <p class="en">There it is: stopped (<code>Exited</code>), but still there.</p>
+  <p class="fa">اینجاست: متوقف شده (<code>Exited</code>)، ولی هنوز وجود دارد.</p>
+
+  <h3><span class="en">5.4 · Delete it</span><span class="fa">۵.۴ · حذفش کنید</span></h3>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm web</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>web</code></pre></div>
+  <div class="note warn">
+    <p class="en">⚠ You can't <code>docker rm</code> a <b>running</b> container. Stop it first, or use <code>docker rm -f web</code> (force), which stops and deletes in one go.</p>
+    <p class="fa">⚠ کانتینر <b>در حال اجرا</b> را نمی‌توانید با <code>docker rm</code> حذف کنید. اول متوقفش کنید، یا از <code>docker rm -f web</code> (اجباری) استفاده کنید که در یک قدم متوقف و حذف می‌کند.</p>
+  </div>
+
+  <h3><span class="en">5.5 · Check it's gone</span><span class="fa">۵.۵ · بررسی کنید حذف شده</span></h3>
+  <p class="en">Look at <b>all</b> containers again:</p>
+  <p class="fa">دوباره <b>همه‌ی</b> کانتینرها را ببینید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps -a</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</code></pre></div>
+  <p class="en">✅ <code>web</code> is gone for good, even from <code>-a</code>.</p>
+  <p class="fa">✅ <code>web</code> برای همیشه حذف شد، حتی در <code>-a</code> هم نیست.</p>
+
+  <h3><span class="en">5.6 · The image is still there</span><span class="fa">۵.۶ · ایمیج هنوز هست</span></h3>
+  <p class="en">Remember: we only removed the <b>container</b>. The <b>image</b> is still there. Check it:</p>
+  <p class="fa">یادتان باشد: فقط <b>کانتینر</b> را حذف کردیم. <b>ایمیج</b> هنوز سر جایش است. بررسی کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image ls nginx</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>IMAGE          ID             DISK USAGE   CONTENT SIZE   EXTRA
+nginx:latest   f9ea18bfa4fa        243MB         66.7MB</code></pre></div>
+  <div class="note key">
+    <p class="en">🔑 Keep this image. We need it in the next lessons.</p>
+    <p class="fa">🔑 این ایمیج را نگه دارید، چون در درس‌های بعد به آن نیاز داریم.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en">I stopped <code>web</code> with <code>docker stop</code></span><span class="fa"><code>web</code> را با <code>docker stop</code> متوقف کردم</span></span></label>
+    <label><input type="checkbox" data-id="s5-3"><span><span class="en">After stopping: not in <code>docker ps</code>, but still in <code>docker ps -a</code></span><span class="fa">بعد از توقف: در <code>docker ps</code> نیست، ولی در <code>docker ps -a</code> هست</span></span></label>
+    <label><input type="checkbox" data-id="s5-2"><span><span class="en">After <code>docker rm</code>: gone from <code>docker ps -a</code> too</span><span class="fa">بعد از <code>docker rm</code>: از <code>docker ps -a</code> هم حذف شده</span></span></label>
+    <label><input type="checkbox" data-id="s5-img"><span><span class="en">The <code>nginx</code> image is still in <code>docker image ls</code></span><span class="fa">ایمیج <code>nginx</code> هنوز در <code>docker image ls</code> هست</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>docker run --name NAME IMAGE</code></td><td><span class="en">Run in the foreground; stop with <kbd>Ctrl</kbd>+<kbd>C</kbd></span><span class="fa">اجرا در پیش‌زمینه؛ توقف با <kbd>Ctrl</kbd>+<kbd>C</kbd></span></td></tr>
+      <tr><td><code>docker run -d --name NAME IMAGE</code></td><td><span class="en">Run in the background</span><span class="fa">اجرا در پس‌زمینه</span></td></tr>
+      <tr><td><code>docker ps</code></td><td><span class="en">List <b>running</b> containers</span><span class="fa">فهرست کانتینرهای <b>در حال اجرا</b></span></td></tr>
+      <tr><td><code>docker stop NAME</code></td><td><span class="en">Stop a running container (it still exists)</span><span class="fa">متوقف کردن کانتینر (هنوز وجود دارد)</span></td></tr>
+      <tr><td><code>docker rm NAME</code></td><td><span class="en">Delete a stopped container</span><span class="fa">حذف کانتینر متوقف‌شده</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You ran a container in the background!</span><span class="fa">یک کانتینر را در پس‌زمینه اجرا کردید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

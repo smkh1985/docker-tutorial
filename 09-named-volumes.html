@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 9 · Named volumes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="09">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Start Redis</span><span class="fa">۱ · اجرای Redis</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Count visits</span><span class="fa">۲ · شمردن بازدیدها</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Recreate: counter?</span><span class="fa">۳ · ساخت دوباره: شمارنده؟</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Add a named volume</span><span class="fa">۴ · اضافه کردن named volume</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · See your volume</span><span class="fa">۵ · دیدن volume</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Recreate again</span><span class="fa">۶ · ساخت دوباره</span></a></li>
+    <li><a href="#s7"><span class="tick">✓</span><span class="en">7 · Delete the volume</span><span class="fa">۷ · حذف volume</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 9 — Named volumes, with a real database</span>
+    <span class="fa">درس ۹ — Named volume، با یک دیتابیس واقعی</span>
+  </h1>
+  <p class="en">In Lesson 8 you gave <code>-v</code> a <b>folder on your PC</b>. There is a second way: give it just a <b>name</b>, and Docker creates and manages the storage for you. This is what you normally use for databases, so this time you'll use a <b>real one</b>: <b>Redis</b>.</p>
+  <p class="fa">در درس ۸ به <code>-v</code> یک <b>پوشه روی کامپیوترتان</b> دادید. راه دومی هم هست: فقط یک <b>نام</b> بدهید، و Docker خودش محل ذخیره‌سازی را می‌سازد و مدیریت می‌کند. برای دیتابیس‌ها معمولاً از همین استفاده می‌شود، پس این بار از یک <b>دیتابیس واقعی</b> استفاده می‌کنید: <b>Redis</b>.</p>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>-v ~/my-data:/data</code></td><td><span class="en">starts with a <b>path</b> → a folder on your PC (<b>bind mount</b>, Lesson 8)</span><span class="fa">با یک <b>مسیر</b> شروع می‌شود ← یک پوشه روی کامپیوتر شما (<b>bind mount</b>، درس ۸)</span></td></tr>
+      <tr><td><code>-v redisdata:/data</code></td><td><span class="en">just a <b>name</b> → storage managed by Docker (<b>named volume</b>, this lesson)</span><span class="fa">فقط یک <b>نام</b> ← محل ذخیره‌ای که Docker مدیریت می‌کند (<b>named volume</b>، این درس)</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 START REDIS ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Start Redis</span><span class="fa">اجرای Redis</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en"><b>Redis</b> is a small, very fast, very popular database. Start it in the background and name it <code>cache</code>:</p>
+  <p class="fa"><b>Redis</b> یک دیتابیس کوچک، خیلی سریع و خیلی محبوب است. آن را در پس‌زمینه اجرا کنید و نامش را <code>cache</code> بگذارید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name cache redis:alpine</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>Unable to find image 'redis:alpine' locally
+...
+Status: Downloaded newer image for redis:alpine
+35c75bbc9363446f7ffa3b7a710f438cdc525f91e7730d3353d35eead8eaf400</code></pre></div>
+  <p class="en">The tag <code>alpine</code> means a small version of the image, built on Alpine Linux (Lesson 1).</p>
+  <p class="fa">تگ <code>alpine</code> یعنی نسخه‌ی کوچک ایمیج که روی Alpine Linux ساخته شده (درس ۱).</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>cache</code> is running</span><span class="fa"><code>cache</code> در حال اجراست</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 COUNT ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Count visits</span><span class="fa">شمردن بازدیدها</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Imagine every page visit on your website adds 1 to a counter in the database. Run this <b>three times</b>:</p>
+  <p class="fa">فرض کنید هر بازدید از وب‌سایت شما یک واحد به یک شمارنده در دیتابیس اضافه می‌کند. این را <b>سه بار</b> اجرا کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker exec cache redis-cli INCR visits</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>1
+2
+3</code></pre></div>
+  <dl class="flags">
+    <dt><code>redis-cli</code></dt>
+    <dd><span class="en">Redis's command-line tool. It's inside the image.</span><span class="fa">ابزار خط فرمان Redis. داخل ایمیج هست.</span></dd>
+    <dt><code>INCR visits</code></dt>
+    <dd><span class="en"><b>Incr</b>ement: add 1 to the number called <code>visits</code> and print it. Starts from 0 if it doesn't exist yet.</span><span class="fa"><b>Incr</b>ement: یک واحد به عددی به نام <code>visits</code> اضافه کن و چاپش کن. اگر هنوز وجود نداشته باشد از 0 شروع می‌کند.</span></dd>
+  </dl>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The counter went 1, 2, 3</span><span class="fa">شمارنده 1، 2، 3 شد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 RECREATE NO VOLUME ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Recreate the container: does the counter remember?</span><span class="fa">ساخت دوباره‌ی کانتینر: شمارنده یادش می‌ماند؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Stop <code>cache</code> cleanly, then delete it (two commands, Lesson 3):</p>
+  <p class="fa"><code>cache</code> را با آرامش متوقف کنید و بعد حذفش کنید (دو دستور، درس ۳):</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker stop cache
+docker rm cache</code></pre></div>
+  <p class="en">Start a new one exactly like in step 1, and count once more:</p>
+  <p class="fa">یک کانتینر جدید دقیقاً مثل قدم ۱ اجرا کنید و یک بار دیگر بشمارید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name cache redis:alpine
+docker exec cache redis-cli INCR visits</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>1</code></pre></div>
+  <p class="en">❌ <b>Back to 1.</b> The database forgot all your visits. Containers are ephemeral (Lesson 8).</p>
+  <p class="fa">❌ <b>دوباره 1.</b> دیتابیس همه‌ی بازدیدها را فراموش کرد. کانتینرها موقتی هستند (درس ۸).</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">The new container started counting from 1 again</span><span class="fa">کانتینر جدید دوباره از 1 شروع کرد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 NAMED VOLUME ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Add a named volume</span><span class="fa">اضافه کردن named volume</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">To keep the data, we must put a volume on the folder <b>where Redis saves it</b>. Which folder is that? Ask Redis (the <code>cache</code> container from step 3 is still running):</p>
+  <p class="fa">برای نگه داشتن داده‌ها باید volume را روی پوشه‌ای بگذاریم که <b>Redis داده‌ها را آنجا ذخیره می‌کند</b>. کدام پوشه؟ از خود Redis بپرسید (کانتینر <code>cache</code> از قدم ۳ هنوز در حال اجراست):</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker exec cache redis-cli CONFIG GET dir</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>dir
+/data</code></pre></div>
+  <p class="en"><b>Redis saves its data in <code>/data</code></b>, in a file called <code>dump.rdb</code>. The official Redis image sets this up, and its page on Docker Hub says so. That's the folder our volume must cover.</p>
+  <p class="fa"><b>Redis داده‌هایش را در <code>/data</code> ذخیره می‌کند</b>، در فایلی به نام <code>dump.rdb</code>. ایمیج رسمی Redis این را تنظیم کرده و صفحه‌اش در Docker Hub هم همین را می‌گوید. این همان پوشه‌ای است که volume ما باید رویش قرار بگیرد.</p>
+  <div class="note tip">
+    <p class="en">💡 Every database keeps its data in its own folder, e.g. PostgreSQL keeps its data under <code>/var/lib/postgresql</code>. Before adding a volume, check the image's page on <a href="https://hub.docker.com" target="_blank">Docker Hub</a>. A volume on the <b>wrong</b> folder saves nothing.</p>
+    <p class="fa">💡 هر دیتابیس داده‌هایش را در پوشه‌ی خودش نگه می‌دارد، مثلاً PostgreSQL داده‌هایش را زیر <code>/var/lib/postgresql</code> نگه می‌دارد. قبل از اضافه کردن volume، صفحه‌ی ایمیج را در <a href="https://hub.docker.com" target="_blank">Docker Hub</a> ببینید. volume روی پوشه‌ی <b>اشتباه</b> هیچ چیزی را نگه نمی‌دارد.</p>
+  </div>
+  <p class="en">Now stop and delete <code>cache</code>, cleanly:</p>
+  <p class="fa">حالا <code>cache</code> را با آرامش متوقف و حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker stop cache
+docker rm cache</code></pre></div>
+  <p class="en">This time, put a <b>named volume</b> on <code>/data</code>:</p>
+  <p class="fa">این بار یک <b>named volume</b> روی <code>/data</code> بگذارید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name cache -v redisdata:/data redis:alpine</code></pre></div>
+  <p class="en">Before the <code>:</code> there's a <b>name</b> (<code>redisdata</code>), not a path. No <code>mkdir</code> needed: if the volume doesn't exist yet, Docker <b>creates it</b>.</p>
+  <p class="fa">قبل از <code>:</code> یک <b>نام</b> (<code>redisdata</code>) آمده، نه مسیر. <code>mkdir</code> لازم نیست: اگر volume هنوز وجود نداشته باشد، Docker آن را <b>می‌سازد</b>.</p>
+  <p class="en">Count three times again:</p>
+  <p class="fa">دوباره سه بار بشمارید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker exec cache redis-cli INCR visits</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>1
+2
+3</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-0"><span><span class="en"><code>CONFIG GET dir</code> told me Redis saves in <code>/data</code></span><span class="fa"><code>CONFIG GET dir</code> به من گفت Redis در <code>/data</code> ذخیره می‌کند</span></span></label>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en"><code>cache</code> runs with <code>-v redisdata:/data</code>, and the counter is at 3</span><span class="fa"><code>cache</code> با <code>-v redisdata:/data</code> اجرا شده و شمارنده روی 3 است</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 SEE VOLUME ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">See your volume</span><span class="fa">دیدن volume</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Named volumes have their own list, like images and containers:</p>
+  <p class="fa">named volumeها هم مثل ایمیج‌ها و کانتینرها فهرست خودشان را دارند:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker volume ls</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>DRIVER    VOLUME NAME
+local     redisdata</code></pre></div>
+  <p class="en">You may see other volumes too, created by other projects on your PC.</p>
+  <p class="fa">ممکن است volumeهای دیگری هم ببینید که پروژه‌های دیگر روی کامپیوتر شما ساخته‌اند.</p>
+  <p class="en">Where is it actually stored? Ask Docker:</p>
+  <p class="fa">واقعاً کجا ذخیره شده؟ از Docker بپرسید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker volume inspect redisdata</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>[
+    {
+        "Driver": "local",
+        "Mountpoint": "/var/lib/docker/volumes/redisdata/_data",   <span class="c"># the default; can differ</span>
+        "Name": "redisdata",
+        ...
+    }
+]</code></pre></div>
+  <p class="en">It's in <b>Docker's own storage folder</b>, owned by <code>root</code>. You don't open it yourself: you use it through containers, and Docker takes care of it.</p>
+  <p class="fa">در <b>پوشه‌ی ذخیره‌سازی خود Docker</b> است که مال <code>root</code> است. خودتان بازش نمی‌کنید: از طریق کانتینرها از آن استفاده می‌کنید و Docker مراقبش است.</p>
+  <details class="q">
+    <summary><span class="en">❓ Is my <code>~/my-data</code> folder from Lesson 8 in this list?</span><span class="fa">❓ پوشه‌ی <code>~/my-data</code> از درس ۸ در این فهرست هست؟</span></summary>
+    <p class="en"><b>No.</b> <code>docker volume ls</code> lists only volumes that <b>Docker manages</b>. A bind mount is just a folder on your PC, so it never appears there. To see what a container has mounted (of either kind), inspect the <b>container</b> and look for <code>"Mounts"</code> in its (long) output:</p>
+    <p class="fa"><b>نه.</b> <code>docker volume ls</code> فقط volumeهایی را فهرست می‌کند که <b>Docker مدیریت می‌کند</b>. bind mount فقط یک پوشه روی کامپیوتر شماست، پس هیچ‌وقت آنجا نمی‌آید. برای دیدن چیزهایی که یک کانتینر mount کرده (از هر دو نوع)، خود <b>کانتینر</b> را inspect کنید و در خروجی (طولانی) آن دنبال <code>"Mounts"</code> بگردید:</p>
+    <div class="code"><span class="lbl">bash</span><pre><code>docker inspect cache</code></pre></div>
+    <div class="code"><span class="lbl">output</span><pre><code>        "Mounts": [
+            {
+                "Type": "volume",          <span class="c"># a named volume</span>
+                "Name": "redisdata",
+                "Destination": "/data",
+                ...
+            }
+        ],</code></pre></div>
+    <p class="en">For a bind mount, like Lesson 8's <code>app</code>, it shows <code>"Type": "bind"</code> and your PC folder as <code>"Source"</code>.</p>
+    <p class="fa">برای یک bind mount، مثل <code>app</code> در درس ۸، <code>"Type": "bind"</code> و پوشه‌ی کامپیوتر شما را به‌عنوان <code>"Source"</code> نشان می‌دهد.</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en"><code>docker volume ls</code> shows <code>redisdata</code></span><span class="fa"><code>docker volume ls</code> نام <code>redisdata</code> را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 RECREATE WITH VOLUME ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Recreate again: does it remember now?</span><span class="fa">ساخت دوباره: حالا یادش می‌ماند؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Stop and delete <code>cache</code> cleanly:</p>
+  <p class="fa"><code>cache</code> را با آرامش متوقف و حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker stop cache
+docker rm cache</code></pre></div>
+  <p class="en">Start a new one exactly like in step 4 (same volume), and count once:</p>
+  <p class="fa">یک کانتینر جدید دقیقاً مثل قدم ۴ (با همان volume) اجرا کنید و یک بار بشمارید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name cache -v redisdata:/data redis:alpine
+docker exec cache redis-cli INCR visits</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>4</code></pre></div>
+  <p class="en">✅ <b>4!</b> The new container continued where the old one stopped. When you ran <code>docker stop</code>, Redis saved its data to <code>/data</code>, which is the volume, and the volume outlived the container.</p>
+  <p class="fa">✅ <b>4!</b> کانتینر جدید از همان جایی ادامه داد که قبلی متوقف شده بود. وقتی <code>docker stop</code> زدید، Redis داده‌هایش را در <code>/data</code> ذخیره کرد، که همان volume است، و volume بیشتر از کانتینر عمر کرد.</p>
+  <p class="en">See the saved file inside the volume:</p>
+  <p class="fa">فایل ذخیره‌شده را داخل volume ببینید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker exec cache ls -l /data</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>-rw-------    1 redis    redis          104 Oct 10 10:48 dump.rdb</code></pre></div>
+  <p class="en">That's the database file Redis wrote when you stopped the old container.</p>
+  <p class="fa">این همان فایل دیتابیس است که Redis هنگام متوقف کردن کانتینر قبلی نوشت.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th></th>
+      <th><span class="en">After recreating, <code>INCR</code> prints…</span><span class="fa">بعد از ساخت دوباره، <code>INCR</code> چاپ می‌کند…</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><span class="en">without a volume (step 3)</span><span class="fa">بدون volume (قدم ۳)</span></td><td>❌ <b>1</b></td></tr>
+      <tr><td><span class="en">with <code>-v redisdata:/data</code> (step 6)</span><span class="fa">با <code>-v redisdata:/data</code> (قدم ۶)</span></td><td>✅ <b>4</b></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note warn">
+    <p class="en">⚠ <b>Stop databases cleanly.</b> Redis keeps data in memory and saves it to disk when it stops. <code>docker rm -f</code> kills it <b>before</b> it can save. We tried it: we counted to 5, ran <code>rm -f</code>, and the new container had <b>3</b>, the value from the last clean stop. The last visits were lost, even with a volume. Use <code>docker stop</code> first.</p>
+    <p class="fa">⚠ <b>دیتابیس‌ها را با آرامش متوقف کنید.</b> Redis داده‌ها را در حافظه نگه می‌دارد و وقتی متوقف می‌شود روی دیسک ذخیره‌شان می‌کند. <code>docker rm -f</code> آن را <b>قبل از</b> ذخیره کردن از کار می‌اندازد. امتحانش کردیم: تا 5 شمردیم، <code>rm -f</code> زدیم، و کانتینر جدید <b>3</b> داشت، یعنی مقدار آخرین توقف آرام. آخرین بازدیدها از دست رفتند، حتی با volume. اول از <code>docker stop</code> استفاده کنید.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en">The new container printed <b>4</b></span><span class="fa">کانتینر جدید <b>4</b> را چاپ کرد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 7 DELETE VOLUME ================= -->
+<section class="card step" id="s7">
+  <h2><span class="num">7</span>
+    <span class="en">Delete the volume</span><span class="fa">حذف volume</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Try to delete the volume:</p>
+  <p class="fa">سعی کنید volume را حذف کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker volume rm redisdata</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>Error response from daemon: remove redisdata: volume is in use - [73dbe5f93b9c…]</code></pre></div>
+  <p class="en">Docker refuses: <code>cache</code> is still using it. This protects you from deleting a database under a running app. Stop and delete the container first:</p>
+  <p class="fa">Docker قبول نمی‌کند: <code>cache</code> هنوز از آن استفاده می‌کند. این از شما محافظت می‌کند تا دیتابیس را از زیر پای یک برنامه‌ی در حال اجرا پاک نکنید. اول کانتینر را متوقف و حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker stop cache
+docker rm cache</code></pre></div>
+  <p class="en">Now delete the volume, and check the list:</p>
+  <p class="fa">حالا volume را حذف کنید و فهرست را بررسی کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker volume rm redisdata
+docker volume ls</code></pre></div>
+  <div class="note warn">
+    <p class="en">⚠ <code>docker volume rm</code> deletes the data <b>for good</b>. There is no undo. Double-check the name, especially on a machine with real databases.</p>
+    <p class="fa">⚠ <code>docker volume rm</code> داده‌ها را <b>برای همیشه</b> حذف می‌کند. راه برگشتی نیست. نام را دوباره بررسی کنید، مخصوصاً روی سیستمی که دیتابیس‌های واقعی دارد.</p>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th></th>
+      <th><span class="en">Bind mount (Lesson 8)</span><span class="fa">Bind mount (درس ۸)</span></th>
+      <th><span class="en">Named volume (Lesson 9)</span><span class="fa">Named volume (درس ۹)</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><span class="en">Written as</span><span class="fa">شکل نوشتن</span></td><td><code>-v ~/my-data:/data</code></td><td><code>-v redisdata:/data</code></td></tr>
+      <tr><td><span class="en">Data lives</span><span class="fa">داده‌ها کجا هستند</span></td><td><span class="en">a folder you choose on your PC</span><span class="fa">پوشه‌ای که خودتان روی کامپیوتر انتخاب می‌کنید</span></td><td><span class="en">Docker's own storage</span><span class="fa">محل ذخیره‌سازی خود Docker</span></td></tr>
+      <tr><td><span class="en">Managed by</span><span class="fa">مدیریت با</span></td><td><span class="en">you (<code>mkdir</code>, <code>ls</code>, editors)</span><span class="fa">شما (<code>mkdir</code>، <code>ls</code>، ویرایشگرها)</span></td><td><span class="en">Docker (<code>docker volume …</code>)</span><span class="fa">Docker (<code>docker volume …</code>)</span></td></tr>
+      <tr><td><span class="en">Best for</span><span class="fa">مناسب برای</span></td><td><span class="en">files you want to see and edit</span><span class="fa">فایل‌هایی که می‌خواهید ببینید و ویرایش کنید</span></td><td><span class="en">databases and app data</span><span class="fa">دیتابیس‌ها و داده‌های برنامه</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="en">You can keep the <code>redis:alpine</code> image, or delete it with <code>docker image rm redis:alpine</code> (Lesson 1).</p>
+  <p class="fa">می‌توانید ایمیج <code>redis:alpine</code> را نگه دارید، یا با <code>docker image rm redis:alpine</code> حذفش کنید (درس ۱).</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s7-1"><span><span class="en">I saw the <code>volume is in use</code> error</span><span class="fa">خطای <code>volume is in use</code> را دیدم</span></span></label>
+    <label><input type="checkbox" data-id="s7-2"><span><span class="en"><code>redisdata</code> is gone from <code>docker volume ls</code></span><span class="fa"><code>redisdata</code> از <code>docker volume ls</code> حذف شده</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>-v NAME:CONTAINER_FOLDER</code></td><td><span class="en">Use a named volume (created automatically if missing)</span><span class="fa">استفاده از named volume (اگر نباشد خودکار ساخته می‌شود)</span></td></tr>
+      <tr><td><code>docker volume ls</code></td><td><span class="en">List volumes</span><span class="fa">فهرست volumeها</span></td></tr>
+      <tr><td><code>docker volume inspect NAME</code></td><td><span class="en">Details, including where the data is stored</span><span class="fa">جزئیات، از جمله محل ذخیره‌ی داده‌ها</span></td></tr>
+      <tr><td><code>docker volume rm NAME</code></td><td><span class="en">Delete a volume and its data for good (not while in use)</span><span class="fa">حذف volume و داده‌هایش برای همیشه (نه وقتی در حال استفاده است)</span></td></tr>
+      <tr><td><code>docker stop</code></td><td><span class="en">Stop databases cleanly, so they can save; avoid <code>rm -f</code></span><span class="fa">دیتابیس‌ها را با آرامش متوقف کنید تا ذخیره کنند؛ از <code>rm -f</code> پرهیز کنید</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">Your database remembers!</span><span class="fa">دیتابیس شما یادش می‌ماند!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

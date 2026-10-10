@@ -1,0 +1,13 @@
+services:
+  db:
+    image: postgres:alpine
+    env_file: db.env
+    volumes:
+      - pgdata:/var/lib/postgresql
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

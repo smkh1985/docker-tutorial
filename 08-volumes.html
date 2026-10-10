@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 8 · Keep your data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="08">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Save a “database”</span><span class="fa">۱ · ذخیره‌ی یک «دیتابیس»</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Delete the container</span><span class="fa">۲ · حذف کانتینر</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Add a volume</span><span class="fa">۳ · اضافه کردن volume</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Save it again</span><span class="fa">۴ · ذخیره‌ی دوباره</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Delete it again</span><span class="fa">۵ · حذف دوباره</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Clean up</span><span class="fa">۶ · تمیزکاری</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 8 — Keep your data with volumes</span>
+    <span class="fa">درس ۸ — نگه داشتن داده‌ها با volume</span>
+  </h1>
+  <p class="en">Containers are <b>ephemeral</b> (temporary): when you delete a container, <b>everything inside it is deleted too</b>. You saw this in Lesson 6.</p>
+  <p class="fa">کانتینرها <b>موقتی</b> هستند (ephemeral): وقتی کانتینری را حذف می‌کنید، <b>همه‌ی محتوای داخلش هم حذف می‌شود</b>. این را در درس ۶ دیدید.</p>
+  <p class="en">But some files must <b>survive</b>: a <b>database</b>, your program's <b>outputs</b>, uploaded files, build <b>artifacts</b>… You'll first lose a pretend database, then save it with a <b>volume</b>.</p>
+  <p class="fa">ولی بعضی فایل‌ها باید <b>باقی بمانند</b>: یک <b>دیتابیس</b>، <b>خروجی‌های</b> برنامه، فایل‌های آپلودشده، <b>آرتیفکت‌ها</b> (فایل‌هایی که هنگام ساختن برنامه تولید می‌شوند) و … اول یک دیتابیس فرضی را از دست می‌دهید، بعد با یک <b>volume</b> نجاتش می‌دهید.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 SAVE ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Save a “database” inside a container</span><span class="fa">ذخیره‌ی یک «دیتابیس» داخل کانتینر</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Start nginx in the background and name it <code>app</code>. We don't need a port this time:</p>
+  <p class="fa">nginx را در پس‌زمینه اجرا کنید و نامش را <code>app</code> بگذارید. این بار پورت لازم نداریم:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name app nginx</code></pre></div>
+  <p class="en">Open a shell inside <code>app</code>:</p>
+  <p class="fa">یک شل داخل <code>app</code> باز کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker exec -it app bash</code></pre></div>
+  <p class="en">Pretend the file <code>/data/db.txt</code> is your app's <b>database</b>. Create the folder, save a record in it, and read it back:</p>
+  <p class="fa">فرض کنید فایل <code>/data/db.txt</code> <b>دیتابیس</b> برنامه‌ی شماست. پوشه را بسازید، یک رکورد در آن ذخیره کنید و دوباره بخوانیدش:</p>
+  <div class="code"><span class="lbl">bash · inside</span><pre><code>mkdir /data
+echo "Ali, balance: 100" &gt; /data/db.txt
+cat /data/db.txt</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>Ali, balance: 100</code></pre></div>
+  <p class="en">Leave the shell:</p>
+  <p class="fa">از شل خارج شوید:</p>
+  <div class="code reveal"><span class="lbl">bash · inside</span><pre><code>exit</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>cat /data/db.txt</code> printed my record inside the container</span><span class="fa"><code>cat /data/db.txt</code> رکورد من را داخل کانتینر چاپ کرد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 DELETE ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Delete the container: is the database still there?</span><span class="fa">حذف کانتینر: دیتابیس هنوز هست؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Stop and delete <code>app</code> in one command, then start a new one exactly like in step 1:</p>
+  <p class="fa"><code>app</code> را با یک دستور متوقف و حذف کنید، بعد یک کانتینر جدید دقیقاً مثل قدم ۱ اجرا کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f app
+docker run -d --name app nginx</code></pre></div>
+  <p class="en">Look for the database. This time, run just <b>one command</b> with <code>exec</code>. Without <code>-it</code>, Docker runs it, prints the result, and you stay on your PC:</p>
+  <p class="fa">دنبال دیتابیس بگردید. این بار فقط <b>یک دستور</b> را با <code>exec</code> اجرا کنید. بدون <code>-it</code>، Docker آن را اجرا می‌کند، نتیجه را چاپ می‌کند و شما روی کامپیوتر خودتان می‌مانید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker exec app cat /data/db.txt</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>cat: /data/db.txt: No such file or directory</code></pre></div>
+  <p class="en">❌ <b>The database is gone.</b> It lived inside the old container, and was deleted with it. Imagine this was your real users' data!</p>
+  <p class="fa">❌ <b>دیتابیس از بین رفت.</b> داخل کانتینر قبلی بود و همراه آن حذف شد. تصور کنید این داده‌های واقعی کاربرانتان بود!</p>
+  <p class="en">Delete this container too, so we can do it the right way:</p>
+  <p class="fa">این کانتینر را هم حذف کنید تا کار را درست انجام دهیم:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f app</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The new container says <code>No such file or directory</code></span><span class="fa">کانتینر جدید می‌گوید <code>No such file or directory</code></span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 VOLUME ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Add a volume with <code>-v</code></span><span class="fa">اضافه کردن volume با <code>-v</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">The fix: keep <code>/data</code> <b>outside</b> the container, in a folder on your PC. First make that folder:</p>
+  <p class="fa">راه‌حل: <code>/data</code> را <b>بیرون</b> از کانتینر، در یک پوشه روی کامپیوترتان نگه دارید. اول آن پوشه را بسازید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>mkdir ~/my-data</code></pre></div>
+  <p class="en">Start <code>app</code> again, plus <code>-v</code>:</p>
+  <p class="fa"><code>app</code> را دوباره اجرا کنید، به‌اضافه‌ی <code>-v</code>:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name app -v ~/my-data:/data nginx</code></pre></div>
+  <p class="en"><code>-v</code> means <b>volume</b>. It works like <code>-p</code>, but for folders: <b>your PC first</b>, then the container.</p>
+  <p class="fa"><code>-v</code> یعنی <b>volume</b>. مثل <code>-p</code> کار می‌کند ولی برای پوشه‌ها: <b>اول کامپیوتر شما</b>، بعد کانتینر.</p>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>~/my-data</code></td><td><span class="en">The folder on <b>your PC</b></span><span class="fa">پوشه روی <b>کامپیوتر شما</b></span></td></tr>
+      <tr><td><code>/data</code></td><td><span class="en">Where it appears <b>inside the container</b></span><span class="fa">جایی که <b>داخل کانتینر</b> دیده می‌شود</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="flow">
+    <div class="box"><b><span class="en">Your PC</span><span class="fa">کامپیوتر شما</span></b><small><code>~/my-data</code></small></div>
+    <div class="arrow"><small><code>-v</code> <span class="en">same folder, seen from both sides</span><span class="fa">یک پوشه، از هر دو طرف</span></small></div>
+    <div class="box ctr"><b><span class="en">Container</span><span class="fa">کانتینر</span> <code>app</code></b><small><code>/data</code></small></div>
+  </div>
+  <p class="en">It's not a copy: the container reads and writes <b>your PC's folder</b> directly. (Sharing a folder from your PC like this is called a <b>bind mount</b>.)</p>
+  <p class="fa">این یک کپی نیست: کانتینر مستقیماً در <b>پوشه‌ی کامپیوتر شما</b> می‌خواند و می‌نویسد. (به اشتراک گذاشتن یک پوشه‌ی کامپیوتر به این شکل <b>bind mount</b> نام دارد.)</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en"><code>app</code> started with <code>-v ~/my-data:/data</code></span><span class="fa"><code>app</code> با <code>-v ~/my-data:/data</code> اجرا شد</span></span></label>
+    <label><input type="checkbox" data-id="s3-2"><span><span class="en">I know which path is on my PC and which is in the container</span><span class="fa">می‌دانم کدام مسیر روی کامپیوتر من است و کدام داخل کانتینر</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 SAVE AGAIN ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Save the database again</span><span class="fa">ذخیره‌ی دوباره‌ی دیتابیس</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Go inside <code>app</code>, save the same record in <code>/data/db.txt</code>, and leave. (<code>/data</code> already exists now, so no <code>mkdir</code>.)</p>
+  <p class="fa">به داخل <code>app</code> بروید، همان رکورد را در <code>/data/db.txt</code> ذخیره کنید و خارج شوید. (<code>/data</code> حالا وجود دارد، پس <code>mkdir</code> لازم نیست.)</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker exec -it app bash</code></pre></div>
+  <div class="code reveal"><span class="lbl">bash · inside</span><pre><code>echo "Ali, balance: 100" &gt; /data/db.txt
+exit</code></pre></div>
+  <p class="en">Now look on <b>your PC</b>, outside any container:</p>
+  <p class="fa">حالا روی <b>کامپیوتر خودتان</b>، بیرون از هر کانتینری، نگاه کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>cat ~/my-data/db.txt</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>Ali, balance: 100</code></pre></div>
+  <p class="en">The container wrote the database <b>into your PC's folder</b>.</p>
+  <p class="fa">کانتینر دیتابیس را <b>در پوشه‌ی کامپیوتر شما</b> نوشت.</p>
+  <details class="q">
+    <summary><span class="en">❓ I can read <code>db.txt</code> on my PC but can't edit it?</span><span class="fa">❓ می‌توانم <code>db.txt</code> را روی کامپیوترم بخوانم ولی نمی‌توانم ویرایشش کنم؟</span></summary>
+    <p class="en">Inside the container you were <code>root</code>, so the file belongs to <code>root</code> on your PC too (<code>ls -l ~/my-data</code> shows it). Your normal user can read it, but changing it gives <code>permission denied</code>. Use <code>sudo</code> if you really need to edit it.</p>
+    <p class="fa">داخل کانتینر شما <code>root</code> بودید، پس فایل روی کامپیوترتان هم مال <code>root</code> است (<code>ls -l ~/my-data</code> این را نشان می‌دهد). کاربر معمولی شما می‌تواند آن را بخواند ولی تغییرش خطای <code>permission denied</code> می‌دهد. اگر واقعاً لازم است ویرایشش کنید، از <code>sudo</code> استفاده کنید.</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en"><code>cat ~/my-data/db.txt</code> on my PC shows the record</span><span class="fa"><code>cat ~/my-data/db.txt</code> روی کامپیوترم رکورد را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 DELETE AGAIN ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Delete the container again: does the database survive?</span><span class="fa">حذف دوباره‌ی کانتینر: دیتابیس باقی می‌ماند؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Delete <code>app</code> in one command, then start a new one exactly like in step 3 (with the same <code>-v</code>):</p>
+  <p class="fa"><code>app</code> را با یک دستور حذف کنید، بعد یک کانتینر جدید دقیقاً مثل قدم ۳ (با همان <code>-v</code>) اجرا کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f app
+docker run -d --name app -v ~/my-data:/data nginx</code></pre></div>
+  <p class="en">Read the database inside the new container, with one command like in step 2:</p>
+  <p class="fa">دیتابیس را داخل کانتینر جدید، با یک دستور مثل قدم ۲ بخوانید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker exec app cat /data/db.txt</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>Ali, balance: 100</code></pre></div>
+  <p class="en">✅ <b>The database survived!</b> The new container found it, because it was never inside the container: it's on your PC.</p>
+  <p class="fa">✅ <b>دیتابیس باقی ماند!</b> کانتینر جدید آن را پیدا کرد، چون هیچ‌وقت داخل کانتینر نبود: روی کامپیوتر شماست.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th></th>
+      <th><span class="en">Without <code>-v</code> (step 2)</span><span class="fa">بدون <code>-v</code> (قدم ۲)</span></th>
+      <th><span class="en">With <code>-v</code> (step 5)</span><span class="fa">با <code>-v</code> (قدم ۵)</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><span class="en"><code>db.txt</code> lives</span><span class="fa"><code>db.txt</code> کجاست</span></td><td><span class="en">inside the container</span><span class="fa">داخل کانتینر</span></td><td><span class="en">on your PC</span><span class="fa">روی کامپیوتر شما</span></td></tr>
+      <tr><td><span class="en">After <code>docker rm</code></span><span class="fa">بعد از <code>docker rm</code></span></td><td>❌ <span class="en">gone</span><span class="fa">از بین رفت</span></td><td>✅ <span class="en">kept</span><span class="fa">باقی ماند</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note key">
+    <p class="en">🔑 Containers are temporary; volumes are not. Put anything you want to keep (databases, outputs, artifacts) in a volume.</p>
+    <p class="fa">🔑 کانتینرها موقتی هستند؛ volumeها نه. هر چیزی را که می‌خواهید نگه دارید (دیتابیس‌ها، خروجی‌ها، آرتیفکت‌ها) در یک volume بگذارید.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en">The new container still has <code>Ali, balance: 100</code></span><span class="fa">کانتینر جدید هنوز <code>Ali, balance: 100</code> را دارد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 CLEAN UP ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f app</code></pre></div>
+  <p class="en">Deleting the container doesn't touch <code>~/my-data</code>: <code>db.txt</code> is still on your PC.</p>
+  <p class="fa">حذف کانتینر به <code>~/my-data</code> دست نمی‌زند: <code>db.txt</code> هنوز روی کامپیوتر شماست.</p>
+  <div class="note tip">
+    <p class="en">💡 Can Docker manage the storage folder for you, instead of a PC folder? Yes: that's a <b>named volume</b>, the next lesson.</p>
+    <p class="fa">💡 Docker می‌تواند به‌جای پوشه‌ی کامپیوتر، خودش محل ذخیره‌سازی را مدیریت کند؟ بله: اسمش <b>named volume</b> است، موضوع درس بعد.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en"><code>app</code> is deleted, and <code>~/my-data/db.txt</code> is still on my PC</span><span class="fa"><code>app</code> حذف شد و <code>~/my-data/db.txt</code> هنوز روی کامپیوتر من است</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><span class="en">Containers are ephemeral</span><span class="fa">کانتینرها موقتی هستند</span></td><td><span class="en">Delete the container → its files are gone</span><span class="fa">حذف کانتینر ← فایل‌هایش از بین می‌روند</span></td></tr>
+      <tr><td><code>-v PC_FOLDER:CONTAINER_FOLDER</code></td><td><span class="en">Keep a container folder on your PC, so it survives</span><span class="fa">نگه داشتن پوشه‌ی کانتینر روی کامپیوتر شما تا باقی بماند</span></td></tr>
+      <tr><td><code>docker exec NAME COMMAND</code></td><td><span class="en">Run one command inside a container (no shell)</span><span class="fa">اجرای یک دستور داخل کانتینر (بدون شل)</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">Your data now survives!</span><span class="fa">حالا داده‌های شما باقی می‌مانند!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

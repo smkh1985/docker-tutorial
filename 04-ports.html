@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 4 · Open it in the browser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="04">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Try without -p</span><span class="fa">۱ · امتحان بدون ‎-p</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Publish a port</span><span class="fa">۲ · منتشر کردن پورت</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Check the port</span><span class="fa">۳ · بررسی پورت</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Open it</span><span class="fa">۴ · باز کردن در مرورگر</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Clean up</span><span class="fa">۵ · تمیزکاری</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 4 — Open it in the browser</span>
+    <span class="fa">درس ۴ — باز کردن در مرورگر</span>
+  </h1>
+  <p class="en">In Lesson 3 nginx was running, but you never saw a web page. You'll find out why, and fix it with <code>-p</code>.</p>
+  <p class="fa">در درس ۳ nginx در حال اجرا بود، ولی هیچ صفحه‌ی وبی ندیدید. می‌فهمید چرا، و با <code>-p</code> درستش می‌کنید.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 WITHOUT -p ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Try it without <code>-p</code></span><span class="fa">امتحان بدون <code>-p</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Start nginx in the background with the name <code>web</code>, exactly like at the end of Lesson 3:</p>
+  <p class="fa">nginx را با نام <code>web</code> در پس‌زمینه اجرا کنید، دقیقاً مثل آخر درس ۳:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web nginx</code></pre></div>
+  <p class="en">Now open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> in your browser:</p>
+  <p class="fa">حالا <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را در مرورگرتان باز کنید:</p>
+  <div class="browser err">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>This site can't be reached</h1><p>localhost refused to connect.</p></div>
+  </div>
+  <p class="en">It doesn't work. A container has its <b>own private network</b>. nginx listens on port 80 <b>inside</b> the container, but nothing connects your PC to it. Even <code>http://localhost:80</code> fails.</p>
+  <p class="fa">کار نمی‌کند. هر کانتینر <b>شبکه‌ی خصوصی خودش</b> را دارد. nginx روی پورت 80 <b>داخل</b> کانتینر گوش می‌دهد، ولی چیزی کامپیوتر شما را به آن وصل نمی‌کند. حتی <code>http://localhost:80</code> هم کار نمی‌کند.</p>
+  <div class="flow">
+    <div class="box"><b><span class="en">Your browser</span><span class="fa">مرورگر شما</span></b><small><code>localhost:8080</code></small></div>
+    <div class="arrow"><small>✕ <span class="en">nothing connected</span><span class="fa">هیچ اتصالی نیست</span></small></div>
+    <div class="box ctr"><b><span class="en">Container</span><span class="fa">کانتینر</span> <code>web</code></b><small><span class="en">nginx on port 80 (inside)</span><span class="fa">nginx روی پورت 80 (داخل)</span></small></div>
+  </div>
+  <p class="en">Stop and delete it, so we can start it again the right way:</p>
+  <p class="fa">متوقفش کنید و حذفش کنید تا بتوانیم درست اجرایش کنیم:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker stop web
+docker rm web</code></pre></div>
+  <p class="en">💡 <b>Shortcut:</b> <code>-f</code> (<b>force</b>) does both in one command. It stops the container if it's running, then deletes it:</p>
+  <p class="fa">💡 <b>میان‌بُر:</b> <code>-f</code> (<b>force</b>، یعنی اجباری) هر دو کار را با یک دستور انجام می‌دهد. اگر کانتینر در حال اجرا باشد متوقفش می‌کند و بعد حذفش می‌کند:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker rm -f web</code></pre></div>
+  <p class="en">Use one way or the other, not both.</p>
+  <p class="fa">یکی از این دو روش را استفاده کنید، نه هر دو را.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en">The browser couldn't open <code>localhost:8080</code></span><span class="fa">مرورگر نتوانست <code>localhost:8080</code> را باز کند</span></span></label>
+    <label><input type="checkbox" data-id="s1-2"><span><span class="en">I stopped and deleted <code>web</code> (with <code>stop</code> + <code>rm</code>, or <code>rm -f</code>)</span><span class="fa"><code>web</code> را متوقف و حذف کردم (با <code>stop</code> + <code>rm</code>، یا <code>rm -f</code>)</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 PUBLISH ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Publish a port with <code>-p</code></span><span class="fa">منتشر کردن پورت با <code>-p</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Same command, plus <code>-p 8080:80</code>:</p>
+  <p class="fa">همان دستور، به‌اضافه‌ی <code>-p 8080:80</code>:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 nginx</code></pre></div>
+  <p class="en"><code>-p</code> means <b>publish</b>. It connects a port on your PC to a port inside the container. The order is always <b>your PC first</b>, then the container:</p>
+  <p class="fa"><code>-p</code> یعنی <b>publish</b> (منتشر کردن). یک پورت روی کامپیوتر شما را به یک پورت داخل کانتینر وصل می‌کند. ترتیب همیشه این است: <b>اول کامپیوتر شما</b>، بعد کانتینر:</p>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>8080</code></td><td><span class="en">Port on <b>your PC</b> (the host). You choose it</span><span class="fa">پورت روی <b>کامپیوتر شما</b> (host). خودتان انتخابش می‌کنید</span></td></tr>
+      <tr><td><code>80</code></td><td><span class="en">Port <b>inside the container</b>. nginx listens here, so this is fixed</span><span class="fa">پورت <b>داخل کانتینر</b>. nginx اینجا گوش می‌دهد، پس ثابت است</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="flow">
+    <div class="box"><b><span class="en">Your browser</span><span class="fa">مرورگر شما</span></b><small><code>localhost:8080</code></small></div>
+    <div class="arrow"><small><code>-p 8080:80</code></small></div>
+    <div class="box ctr"><b><span class="en">Container</span><span class="fa">کانتینر</span> <code>web</code></b><small><span class="en">nginx on port 80</span><span class="fa">nginx روی پورت 80</span></small></div>
+  </div>
+  <details class="q">
+    <summary><span class="en">❓ Error: “port is already allocated”?</span><span class="fa">❓ خطای «port is already allocated»؟</span></summary>
+    <div class="code"><span class="lbl">output</span><pre><code>docker: Error response from daemon: failed to set up container networking: ... Bind for 0.0.0.0:8080 failed: port is already allocated</code></pre></div>
+    <p class="en">Something else on your PC (maybe another container) already uses port 8080. Only one program can use a host port at a time. Delete the new container (<code>docker rm web</code>) and pick another host port, e.g. <code>-p 8081:80</code>, then open <code>localhost:8081</code>.</p>
+    <p class="fa">برنامه‌ی دیگری روی کامپیوتر شما (شاید یک کانتینر دیگر) از پورت 8080 استفاده می‌کند. هر پورت host در هر لحظه فقط مال یک برنامه است. کانتینر جدید را حذف کنید (<code>docker rm web</code>) و یک پورت دیگر انتخاب کنید، مثلاً <code>-p 8081:80</code>، و بعد <code>localhost:8081</code> را باز کنید.</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The command printed a container ID with no error</span><span class="fa">دستور بدون خطا یک شناسه‌ی کانتینر چاپ کرد</span></span></label>
+    <label><input type="checkbox" data-id="s2-2"><span><span class="en">I know which number is my PC's port and which is the container's</span><span class="fa">می‌دانم کدام عدد پورت کامپیوتر من است و کدام پورت کانتینر</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 CHECK ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Check the port</span><span class="fa">بررسی پورت</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">List the running containers and look at the <code>PORTS</code> column:</p>
+  <p class="fa">کانتینرهای در حال اجرا را فهرست کنید و به ستون <code>PORTS</code> نگاه کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS                                     NAMES
+7ffd259c2bc0   nginx     "/docker-entrypoint.…"   4 seconds ago   Up 2 seconds   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   web</code></pre></div>
+  <p class="en">In Lesson 3 this column said only <code>80/tcp</code>. Now it says <code>0.0.0.0:8080->80/tcp</code>: port 8080 on your PC <b>→</b> port 80 in the container. (<code>[::]</code> is the same thing for IPv6.)</p>
+  <p class="fa">در درس ۳ این ستون فقط <code>80/tcp</code> بود. حالا <code>0.0.0.0:8080->80/tcp</code> است: پورت 8080 کامپیوتر شما <b>←</b> پورت 80 کانتینر. (<code>[::]</code> همین است برای IPv6.)</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I see <code>8080->80/tcp</code> in the <code>PORTS</code> column</span><span class="fa"><code>8080->80/tcp</code> را در ستون <code>PORTS</code> می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 OPEN ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Open it</span><span class="fa">باز کردن در مرورگر</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> again (or reload the tab):</p>
+  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را دوباره باز کنید (یا تب را reload کنید):</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Welcome to nginx!</h1><p>If you see this page, nginx is successfully installed and working. …</p></div>
+  </div>
+  <p class="en">🎉 This page comes from nginx <b>inside</b> the container.</p>
+  <p class="fa">🎉 این صفحه از nginx <b>داخل</b> کانتینر می‌آید.</p>
+  <details class="q">
+    <summary><span class="en">❓ Can I check it from the terminal instead?</span><span class="fa">❓ می‌توانم از ترمینال بررسی کنم؟</span></summary>
+    <p class="en">Yes, with <code>curl</code>, which prints the page's HTML:</p>
+    <p class="fa">بله، با <code>curl</code> که HTML صفحه را چاپ می‌کند:</p>
+    <div class="code"><span class="lbl">bash</span><pre><code>curl http://localhost:8080</code></pre></div>
+    <div class="code"><span class="lbl">output</span><pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;
+...</code></pre></div>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">I see “Welcome to nginx!” in my browser</span><span class="fa">«Welcome to nginx!» را در مرورگرم می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 CLEAN UP ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Stop the container, then reload the browser tab: the page is gone again.</p>
+  <p class="fa">کانتینر را متوقف کنید و بعد تب مرورگر را reload کنید: صفحه دوباره از دسترس خارج شده.</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker stop web</code></pre></div>
+  <p class="en">Delete it, and check it's gone from <b>all</b> containers:</p>
+  <p class="fa">حذفش کنید و بررسی کنید که از <b>همه‌ی</b> کانتینرها حذف شده:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm web
+docker ps -a</code></pre></div>
+  <p class="en">Remember: we only removed the <b>container</b>. The <b>image</b> is still there. Check it:</p>
+  <p class="fa">یادتان باشد: فقط <b>کانتینر</b> را حذف کردیم. <b>ایمیج</b> هنوز سر جایش است. بررسی کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image ls nginx</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>IMAGE          ID             DISK USAGE   CONTENT SIZE   EXTRA
+nginx:latest   f9ea18bfa4fa        243MB         66.7MB</code></pre></div>
+  <div class="note key">
+    <p class="en">🔑 Keep this image. We need it in the next lessons.</p>
+    <p class="fa">🔑 این ایمیج را نگه دارید، چون در درس‌های بعد به آن نیاز داریم.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en">After <code>docker stop</code>, the page no longer loads</span><span class="fa">بعد از <code>docker stop</code>، صفحه دیگر باز نمی‌شود</span></span></label>
+    <label><input type="checkbox" data-id="s5-2"><span><span class="en"><code>web</code> is gone from <code>docker ps -a</code></span><span class="fa"><code>web</code> از <code>docker ps -a</code> حذف شده</span></span></label>
+    <label><input type="checkbox" data-id="s5-img"><span><span class="en">The <code>nginx</code> image is still in <code>docker image ls</code></span><span class="fa">ایمیج <code>nginx</code> هنوز در <code>docker image ls</code> هست</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>-p HOST:CONTAINER</code></td><td><span class="en">Connect a port on your PC to a port in the container</span><span class="fa">وصل کردن یک پورت کامپیوتر شما به یک پورت کانتینر</span></td></tr>
+      <tr><td><code>docker run -d --name web -p 8080:80 nginx</code></td><td><span class="en">nginx, reachable at <code>localhost:8080</code></span><span class="fa">nginx، در دسترس روی <code>localhost:8080</code></span></td></tr>
+      <tr><td><code>docker rm -f NAME</code></td><td><span class="en">Stop and delete a container in one go</span><span class="fa">توقف و حذف کانتینر در یک قدم</span></td></tr>
+      <tr><td><code>PORTS 0.0.0.0:8080->80/tcp</code></td><td><span class="en">How <code>docker ps</code> shows a published port</span><span class="fa">نحوه‌ی نمایش پورت منتشرشده در <code>docker ps</code></span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You opened a container in your browser!</span><span class="fa">یک کانتینر را در مرورگر باز کردید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

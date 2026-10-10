@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docker Course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+<link rel="icon" href="docker.svg" type="image/svg+xml">
+</head>
+<body class="lang-en">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html"><img class="brand-logo" src="docker.svg" alt="">
+      <span class="title-text"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+  </div>
+</header>
+
+<div class="index-wrap">
+  <section class="hero hero-home">
+    <img class="hero-logo" src="docker.svg" alt="Docker logo">
+    <h1><span class="en">Docker, one small step at a time</span><span class="fa">Docker، قدم‌به‌قدم و کوتاه</span></h1>
+    <p class="en">Each lesson teaches <b>one</b> thing and takes a few minutes. Do them in order. Your progress is saved in this browser.</p>
+    <p class="fa">هر درس فقط <b>یک</b> موضوع را یاد می‌دهد و چند دقیقه طول می‌کشد. به ترتیب جلو بروید. پیشرفت شما در همین مرورگر ذخیره می‌شود.</p>
+  </section>
+  <div id="lessonList"></div>
+</div>
+
+<script src="course.js"></script>
+</body>
+</html>

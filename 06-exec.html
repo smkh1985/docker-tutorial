@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 6 · Go inside a container</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="06">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Start nginx</span><span class="fa">۱ · اجرای nginx</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Go inside</span><span class="fa">۲ · رفتن به داخل</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Look around</span><span class="fa">۳ · نگاهی به اطراف</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Change the page</span><span class="fa">۴ · تغییر صفحه</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Come back out</span><span class="fa">۵ · بیرون آمدن</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Stop and start</span><span class="fa">۶ · توقف و اجرای دوباره</span></a></li>
+    <li><a href="#s7"><span class="tick">✓</span><span class="en">7 · Delete and run again</span><span class="fa">۷ · حذف و اجرای دوباره</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 6 — Go inside a container</span>
+    <span class="fa">درس ۶ — رفتن به داخل کانتینر</span>
+  </h1>
+  <p class="en">A container is like a small Linux machine. You'll open a shell <b>inside</b> the running nginx, look around, change its welcome page, and see your change in the browser.</p>
+  <p class="fa">کانتینر مثل یک ماشین لینوکس کوچک است. یک شل <b>داخل</b> nginx در حال اجرا باز می‌کنید، اطراف را می‌گردید، صفحه‌ی خوش‌آمد آن را تغییر می‌دهید و تغییرتان را در مرورگر می‌بینید.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 START ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Start nginx</span><span class="fa">اجرای nginx</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Start nginx in the background, named <code>web</code>, reachable at <code>localhost:8080</code>:</p>
+  <p class="fa">nginx را در پس‌زمینه، با نام <code>web</code> و در دسترس روی <code>localhost:8080</code> اجرا کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 nginx</code></pre></div>
+  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> and keep the tab open. You should see “Welcome to nginx!”.</p>
+  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را باز کنید و تب را باز نگه دارید. باید «Welcome to nginx!» را ببینید.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en">I see “Welcome to nginx!” at <code>localhost:8080</code></span><span class="fa">«Welcome to nginx!» را روی <code>localhost:8080</code> می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 GO INSIDE ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Go inside</span><span class="fa">رفتن به داخل</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker exec -it web bash</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>root@118989b0b06f:/#</code></pre></div>
+  <dl class="flags">
+    <dt><code>exec</code></dt>
+    <dd><span class="en"><b>Execute</b>: run a command inside a container that is <b>already running</b>.</span><span class="fa"><b>Execute</b>: یک دستور را داخل کانتینری اجرا می‌کند که <b>از قبل در حال اجراست</b>.</span></dd>
+    <dt><code>-it</code></dt>
+    <dd><span class="en"><b>Interactive</b> + <b>terminal</b>: so you can type into it. Needed for a shell.</span><span class="fa"><b>Interactive</b> + <b>terminal</b>: تا بتوانید در آن تایپ کنید. برای شل لازم است.</span></dd>
+    <dt><code>bash</code></dt>
+    <dd><span class="en">The command to run: a shell.</span><span class="fa">دستوری که اجرا می‌شود: یک شل.</span></dd>
+  </dl>
+  <p class="en">Your prompt changed. You are now <b>inside the container</b>, as <code>root</code>. The name after <code>@</code> is the container's ID.</p>
+  <p class="fa">prompt شما عوض شد. حالا <b>داخل کانتینر</b> هستید، با کاربر <code>root</code>. نام بعد از <code>@</code> شناسه‌ی کانتینر است.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">My prompt now starts with <code>root@</code></span><span class="fa">prompt من حالا با <code>root@</code> شروع می‌شود</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 LOOK AROUND ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Look around</span><span class="fa">نگاهی به اطراف</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">nginx serves its web pages from the folder <code>/usr/share/nginx/html</code>. List it:</p>
+  <p class="fa">nginx صفحه‌های وب را از پوشه‌ی <code>/usr/share/nginx/html</code> سرو می‌کند. محتوایش را ببینید:</p>
+  <div class="code"><span class="lbl">bash · inside</span><pre><code>ls /usr/share/nginx/html</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>50x.html
+index.html</code></pre></div>
+  <p class="en"><code>index.html</code> is the home page. Print it:</p>
+  <p class="fa"><code>index.html</code> صفحه‌ی اصلی است. چاپش کنید:</p>
+  <div class="code"><span class="lbl">bash · inside</span><pre><code>cat /usr/share/nginx/html/index.html</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;
+...</code></pre></div>
+  <p class="en">That's the page you see in the browser.</p>
+  <p class="fa">این همان صفحه‌ای است که در مرورگر می‌بینید.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I found <code>index.html</code> and saw “Welcome to nginx!” inside it</span><span class="fa"><code>index.html</code> را پیدا کردم و «Welcome to nginx!» را داخلش دیدم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 CHANGE ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Change the page</span><span class="fa">تغییر صفحه</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Replace the page with your own one-line page:</p>
+  <p class="fa">صفحه را با یک صفحه‌ی یک‌خطی از خودتان عوض کنید:</p>
+  <div class="code"><span class="lbl">bash · inside</span><pre><code>echo '&lt;h1&gt;Hello from my container!&lt;/h1&gt;' &gt; /usr/share/nginx/html/index.html</code></pre></div>
+  <p class="en"><code>echo</code> prints the text, and <code>&gt;</code> writes it into the file instead of the screen, <b>replacing</b> what was there.</p>
+  <p class="en">💡 Note the <b>single quotes</b> <code>'…'</code>. With double quotes, the <code>!</code> in the text confuses the shell and you get <code>event not found</code>. Single quotes pass the text exactly as written.</p>
+  <p class="fa">💡 به <b>کوتیشن تکی</b> <code>'…'</code> دقت کنید. با کوتیشن دوتایی، علامت <code>!</code> در متن شل را گیج می‌کند و خطای <code>event not found</code> می‌گیرید. کوتیشن تکی متن را دقیقاً همان‌طور که نوشته شده می‌فرستد.</p>
+  <p class="fa"><code>echo</code> متن را چاپ می‌کند و <code>&gt;</code> آن را به‌جای صفحه‌ی نمایش در فایل می‌نویسد و محتوای قبلی را <b>جایگزین</b> می‌کند.</p>
+  <p class="en">Now reload the browser tab:</p>
+  <p class="fa">حالا تب مرورگر را reload کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Hello from my container!</h1></div>
+  </div>
+  <details class="q">
+    <summary><span class="en">❓ Why not open the file in an editor like <code>nano</code>?</span><span class="fa">❓ چرا فایل را با ویرایشگری مثل <code>nano</code> باز نکنیم؟</span></summary>
+    <p class="en">The nginx image has no <code>nano</code> and no <code>vi</code>. Images are kept small, so they only contain what the app needs. Try <code>nano</code>: you'll get <code>command not found</code>.</p>
+    <p class="fa">ایمیج nginx نه <code>nano</code> دارد نه <code>vi</code>. ایمیج‌ها کوچک نگه داشته می‌شوند و فقط چیزهایی را دارند که برنامه لازم دارد. <code>nano</code> را امتحان کنید: خطای <code>command not found</code> می‌گیرید.</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">The browser shows “Hello from my container!”</span><span class="fa">مرورگر «Hello from my container!» را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 EXIT ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Come back out</span><span class="fa">بیرون آمدن</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code"><span class="lbl">bash · inside</span><pre><code>exit</code></pre></div>
+  <p class="en">Your normal prompt is back. You left the shell. Is the container still running? Check it:</p>
+  <p class="fa">prompt معمولی شما برگشت. از شل خارج شدید. کانتینر هنوز در حال اجراست؟ بررسی کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
+  <p class="en">✅ <code>web</code> is still <code>Up</code>, and the browser still shows your page. <code>exit</code> closed only the shell that <code>exec</code> started, not the container. It's like <kbd>Ctrl</kbd>+<kbd>C</kbd> on <code>docker logs -f</code> in Lesson 5.</p>
+  <p class="fa">✅ <code>web</code> هنوز <code>Up</code> است و مرورگر هنوز صفحه‌ی شما را نشان می‌دهد. <code>exit</code> فقط شلی را بست که <code>exec</code> باز کرده بود، نه کانتینر را. مثل <kbd>Ctrl</kbd>+<kbd>C</kbd> روی <code>docker logs -f</code> در درس ۵.</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-1"><span><span class="en">After <code>exit</code>, <code>web</code> is still <code>Up</code></span><span class="fa">بعد از <code>exit</code>، <code>web</code> هنوز <code>Up</code> است</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 STOP AND START ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Stop and start again: is my change still there?</span><span class="fa">توقف و اجرای دوباره: تغییر من هنوز هست؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Stop the container:</p>
+  <p class="fa">کانتینر را متوقف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker stop web</code></pre></div>
+  <p class="en">Reload the browser. nginx isn't running, so there is no page:</p>
+  <p class="fa">مرورگر را reload کنید. nginx اجرا نمی‌شود، پس صفحه‌ای نیست:</p>
+  <div class="browser err">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>This site can't be reached</h1><p>localhost refused to connect.</p></div>
+  </div>
+  <p class="en">But the container still exists, only stopped (remember <code>docker ps -a</code> from Lesson 3). Start the <b>same</b> container again:</p>
+  <p class="fa">ولی کانتینر هنوز وجود دارد، فقط متوقف شده (<code>docker ps -a</code> در درس ۳ یادتان هست؟). <b>همان</b> کانتینر را دوباره روشن کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker start web</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>web</code></pre></div>
+  <p class="en">Reload the browser:</p>
+  <p class="fa">مرورگر را reload کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Hello from my container!</h1></div>
+  </div>
+  <p class="en">✅ Your change is still there. Stopping a container doesn't delete it, so its files are kept.</p>
+  <p class="fa">✅ تغییر شما هنوز هست. متوقف کردن کانتینر آن را حذف نمی‌کند، پس فایل‌هایش باقی می‌مانند.</p>
+  <div class="note tip">
+    <p class="en">💡 <code>docker start</code> restarts an <b>existing</b> container, with the same name, port and files. <code>docker run</code> always creates a <b>new</b> one.</p>
+    <p class="fa">💡 <code>docker start</code> یک کانتینر <b>موجود</b> را دوباره روشن می‌کند، با همان نام، پورت و فایل‌ها. <code>docker run</code> همیشه یک کانتینر <b>جدید</b> می‌سازد.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-a"><span><span class="en">After <code>docker stop</code>, the page didn't load</span><span class="fa">بعد از <code>docker stop</code>، صفحه باز نشد</span></span></label>
+    <label><input type="checkbox" data-id="s6-b"><span><span class="en">After <code>docker start</code>, I see “Hello from my container!” again</span><span class="fa">بعد از <code>docker start</code>، دوباره «Hello from my container!» را می‌بینم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 7 DELETE AND RUN AGAIN ================= -->
+<section class="card step" id="s7">
+  <h2><span class="num">7</span>
+    <span class="en">Delete and run again: where did my change go?</span><span class="fa">حذف و اجرای دوباره: تغییر من کجا رفت؟</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Now stop and delete <code>web</code> in one command:</p>
+  <p class="fa">حالا <code>web</code> را با یک دستور متوقف و حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web</code></pre></div>
+  <p class="en">Create a <b>new</b> one, exactly like in step 1:</p>
+  <p class="fa">یک کانتینر <b>جدید</b> بسازید، دقیقاً مثل قدم ۱:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 nginx</code></pre></div>
+  <p class="en">Reload the browser:</p>
+  <p class="fa">مرورگر را reload کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Welcome to nginx!</h1><p>If you see this page, nginx is successfully installed and working. …</p></div>
+  </div>
+  <p class="en">Your page is gone! You changed the file in the <b>container</b>, not in the <b>image</b>. Deleting the container deleted the change. Every new container starts from the image, which never changed.</p>
+  <p class="fa">صفحه‌ی شما رفت! شما فایل را در <b>کانتینر</b> تغییر دادید، نه در <b>ایمیج</b>. با حذف کانتینر، تغییر هم حذف شد. هر کانتینر جدید از روی ایمیج ساخته می‌شود، و ایمیج هیچ‌وقت تغییر نکرد.</p>
+  <div class="flow">
+    <div class="box img"><b><span class="en">Image</span><span class="fa">ایمیج</span> <code>nginx</code></b><small><span class="en">read-only · always “Welcome to nginx!”</span><span class="fa">فقط‌خواندنی · همیشه «Welcome to nginx!»</span></small></div>
+    <div class="arrow"><small><code>docker run</code></small></div>
+    <div class="row">
+      <div class="box ctr"><b><span class="en">Old container</span><span class="fa">کانتینر قبلی</span></b><small><span class="en">your change · deleted</span><span class="fa">تغییر شما · حذف شد</span></small></div>
+      <div class="box ctr"><b><span class="en">New container</span><span class="fa">کانتینر جدید</span></b><small><span class="en">fresh copy</span><span class="fa">نسخه‌ی تازه</span></small></div>
+    </div>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th></th>
+      <th><span class="en">Your change</span><span class="fa">تغییر شما</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td><code>docker stop</code> → <code>docker start</code></td><td>✅ <span class="en">kept: same container</span><span class="fa">باقی ماند: همان کانتینر</span></td></tr>
+      <tr><td><code>docker rm</code> → <code>docker run</code></td><td>❌ <span class="en">lost: new container from the image</span><span class="fa">از بین رفت: کانتینر جدید از روی ایمیج</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note key">
+    <p class="en">🔑 Changes made inside a container live only as long as the container. Lesson 8 shows how to keep your changes.</p>
+    <p class="fa">🔑 تغییراتی که داخل کانتینر می‌دهید فقط تا وقتی کانتینر هست باقی می‌مانند. درس ۸ نشان می‌دهد چطور تغییراتتان را نگه دارید.</p>
+  </div>
+  <p class="en">Clean up:</p>
+  <p class="fa">تمیزکاری:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s7-1"><span><span class="en">The new container shows “Welcome to nginx!” again</span><span class="fa">کانتینر جدید دوباره «Welcome to nginx!» را نشان می‌دهد</span></span></label>
+    <label><input type="checkbox" data-id="s7-2"><span><span class="en">I deleted <code>web</code> at the end</span><span class="fa">در آخر <code>web</code> را حذف کردم</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>docker exec -it NAME bash</code></td><td><span class="en">Open a shell inside a running container</span><span class="fa">باز کردن شل داخل کانتینر در حال اجرا</span></td></tr>
+      <tr><td><code>docker start NAME</code></td><td><span class="en">Start an existing, stopped container again (changes kept)</span><span class="fa">روشن کردن دوباره‌ی یک کانتینر موجود و متوقف (تغییرات حفظ می‌شوند)</span></td></tr>
+      <tr><td><code>exit</code></td><td><span class="en">Leave the shell; the container keeps running</span><span class="fa">خروج از شل؛ کانتینر روشن می‌ماند</span></td></tr>
+      <tr><td><span class="en">Changes inside a container</span><span class="fa">تغییرات داخل کانتینر</span></td><td><span class="en">Lost when the container is deleted; the image never changes</span><span class="fa">با حذف کانتینر از بین می‌روند؛ ایمیج هیچ‌وقت تغییر نمی‌کند</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">You went inside a container!</span><span class="fa">به داخل یک کانتینر رفتید!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>

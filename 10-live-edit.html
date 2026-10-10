@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 10 · Edit live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="course.css">
+</head>
+<body class="lang-en" data-lesson="10">
+
+<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
+      <span class="title-text" id="brandTitle"></span>
+    </a>
+    <div class="progress-wrap">
+      <div class="progress"><div id="bar"></div></div>
+      <span class="progress-label" id="plabel">0 / 0</span>
+    </div>
+    <span id="navSlot"></span>
+    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
+    <button class="btn" id="themeBtn" title="Theme">◐</button>
+    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ================= TABLE OF CONTENTS ================= -->
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Make a page on your PC</span><span class="fa">۱ · ساختن صفحه روی کامپیوتر</span></a></li>
+    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Mount it with -v</span><span class="fa">۲ · اتصال با ‎-v</span></a></li>
+    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Open it</span><span class="fa">۳ · باز کردن</span></a></li>
+    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Edit on your PC</span><span class="fa">۴ · ویرایش روی کامپیوتر</span></a></li>
+    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Read-only</span><span class="fa">۵ · فقط‌خواندنی</span></a></li>
+    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Clean up</span><span class="fa">۶ · تمیزکاری</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <h1>
+    <span class="en">Lesson 10 — Edit live with a shared folder</span>
+    <span class="fa">درس ۱۰ — ویرایش زنده با یک پوشه‌ی مشترک</span>
+  </h1>
+  <p class="en">In Lesson 8 you used <code>-v</code> to keep data safe. <code>-v</code> has a second superpower: <b>edit files on your PC and the container sees the change right away</b>. You'll use it to work on a web page.</p>
+  <p class="fa">در درس ۸ از <code>-v</code> برای امن نگه داشتن داده‌ها استفاده کردید. <code>-v</code> یک قدرت دوم هم دارد: <b>فایل‌ها را روی کامپیوترتان ویرایش کنید و کانتینر بلافاصله تغییر را می‌بیند</b>. از آن برای کار روی یک صفحه‌ی وب استفاده می‌کنید.</p>
+  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
+  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+</section>
+
+<!-- ================= 1 MAKE PAGE ================= -->
+<section class="card step" id="s1">
+  <h2><span class="num">1</span>
+    <span class="en">Make a page on your PC</span><span class="fa">ساختن یک صفحه روی کامپیوتر</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">These commands run on <b>your PC</b>, not in a container. Make a folder called <code>my-site</code> in your home folder, and put a page in it with <code>echo</code>, like in Lesson 6:</p>
+  <p class="fa">این دستورها روی <b>کامپیوتر خودتان</b> اجرا می‌شوند، نه داخل کانتینر. یک پوشه به نام <code>my-site</code> در پوشه‌ی خانه‌تان بسازید و با <code>echo</code>، مثل درس ۶، یک صفحه در آن بگذارید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>mkdir ~/my-site
+echo '&lt;h1&gt;Hello from my PC!&lt;/h1&gt;' &gt; ~/my-site/index.html</code></pre></div>
+  <p class="en">Check what's in the file:</p>
+  <p class="fa">محتوای فایل را بررسی کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>cat ~/my-site/index.html</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>&lt;h1&gt;Hello from my PC!&lt;/h1&gt;</code></pre></div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>~/my-site/index.html</code> exists on my PC</span><span class="fa"><code>~/my-site/index.html</code> روی کامپیوتر من وجود دارد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 2 MOUNT ================= -->
+<section class="card step" id="s2">
+  <h2><span class="num">2</span>
+    <span class="en">Mount the folder with <code>-v</code></span><span class="fa">اتصال پوشه با <code>-v</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Start nginx named <code>web</code> on <code>localhost:8080</code>, as before, plus <code>-v</code> from Lesson 8. This time share <code>~/my-site</code> as nginx's page folder:</p>
+  <p class="fa">nginx را با نام <code>web</code> روی <code>localhost:8080</code> مثل قبل اجرا کنید، به‌اضافه‌ی <code>-v</code> از درس ۸. این بار <code>~/my-site</code> را به‌عنوان پوشه‌ی صفحه‌های nginx به اشتراک بگذارید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 -v ~/my-site:/usr/share/nginx/html nginx</code></pre></div>
+  <p class="en">As in Lesson 8: <b>your PC first</b>, then the container.</p>
+  <p class="fa">مثل درس ۸: <b>اول کامپیوتر شما</b>، بعد کانتینر.</p>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>~/my-site</code></td><td><span class="en">The folder on <b>your PC</b></span><span class="fa">پوشه روی <b>کامپیوتر شما</b></span></td></tr>
+      <tr><td><code>/usr/share/nginx/html</code></td><td><span class="en">The folder <b>inside the container</b> where nginx looks for pages. You saw it in Lesson 6</span><span class="fa">پوشه‌ی <b>داخل کانتینر</b> که nginx صفحه‌ها را آنجا پیدا می‌کند. در درس ۶ آن را دیدید</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="flow">
+    <div class="box"><b><span class="en">Your PC</span><span class="fa">کامپیوتر شما</span></b><small><code>~/my-site/index.html</code></small></div>
+    <div class="arrow"><small><code>-v</code> <span class="en">same folder, seen from both sides</span><span class="fa">یک پوشه، از هر دو طرف</span></small></div>
+    <div class="box ctr"><b><span class="en">Container</span><span class="fa">کانتینر</span> <code>web</code></b><small><code>/usr/share/nginx/html/index.html</code></small></div>
+  </div>
+  <p class="en">It's not a copy. The container sees <b>the same folder</b> as your PC.</p>
+  <p class="fa">این یک کپی نیست. کانتینر <b>همان پوشه‌ی</b> کامپیوتر شما را می‌بیند.</p>
+  <details class="q">
+    <summary><span class="en">❓ The browser shows <b>403 Forbidden</b>?</span><span class="fa">❓ مرورگر <b>403 Forbidden</b> نشان می‌دهد؟</span></summary>
+    <p class="en">You probably mistyped the folder on your PC (e.g. <code>~/my-sitee</code>). Docker doesn't complain: it silently creates a new, <b>empty</b> folder with that name, owned by <code>root</code>. nginx finds no page there and answers 403.</p>
+    <p class="fa">احتمالاً نام پوشه‌ی کامپیوترتان را اشتباه تایپ کرده‌اید (مثلاً <code>~/my-sitee</code>). Docker خطا نمی‌دهد: بی‌صدا یک پوشه‌ی جدید و <b>خالی</b> با آن نام می‌سازد که مال <code>root</code> است. nginx آنجا صفحه‌ای پیدا نمی‌کند و 403 جواب می‌دهد.</p>
+    <p class="en">Fix: delete the container (<code>docker rm -f web</code>), remove the wrong empty folder (<code>sudo rmdir ~/my-sitee</code>), and run again with the right name.</p>
+    <p class="fa">راه‌حل: کانتینر را حذف کنید (<code>docker rm -f web</code>)، پوشه‌ی خالیِ اشتباه را پاک کنید (<code>sudo rmdir ~/my-sitee</code>) و با نام درست دوباره اجرا کنید.</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The container started with no error</span><span class="fa">کانتینر بدون خطا اجرا شد</span></span></label>
+    <label><input type="checkbox" data-id="s2-2"><span><span class="en">I know which path is on my PC and which is in the container</span><span class="fa">می‌دانم کدام مسیر روی کامپیوتر من است و کدام داخل کانتینر</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 3 OPEN ================= -->
+<section class="card step" id="s3">
+  <h2><span class="num">3</span>
+    <span class="en">Open it</span><span class="fa">باز کردن در مرورگر</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a>:</p>
+  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را باز کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Hello from my PC!</h1></div>
+  </div>
+  <p class="en">nginx is serving the file from <b>your PC</b>. No “Welcome to nginx!” this time.</p>
+  <p class="fa">nginx فایل را از <b>کامپیوتر شما</b> سرو می‌کند. این بار خبری از «Welcome to nginx!» نیست.</p>
+  <details class="q">
+    <summary><span class="en">❓ Where did the original welcome page go?</span><span class="fa">❓ صفحه‌ی خوش‌آمد اصلی کجا رفت؟</span></summary>
+    <p class="en">Your folder is placed <b>on top of</b> the container's folder and hides what the image had there. Look inside:</p>
+    <p class="fa">پوشه‌ی شما <b>روی</b> پوشه‌ی کانتینر قرار می‌گیرد و چیزی را که ایمیج آنجا داشت پنهان می‌کند. داخلش را ببینید:</p>
+    <div class="code"><span class="lbl">bash</span><pre><code>docker exec web ls /usr/share/nginx/html</code></pre></div>
+    <div class="code"><span class="lbl">output</span><pre><code>index.html</code></pre></div>
+    <p class="en">Only your file. <code>50x.html</code> is hidden. The image itself didn't change: without <code>-v</code> you'd get the welcome page again.</p>
+    <p class="fa">فقط فایل شما. <code>50x.html</code> پنهان شده. خود ایمیج تغییری نکرده: بدون <code>-v</code> دوباره صفحه‌ی خوش‌آمد را می‌بینید.</p>
+  </details>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s3-1"><span><span class="en">The browser shows “Hello from my PC!”</span><span class="fa">مرورگر «Hello from my PC!» را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 4 EDIT ================= -->
+<section class="card step" id="s4">
+  <h2><span class="num">4</span>
+    <span class="en">Edit the page on your PC</span><span class="fa">ویرایش صفحه روی کامپیوتر</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">On your PC (no <code>exec</code>, no container), replace the text in <code>~/my-site/index.html</code> with <code>&lt;h1&gt;Changed on my PC!&lt;/h1&gt;</code>:</p>
+  <p class="fa">روی کامپیوتر خودتان (بدون <code>exec</code>، بدون کانتینر)، متن <code>~/my-site/index.html</code> را با <code>&lt;h1&gt;Changed on my PC!&lt;/h1&gt;</code> جایگزین کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>echo '&lt;h1&gt;Changed on my PC!&lt;/h1&gt;' &gt; ~/my-site/index.html</code></pre></div>
+  <p class="en">Reload the browser:</p>
+  <p class="fa">مرورگر را reload کنید:</p>
+  <div class="browser">
+    <div class="bar">localhost:8080</div>
+    <div class="page"><h1>Changed on my PC!</h1></div>
+  </div>
+  <p class="en">The change shows up <b>right away</b>: no restart, no <code>exec</code>. You can also edit the file in any editor on your PC (VS Code, gedit, …).</p>
+  <p class="fa">تغییر <b>بلافاصله</b> دیده می‌شود: بدون ری‌استارت، بدون <code>exec</code>. می‌توانید فایل را با هر ویرایشگری روی کامپیوترتان هم ویرایش کنید (VS Code، gedit و …).</p>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s4-1"><span><span class="en">After reloading, the browser shows “Changed on my PC!”</span><span class="fa">بعد از reload، مرورگر «Changed on my PC!» را نشان می‌دهد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 5 READ-ONLY ================= -->
+<section class="card step" id="s5">
+  <h2><span class="num">5</span>
+    <span class="en">Read-only: protect your files with <code>:ro</code></span><span class="fa">فقط‌خواندنی: محافظت از فایل‌ها با <code>:ro</code></span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <p class="en">nginx only needs to <b>read</b> your page, but right now the container could also <b>change</b> or delete your files. Add <code>:ro</code> (<b>read-only</b>) at the end of <code>-v</code> so it can't.</p>
+  <p class="fa">nginx فقط لازم دارد صفحه‌ی شما را <b>بخواند</b>، ولی الان کانتینر می‌تواند فایل‌های شما را <b>تغییر</b> دهد یا حذف کند. <code>:ro</code> (<b>read-only</b>، فقط‌خواندنی) را به آخر <code>-v</code> اضافه کنید تا نتواند.</p>
+  <p class="en">Delete <code>web</code> in one command:</p>
+  <p class="fa"><code>web</code> را با یک دستور حذف کنید:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web</code></pre></div>
+  <p class="en">Start it again with <code>:ro</code>:</p>
+  <p class="fa">با <code>:ro</code> دوباره اجرایش کنید:</p>
+  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 -v ~/my-site:/usr/share/nginx/html:ro nginx</code></pre></div>
+  <p class="en">The page still works. Now go inside <code>web</code> and try to overwrite it with <code>&lt;h1&gt;Hacked!&lt;/h1&gt;</code>, like in Lesson 6:</p>
+  <p class="fa">صفحه هنوز کار می‌کند. حالا به داخل <code>web</code> بروید و سعی کنید آن را با <code>&lt;h1&gt;Hacked!&lt;/h1&gt;</code> بازنویسی کنید، مثل درس ۶:</p>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker exec -it web bash</code></pre></div>
+  <div class="code reveal"><span class="lbl">bash · inside</span><pre><code>echo '&lt;h1&gt;Hacked!&lt;/h1&gt;' &gt; /usr/share/nginx/html/index.html</code></pre></div>
+  <div class="code"><span class="lbl">output</span><pre><code>bash: /usr/share/nginx/html/index.html: Read-only file system</code></pre></div>
+  <p class="en">✅ Refused. The container can only read the folder. Leave the shell:</p>
+  <p class="fa">✅ رد شد. کانتینر فقط می‌تواند پوشه را بخواند. از شل خارج شوید:</p>
+  <div class="code reveal"><span class="lbl">bash · inside</span><pre><code>exit</code></pre></div>
+  <p class="en">You can still edit the page <b>on your PC</b>, and the browser shows the change as before. <code>:ro</code> only limits the container.</p>
+  <p class="fa">هنوز می‌توانید صفحه را <b>روی کامپیوترتان</b> ویرایش کنید و مرورگر مثل قبل تغییر را نشان می‌دهد. <code>:ro</code> فقط کانتینر را محدود می‌کند.</p>
+  <div class="note key">
+    <p class="en">🔑 If a container only needs to read a folder, mount it with <code>:ro</code>. A bug or an attacker inside the container can't damage your files.</p>
+    <p class="fa">🔑 اگر کانتینری فقط لازم دارد یک پوشه را بخواند، آن را با <code>:ro</code> mount کنید. یک باگ یا مهاجم داخل کانتینر نمی‌تواند به فایل‌های شما آسیب بزند.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s5-ro"><span><span class="en">Writing inside the container gave <code>Read-only file system</code></span><span class="fa">نوشتن داخل کانتینر خطای <code>Read-only file system</code> داد</span></span></label>
+  </div>
+</section>
+
+<!-- ================= 6 CLEAN UP ================= -->
+<section class="card step" id="s6">
+  <h2><span class="num">6</span>
+    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
+    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
+  </h2>
+  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web</code></pre></div>
+  <div class="note key">
+    <p class="en">🔑 Deleting the container doesn't touch <code>~/my-site</code>. Keep the folder: we'll use it again in Lesson 17.</p>
+    <p class="fa">🔑 حذف کانتینر به <code>~/my-site</code> دست نمی‌زند. پوشه را نگه دارید: در درس ۱۷ دوباره از آن استفاده می‌کنیم.</p>
+  </div>
+  <div class="checks">
+    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
+    <label><input type="checkbox" data-id="s6-1"><span><span class="en"><code>web</code> is deleted, and <code>~/my-site</code> is still on my PC</span><span class="fa"><code>web</code> حذف شد و <code>~/my-site</code> هنوز روی کامپیوتر من است</span></span></label>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="card" id="sum">
+  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><td><code>-v PC_FOLDER:CONTAINER_FOLDER</code></td><td><span class="en">Share a folder from your PC with the container</span><span class="fa">اشتراک یک پوشه‌ی کامپیوتر شما با کانتینر</span></td></tr>
+      <tr><td><span class="en">Edit on your PC</span><span class="fa">ویرایش روی کامپیوتر</span></td><td><span class="en">The container sees it right away</span><span class="fa">کانتینر بلافاصله آن را می‌بیند</span></td></tr>
+      <tr><td><code>-v …:…:ro</code></td><td><span class="en">Mount read-only: the container can read but not change your files</span><span class="fa">mount فقط‌خواندنی: کانتینر می‌تواند فایل‌ها را بخواند ولی تغییر ندهد</span></td></tr>
+      <tr><td><code>docker rm</code></td><td><span class="en">Deletes the container, never your folder</span><span class="fa">کانتینر را حذف می‌کند، هرگز پوشه‌ی شما را</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="done-banner" id="doneBanner">
+  <h2>🎉 <span class="en">Your page now lives on your PC!</span><span class="fa">حالا صفحه‌ی شما روی کامپیوتر خودتان است!</span></h2>
+  <p id="nextLine"></p>
+</div>
+
+<nav class="pager" id="pager"></nav>
+
+<footer>
+  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+</footer>
+
+</main>
+
+</div>
+
+<script src="tips.js"></script>
+<script src="course.js"></script>
+</body>
+</html>
