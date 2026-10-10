@@ -73,6 +73,14 @@ var LESSONS = [
     save(THEME_KEY, next);
   };
 
+  /* ---------- Footer: GitHub star link ---------- */
+  var foot = document.querySelector('footer');
+  if (foot) {
+    var star = el('a', 'star-link', '⭐ ' + bi('Star on GitHub', 'ستاره در GitHub'));
+    star.href = 'https://github.com/smkh1985/docker-tutorial'; star.target = '_blank'; star.rel = 'noopener';
+    foot.appendChild(star);
+  }
+
   /* ---------- Index page: list of lessons ---------- */
   var list = document.getElementById('lessonList');
   if (list) {

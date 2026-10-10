@@ -299,3 +299,8 @@ body.lang-fa .nav-btn { transform: scaleX(-1); }
 .hero-home { text-align: center; }
 .hero-logo { width: 96px; height: 96px; display: block; margin: 0 auto 12px; }
 @media (max-width: 560px) { .hero-logo { width: 72px; height: 72px; } }
+
+/* GitHub star link */
+.star-btn { display: inline-block; text-decoration: none; font-weight: 600; padding: 8px 16px; margin-top: 6px; }
+.star-btn:hover { border-color: #e3b341; background: color-mix(in srgb, #e3b341 12%, var(--surface)); }
+footer .star-link { margin-inline-start: 12px; }
