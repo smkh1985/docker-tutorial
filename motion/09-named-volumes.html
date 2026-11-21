@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 9 · Named volumes (motion)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="../docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- lesson 9 specifics ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:270px}
+  .goal svg{width:96px;height:96px}
+  .goal h3{font-size:25px}
+  .term.sm .body{font-size:17px}
+  .term.xs .body{font-size:15.5px;padding:14px 18px 16px}
+  .nohint .hint{display:none}
+  body.lang-fa .card,body.lang-fa .lead{direction:rtl;text-align:right}
+  body.lang-fa .term .bar .fa{font-family:Vazirmatn,sans-serif}
+  :not(pre)>code{white-space:nowrap}
+  .stack{position:relative}.stack>*{position:absolute;left:0;right:0;top:0}
+  .out .err{color:#ff8a8a}.out .ok{color:var(--green)}
+  .card.sm{padding:18px 22px}.card.sm p{font-size:17.5px}
+  .card.warn{border-color:rgba(255,107,107,.45);background:linear-gradient(160deg,rgba(64,20,24,.75),rgba(20,10,14,.8))}
+  .card.warn .n{color:var(--red)}
+  .stx{font-family:Inter,sans-serif}.stx.fa,.svgfa{font-family:Vazirmatn,sans-serif}
+  .bump.in{animation:bump .6s var(--back)}
+  @keyframes bump{0%{transform:scale(.3)}100%{transform:none}}
+  .bump{transform-box:fill-box;transform-origin:center}
+  .ways{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:30px}
+  .ways .card svg{width:100%;height:190px;display:block;margin-bottom:10px}
+  .ways code.big{font-size:26px;display:inline-block;margin:6px 0 12px}
+  .cv-path{color:#ffcf6b}.cv-name{color:#c4a3ff}
+  .swap{transform-box:view-box;animation:swap 7s ease-in-out infinite}
+  @keyframes swap{0%,38%{transform:none;opacity:1}48%{transform:translate(0,-60px);opacity:0}58%{transform:translate(0,-90px);opacity:0}72%,100%{transform:none;opacity:1}}
+  .cmpt{display:grid;grid-template-columns:200px 1fr 1fr;gap:10px;margin-top:30px}
+  .cmpt>div{padding:16px 20px;border-radius:14px;background:rgba(20,30,56,.7);border:1px solid var(--line);font-size:19px;line-height:1.45}
+  .cmpt .h{font:700 20px var(--display);background:none;border:none;padding:6px 20px}
+  .cmpt .rl{color:var(--muted);font-weight:600;background:none;border:none}
+  .cmpt .bm{border-color:rgba(255,207,107,.35)}.cmpt .nv{border-color:rgba(196,163,255,.45)}
+  .btnrow{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px;padding:18px 24px}
+  .sumgrid code{font-size:20px;flex:none;min-width:330px;text-align:left}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .crash[data-only]{transition:opacity .8s,transform 1s cubic-bezier(.5,0,.8,.4)}
+  .crash[data-only]:not(.in){transform:translate(40px,120px) rotate(18deg)}
+</style>
+</head>
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
+
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <!-- a named volume = a disk managed by Docker -->
+    <symbol id="disk" viewBox="-62 -24 124 108" overflow="visible">
+      <path d="M-60 0V58A60 22 0 0 0 60 58V0Z" fill="#6a42b8"/>
+      <path d="M-60 0V58A60 22 0 0 0 0 80V22A60 22 0 0 1 -60 0Z" fill="#8a5ce0"/>
+      <path d="M-60 29A60 22 0 0 0 60 29" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="3"/>
+      <ellipse cx="0" cy="0" rx="60" ry="22" fill="#c4a3ff"/>
+      <ellipse cx="0" cy="0" rx="22" ry="8" fill="#a37ff0"/>
+    </symbol>
+    <symbol id="folder" viewBox="0 0 120 96">
+      <path d="M4 16a8 8 0 0 1 8-8h30l10 12h56a8 8 0 0 1 8 8v56a8 8 0 0 1-8 8H12a8 8 0 0 1-8-8z" fill="#d79a22"/>
+      <path d="M4 32h112v52a8 8 0 0 1-8 8H12a8 8 0 0 1-8-8z" fill="#ffcf6b"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="../index.html"><img src="../docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <a class="pill" href="../09-named-volumes.html"><span class="en">✔ Hands-on version</span><span class="fa">✔ نسخه‌ی تمرینی</span></a>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
+</header>
+
+<div id="viewport"><div id="stage">
+
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 9 — Named volumes" data-title-fa="درس ۹ — Named volume" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 9</span><span class="fa">دوره‌ی Docker · درس ۹</span></div>
+    <h1 style="font-size:104px;line-height:1.05;margin:26px 0 26px">
+      <span class="en split"><span class="hl">Named&nbsp;volumes</span></span><span class="fa split"><span class="hl">Named&nbsp;volume</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en">Give <code>-v</code> just a <b>name</b>, and Docker creates and manages the storage for you. You'll use it with a <b>real database</b>: <b>Redis</b>.</span><span class="fa">فقط یک <b>نام</b> به <code>-v</code> بدهید، و Docker خودش محل ذخیره‌سازی را می‌سازد و مدیریت می‌کند. از آن با یک <b>دیتابیس واقعی</b> استفاده می‌کنید: <b>Redis</b>.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:700px;height:700px;overflow:visible;direction:ltr" viewBox="0 0 700 700">
+    <circle cx="350" cy="380" r="290" fill="none" stroke="rgba(110,155,255,.16)" stroke-dasharray="4 10"/>
+    <path d="M350 300V470" stroke="#c4a3ff" stroke-width="4" stroke-dasharray="8 8" class="flow"/>
+    <rect x="370" y="372" width="74" height="30" rx="8" fill="#0d1426" stroke="rgba(196,163,255,.5)"/>
+    <text x="407" y="393" text-anchor="middle" fill="#c4a3ff" font-size="17" font-family="JetBrains Mono,monospace">/data</text>
+    <g class="swap">
+      <g transform="translate(350 220)"><use href="#cube" x="-90" y="-98" width="180" height="180"/></g>
+      <text x="350" y="120" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">cache</text>
+    </g>
+    <g transform="translate(350 520)"><g transform="scale(1.6)"><use href="#disk" x="-62" y="-24" width="124" height="108"/></g></g>
+    <text x="350" y="530" text-anchor="middle" fill="#1a1030" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">redisdata</text>
+    <g transform="translate(530 560)">
+      <rect x="-70" y="-26" width="140" height="52" rx="14" fill="#0d1426" stroke="#3ccf7f" stroke-width="2"/>
+      <text x="0" y="8" text-anchor="middle" fill="#3ccf7f" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">visits = 4</text>
+    </g>
+    <text x="350" y="690" text-anchor="middle" fill="#93a0bb" font-family="JetBrains Mono,monospace" font-size="18" letter-spacing="3" class="en">THE CONTAINER GOES · THE VOLUME STAYS</text>
+    <text direction="rtl" x="350" y="690" text-anchor="middle" fill="#93a0bb" font-family="Vazirmatn,sans-serif" font-size="22" class="fa">کانتینر می‌رود · volume می‌ماند</text>
+  </svg>
+</section>
+
+<!-- ======================= 2 · GOALS ======================= -->
+<section class="slide" data-title-en="What you'll do" data-title-fa="در این درس">
+  <div class="kicker a"><span class="en">Lesson 9 · Named volumes</span><span class="fa">درس ۹ · Named volume</span></div>
+  <h2><span class="en split">In this lesson, <span class="hl">four small steps</span></span><span class="fa split">در این درس، <span class="hl">چهار قدم کوچک</span></span></h2>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:46px">
+    <div class="card goal a" style="--d:.3">
+      <svg viewBox="0 0 100 100"><use href="#cube" x="18" y="20" width="64" height="64"/><text x="78" y="26" fill="#3ccf7f" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">+1</text></svg>
+      <div class="n">01</div><h3><span class="en">Run Redis and count visits</span><span class="fa">اجرای Redis و شمردن بازدیدها</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.45">
+      <svg viewBox="0 0 100 100" fill="none" stroke="#ff6b6b" stroke-width="5" stroke-linecap="round"><path d="M78 50a28 28 0 1 1-8-20"/><path d="M72 16v16H56"/><text x="50" y="60" fill="#ff6b6b" stroke="none" font-size="26" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">1</text></svg>
+      <div class="n">02</div><h3><span class="en">Recreate it: the counter forgets</span><span class="fa">ساخت دوباره: شمارنده فراموش می‌کند</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.6">
+      <svg viewBox="0 0 100 100"><use href="#disk" x="20" y="34" width="60" height="52"/></svg>
+      <div class="n">03</div><h3><span class="en">Add a named volume</span><span class="fa">اضافه کردن named volume</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.75">
+      <svg viewBox="0 0 100 100" fill="none" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"><path d="M18 26h64M18 50h64M18 74h40"/><circle cx="82" cy="74" r="5" fill="#c4a3ff" stroke="none" class="pulse"/></svg>
+      <div class="n">04</div><h3><span class="en">List, inspect and delete volumes</span><span class="fa">فهرست، بررسی و حذف volumeها</span></h3>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:26px">
+    <div class="card a" style="--d:1"><p><span class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</span><span class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</span></p></div>
+    <div class="card a" style="--d:1.15"><p><span class="en">🖱 Hover over any part of a command to see what it does.</span><span class="fa">🖱 نشانگر ماوس را روی هر بخش از دستور ببرید تا توضیحش را ببینید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 3 · TWO WAYS ======================= -->
+<section class="slide" data-title-en="Two ways to use -v" data-title-fa="دو راه برای ‎-v">
+  <div class="kicker a"><span class="en">Before we start</span><span class="fa">قبل از شروع</span></div>
+  <h2><span class="en split">A <span class="hl">path</span> or a <span class="hl">name</span></span><span class="fa split">یک <span class="hl">مسیر</span> یا یک <span class="hl">نام</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">In Lesson 8 you gave <code>-v</code> a <b>folder on your PC</b>. There is a second way: give it just a <b>name</b>.</span><span class="fa">در درس ۸ به <code>-v</code> یک <b>پوشه روی کامپیوترتان</b> دادید. راه دومی هم هست: فقط یک <b>نام</b> بدهید.</span></p>
+  <div class="ways">
+    <div class="card" data-step="1" style="border-color:rgba(255,207,107,.35)">
+      <svg viewBox="0 0 600 190" style="direction:ltr">
+        <use href="#folder" x="60" y="40" width="130" height="104"/>
+        <text x="125" y="178" text-anchor="middle" fill="#ffcf6b" font-size="18" font-family="JetBrains Mono,monospace">~/my-data</text>
+        <path d="M210 95H380" stroke="#ffcf6b" stroke-width="3" class="flow"/><path d="M372 85l12 10-12 10" fill="none" stroke="#ffcf6b" stroke-width="3"/>
+        <g transform="translate(470 100)"><use href="#cube" x="-55" y="-60" width="110" height="110"/></g>
+        <text x="470" y="178" text-anchor="middle" fill="#93a0bb" font-size="18" font-family="JetBrains Mono,monospace">/data</text>
+      </svg>
+      <code class="big"><span class="cv-path">~/my-data</span>:/data</code>
+      <p><span class="en">Starts with a <b>path</b> → a folder on your PC.<br><b>Bind mount</b> (Lesson 8)</span><span class="fa">با یک <b>مسیر</b> شروع می‌شود ← یک پوشه روی کامپیوتر شما.<br><b>Bind mount</b> (درس ۸)</span></p>
+    </div>
+    <div class="card" data-step="2" style="border-color:rgba(196,163,255,.5)">
+      <svg viewBox="0 0 600 190" style="direction:ltr">
+        <g transform="translate(125 70)"><use href="#disk" x="-62" y="-24" width="124" height="108"/></g>
+        <text x="125" y="178" text-anchor="middle" fill="#c4a3ff" font-size="18" font-family="JetBrains Mono,monospace">redisdata</text>
+        <path d="M210 95H380" stroke="#c4a3ff" stroke-width="3" class="flow"/><path d="M372 85l12 10-12 10" fill="none" stroke="#c4a3ff" stroke-width="3"/>
+        <g transform="translate(470 100)"><use href="#cube" x="-55" y="-60" width="110" height="110"/></g>
+        <text x="470" y="178" text-anchor="middle" fill="#93a0bb" font-size="18" font-family="JetBrains Mono,monospace">/data</text>
+      </svg>
+      <code class="big"><span class="cv-name">redisdata</span>:/data</code>
+      <p><span class="en">Just a <b>name</b> → storage managed by Docker.<br><b>Named volume</b> (this lesson)</span><span class="fa">فقط یک <b>نام</b> ← محل ذخیره‌ای که Docker مدیریت می‌کند.<br><b>Named volume</b> (این درس)</span></p>
+    </div>
+  </div>
+  <p class="lead" data-step="3" style="margin-top:22px"><span class="en">This is what you normally use for <b>databases</b>, so this time you'll use a real one: <b>Redis</b>.</span><span class="fa">برای دیتابیس‌ها معمولاً از همین استفاده می‌شود، پس این بار از یک دیتابیس واقعی استفاده می‌کنید: <b>Redis</b>.</span></p>
+</section>
+
+<!-- ======================= 4 · START + COUNT ======================= -->
+<section class="slide" data-title-en="Start Redis and count visits" data-title-fa="اجرای Redis و شمردن بازدیدها">
+  <div class="kicker a"><span class="en">Step 1 · Step 2</span><span class="fa">قدم ۱ · قدم ۲</span></div>
+  <h2><span class="en split">Start Redis, <span class="hl">count visits</span></span><span class="fa split">Redis را اجرا کنید، <span class="hl">بازدیدها را بشمارید</span></span></h2>
+  <div style="display:grid;grid-template-columns:860px 1fr;gap:30px;margin-top:22px;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <p class="lead a" style="--d:.3;font-size:21px"><span class="en"><b>Redis</b> is a small, very fast, very popular database. Start it in the background and name it <code>cache</code>:</span><span class="fa"><b>Redis</b> یک دیتابیس کوچک، خیلی سریع و خیلی محبوب است. آن را در پس‌زمینه اجرا کنید و نامش را <code>cache</code> بگذارید:</span></p>
+      <div class="term sm a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run" data-step="1"><div class="cmd">docker run -d --name cache redis:alpine</div><pre class="out">
+Unable to find image 'redis:alpine' locally
+...
+Status: Downloaded newer image for redis:alpine
+35c75bbc9363446f7ffa3b7a710f438cdc525f91e7730d3353d35eead8eaf400</pre></div>
+          <div class="run" data-step="3"><div class="cmd">docker exec cache redis-cli INCR visits</div><pre class="out">
+1</pre></div>
+          <div class="run" data-step="4"><div class="cmd">docker exec cache redis-cli INCR visits</div><pre class="out">
+2</pre></div>
+          <div class="run" data-step="5"><div class="cmd">docker exec cache redis-cli INCR visits</div><pre class="out">
+3</pre></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <svg viewBox="0 0 500 270" class="a blur" style="--d:.5;width:500px;height:270px;overflow:visible">
+        <g data-step="1" class="pop-in"><g transform="translate(150 140)"><use href="#cube" x="-75" y="-82" width="150" height="150"/><circle cx="56" cy="-66" r="8" fill="#3ccf7f" class="pulse"/></g>
+          <text x="150" y="255" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">cache</text></g>
+        <g data-step="3">
+          <rect x="300" y="70" width="170" height="120" rx="18" fill="#0d1426" stroke="#3ccf7f" stroke-width="2"/>
+          <text x="385" y="100" text-anchor="middle" fill="#93a0bb" font-size="17" font-family="JetBrains Mono,monospace">visits</text>
+          <text x="385" y="168" text-anchor="middle" fill="#3ccf7f" font-size="60" font-weight="700" font-family="Space Grotesk,sans-serif" class="bump" data-only="3">1</text>
+          <text x="385" y="168" text-anchor="middle" fill="#3ccf7f" font-size="60" font-weight="700" font-family="Space Grotesk,sans-serif" class="bump" data-only="4">2</text>
+          <text x="385" y="168" text-anchor="middle" fill="#3ccf7f" font-size="60" font-weight="700" font-family="Space Grotesk,sans-serif" class="bump" data-step="5">3</text>
+        </g>
+      </svg>
+      <div class="stack" style="height:190px">
+      <div class="card sm" data-only="1"><div class="n"><span class="en">TAG alpine</span><span class="fa">تگ alpine</span></div><p><span class="en">The tag <code>alpine</code> means a small version of the image, built on Alpine Linux (Lesson 1).</span><span class="fa">تگ <code>alpine</code> یعنی نسخه‌ی کوچک ایمیج که روی Alpine Linux ساخته شده (درس ۱).</span></p></div>
+      <div class="card sm" data-only="2"><div class="n"><span class="en">COUNT VISITS</span><span class="fa">شمردن بازدیدها</span></div><p><span class="en">Imagine every page visit on your website adds 1 to a counter in the database. Run this <b>three times</b>.</span><span class="fa">فرض کنید هر بازدید از وب‌سایت شما یک واحد به یک شمارنده در دیتابیس اضافه می‌کند. این را <b>سه بار</b> اجرا کنید.</span></p></div>
+      <div class="card sm tip" data-step="3"><p><span class="en"><code>redis-cli</code>: Redis's command-line tool, inside the image.<br><code>INCR visits</code>: <b>incr</b>ement, add 1 to <code>visits</code> and print it. Starts from 0.</span><span class="fa"><code>redis-cli</code>: ابزار خط فرمان Redis، داخل ایمیج.<br><code>INCR visits</code>: <b>Incr</b>ement، یک واحد به <code>visits</code> اضافه کن و چاپش کن. از 0 شروع می‌کند.</span></p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 5 · RECREATE, NO VOLUME ======================= -->
+<section class="slide" data-title-en="Recreate: does it remember?" data-title-fa="ساخت دوباره: یادش می‌ماند؟">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Recreate it: <span class="hl">does the counter remember?</span></span><span class="fa split">ساخت دوباره: <span class="hl">شمارنده یادش می‌ماند؟</span></span></h2>
+  <div style="display:grid;grid-template-columns:860px 1fr;gap:30px;margin-top:26px;direction:ltr">
+    <div class="term sm a" style="--d:.4;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Stop cache cleanly, then delete it (two commands, Lesson 3)." data-task-fa="👉 cache را با آرامش متوقف کنید و بعد حذفش کنید (دو دستور، درس ۳)."><div class="cmd">docker stop cache</div><pre class="out">
+cache</pre></div>
+        <div class="run recall nohint" data-step="1" data-reveal="2"><div class="cmd">docker rm cache</div><pre class="out">
+cache</pre></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Start a new cache exactly like in step 1." data-task-fa="👉 یک cache جدید دقیقاً مثل قدم ۱ اجرا کنید."><div class="cmd">docker run -d --name cache redis:alpine</div><pre class="out">
+5b1f0c3e9a7d2b8e4f6a1c0d9e8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b</pre></div>
+        <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 Count one more visit." data-task-fa="👉 یک بازدید دیگر بشمارید."><div class="cmd">docker exec cache redis-cli INCR visits</div><pre class="out">
+1</pre></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <svg viewBox="0 0 500 320" class="a blur" style="--d:.5;width:500px;height:320px;overflow:visible">
+        <g class="crash" data-only="0 1">
+          <g transform="translate(150 150)"><use href="#cube" x="-70" y="-76" width="140" height="140"/></g>
+          <text x="150" y="270" text-anchor="middle" fill="#eef2fb" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">cache</text>
+          <rect x="290" y="90" width="150" height="100" rx="16" fill="#0d1426" stroke="#3ccf7f" stroke-width="2"/>
+          <text x="365" y="118" text-anchor="middle" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">visits</text>
+          <text x="365" y="172" text-anchor="middle" fill="#3ccf7f" font-size="50" font-weight="700" font-family="Space Grotesk,sans-serif">3</text>
+        </g>
+        <g data-step="4" class="pop-in">
+          <g transform="translate(150 150)"><use href="#cube" x="-70" y="-76" width="140" height="140"/><circle cx="52" cy="-62" r="8" fill="#3ccf7f" class="pulse"/></g>
+          <text x="150" y="270" text-anchor="middle" fill="#eef2fb" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">cache</text>
+          <text x="150" y="300" text-anchor="middle" fill="#93a0bb" font-size="16" class="stx en">(a new container)</text>
+          <text direction="rtl" x="150" y="300" text-anchor="middle" fill="#93a0bb" font-size="17" class="stx fa">(یک کانتینر جدید)</text>
+        </g>
+        <g data-step="6">
+          <rect x="290" y="90" width="150" height="100" rx="16" fill="#0d1426" stroke="#ff6b6b" stroke-width="2"/>
+          <text x="365" y="118" text-anchor="middle" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">visits</text>
+          <text x="365" y="172" text-anchor="middle" fill="#ff6b6b" font-size="50" font-weight="700" font-family="Space Grotesk,sans-serif" class="bump" data-step="6">1</text>
+          <text x="440" y="84" text-anchor="middle" font-size="40">❌</text>
+        </g>
+      </svg>
+      <div class="card warn" data-step="6"><div class="n"><span class="en">BACK TO 1</span><span class="fa">دوباره 1</span></div><p><span class="en">The database forgot all your visits. Containers are ephemeral (Lesson 8).</span><span class="fa">دیتابیس همه‌ی بازدیدها را فراموش کرد. کانتینرها موقتی هستند (درس ۸).</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 6 · WHERE DOES REDIS SAVE ======================= -->
+<section class="slide" data-title-en="Where does Redis save?" data-title-fa="Redis کجا ذخیره می‌کند؟">
+  <div class="kicker a"><span class="en">Step 4 · Find the folder</span><span class="fa">قدم ۴ · پیدا کردن پوشه</span></div>
+  <h2><span class="en split">Where does <span class="hl">Redis save</span> its data?</span><span class="fa split">Redis داده‌هایش را <span class="hl">کجا ذخیره می‌کند؟</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">To keep the data, the volume must go on the folder <b>where Redis saves it</b>. Ask Redis (the <code>cache</code> from step 3 is still running):</span><span class="fa">برای نگه داشتن داده‌ها باید volume را روی پوشه‌ای بگذاریم که <b>Redis داده‌ها را آنجا ذخیره می‌کند</b>. از خود Redis بپرسید (<code>cache</code> از قدم ۳ هنوز در حال اجراست):</span></p>
+  <div style="display:grid;grid-template-columns:820px 1fr;gap:34px;margin-top:22px;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="term a" style="--d:.5">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run" data-step="1"><div class="cmd">docker exec cache redis-cli CONFIG GET dir</div><pre class="out">
+dir
+/data</pre></div>
+        </div>
+      </div>
+      <div class="card key dirauto" data-step="2"><div class="n">🔑</div><p><span class="en"><b>Redis saves its data in <code>/data</code></b>, in a file called <code>dump.rdb</code>. The official Redis image sets this up, and its page on Docker Hub says so.</span><span class="fa"><b>Redis داده‌هایش را در <code>/data</code> ذخیره می‌کند</b>، در فایلی به نام <code>dump.rdb</code>. ایمیج رسمی Redis این را تنظیم کرده و صفحه‌اش در Docker Hub هم همین را می‌گوید.</span></p></div>
+      <div class="card tip" data-step="3"><div class="n">💡</div><p><span class="en">Every database keeps its data in its own folder, e.g. PostgreSQL under <code>/var/lib/postgresql</code>. Check the image's page on Docker Hub. A volume on the <b>wrong</b> folder saves nothing.</span><span class="fa">هر دیتابیس داده‌هایش را در پوشه‌ی خودش نگه می‌دارد، مثلاً PostgreSQL زیر <code>/var/lib/postgresql</code>. صفحه‌ی ایمیج را در Docker Hub ببینید. volume روی پوشه‌ی <b>اشتباه</b> هیچ چیزی را نگه نمی‌دارد.</span></p></div>
+    </div>
+    <svg viewBox="0 0 560 470" class="a blur" style="--d:.6;width:560px;height:470px;overflow:visible">
+      <rect x="20" y="20" width="520" height="430" rx="24" fill="rgba(60,207,127,.06)" stroke="#3ccf7f" stroke-width="2" stroke-dasharray="10 8"/>
+      <rect x="40" y="0" width="170" height="40" rx="10" fill="#167a4a"/>
+      <text x="125" y="27" text-anchor="middle" fill="#fff" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">cache</text>
+      <g font-family="JetBrains Mono,monospace" font-size="24" fill="#93a0bb">
+        <text x="70" y="100">/</text>
+        <text x="70" y="150">├─ …</text>
+        <g data-step="1"><text x="70" y="200" fill="#c4a3ff" font-weight="700">├─ data/</text></g>
+        <g data-step="2"><text x="70" y="250" fill="#eef2fb">│   └─ dump.rdb</text></g>
+        <text x="70" y="300">└─ …</text>
+      </g>
+      <g data-step="1">
+        <path d="M240 192H282" stroke="#c4a3ff" stroke-width="3" class="flow"/>
+        <text x="292" y="200" fill="#c4a3ff" font-size="20" font-weight="700" class="stx en">Redis saves here</text>
+        <text x="520" y="200" fill="#c4a3ff" font-size="19" font-weight="700" class="stx fa" text-anchor="start" direction="rtl">اینجا ذخیره می‌شود</text>
+      </g>
+      <g data-step="2">
+        <path d="M330 242C380 250 400 290 400 330" fill="none" stroke="rgba(110,155,255,.5)" stroke-width="2" stroke-dasharray="5 6"/>
+        <rect x="290" y="335" width="220" height="64" rx="14" fill="#0d1426" stroke="rgba(110,155,255,.4)"/>
+        <text x="400" y="361" text-anchor="middle" fill="#93a0bb" font-size="16" class="stx en">the database file</text>
+        <text direction="rtl" x="400" y="361" text-anchor="middle" fill="#93a0bb" font-size="17" class="stx fa">فایل دیتابیس</text>
+        <text x="400" y="387" text-anchor="middle" fill="#3ccf7f" font-size="18" font-family="JetBrains Mono,monospace">visits = 1</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================= 7 · ADD THE VOLUME ======================= -->
+<section class="slide" data-title-en="Put a named volume on /data" data-title-fa="named volume روی ‎/data">
+  <div class="kicker a"><span class="en">Step 4 · Add a named volume</span><span class="fa">قدم ۴ · اضافه کردن named volume</span></div>
+  <h2><span class="en split">Put a <span class="hl">named volume</span> on /data</span><span class="fa split">یک <span class="hl">named&nbsp;volume</span> روی ‎/data بگذارید</span></h2>
+  <div style="display:grid;grid-template-columns:860px 1fr;gap:30px;margin-top:24px;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="term sm a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Stop and delete cache, cleanly." data-task-fa="👉 cache را با آرامش متوقف و حذف کنید."><div class="cmd">docker stop cache</div><pre class="out">
+cache</pre></div>
+          <div class="run recall nohint" data-step="1" data-reveal="2"><div class="cmd">docker rm cache</div><pre class="out">
+cache</pre></div>
+          <div class="run" data-step="3"><div class="cmd">docker run -d --name cache -v redisdata:/data redis:alpine</div><pre class="out">
+8c2d7e1f4a9b3c6d0e5f8a2b7c1d4e9f3a6b0c5d8e2f7a1b4c9d3e6f0a5b8c2d</pre></div>
+          <div class="run recall" data-step="6" data-reveal="7" data-task-en="👉 Count three times again." data-task-fa="👉 دوباره سه بار بشمارید."><div class="cmd">docker exec cache redis-cli INCR visits</div><pre class="out">
+1
+2
+3</pre></div>
+        </div>
+      </div>
+      </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+    <svg viewBox="0 0 500 560" class="a blur" style="--d:.5;width:500px;height:400px;overflow:visible">
+      <g data-step="3" class="pop-in">
+        <g transform="translate(250 150)"><use href="#cube" x="-80" y="-88" width="160" height="160"/><circle cx="60" cy="-70" r="8" fill="#3ccf7f" class="pulse"/></g>
+        <text x="250" y="40" text-anchor="middle" fill="#eef2fb" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">cache</text>
+      </g>
+      <g data-step="3">
+        <path d="M250 245V360" stroke="#c4a3ff" stroke-width="4" stroke-dasharray="8 8" class="flow"/>
+        <rect x="266" y="280" width="78" height="32" rx="8" fill="#0d1426" stroke="rgba(196,163,255,.5)"/>
+        <text x="305" y="302" text-anchor="middle" fill="#c4a3ff" font-size="17" font-family="JetBrains Mono,monospace">/data</text>
+      </g>
+      <g data-step="3" class="pop-in" style="transition-delay:.4s">
+        <g transform="translate(250 410)"><g transform="scale(1.5)"><use href="#disk" x="-62" y="-24" width="124" height="108"/></g></g>
+        <text x="250" y="420" text-anchor="middle" fill="#1a1030" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">redisdata</text>
+        <text x="250" y="555" text-anchor="middle" fill="#c4a3ff" font-size="17" class="stx en">created by Docker</text>
+        <text direction="rtl" x="250" y="555" text-anchor="middle" fill="#c4a3ff" font-size="18" class="stx fa">ساخته‌شده توسط Docker</text>
+      </g>
+      <g data-step="7">
+        <rect x="370" y="380" width="120" height="70" rx="14" fill="#0d1426" stroke="#3ccf7f" stroke-width="2"/>
+        <text x="430" y="404" text-anchor="middle" fill="#93a0bb" font-size="14" font-family="JetBrains Mono,monospace">visits</text>
+        <text x="430" y="440" text-anchor="middle" fill="#3ccf7f" font-size="32" font-weight="700" font-family="Space Grotesk,sans-serif">3</text>
+      </g>
+    </svg>
+      <div class="stack" style="height:170px">
+      <div class="card sm" data-only="4"><div class="n"><span class="en">A NAME, NOT A PATH</span><span class="fa">یک نام، نه مسیر</span></div><p><span class="en">Before the <code>:</code> there's a <b>name</b> (<code>redisdata</code>), not a path. No <code>mkdir</code> needed: if the volume doesn't exist yet, Docker <b>creates it</b>.</span><span class="fa">قبل از <code>:</code> یک <b>نام</b> (<code>redisdata</code>) آمده، نه مسیر. <code>mkdir</code> لازم نیست: اگر volume هنوز وجود نداشته باشد، Docker آن را <b>می‌سازد</b>.</span></p></div>
+      <div class="card sm tip" data-only="5"><div class="n">💡</div><p><span class="en"><code>/data</code> already exists in the image. The volume does <b>not</b> go inside it (there is no <code>/data/data</code>): it <b>takes the place of</b> <code>/data</code>.</span><span class="fa">پوشه‌ی <code>/data</code> از قبل در ایمیج وجود دارد. volume <b>داخل</b> آن نمی‌رود (<code>/data/data</code> نداریم): بلکه <b>جای</b> <code>/data</code> را می‌گیرد.</span></p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 8 · SEE YOUR VOLUME ======================= -->
+<section class="slide" data-title-en="See your volume" data-title-fa="دیدن volume">
+  <div class="kicker a"><span class="en">Step 5</span><span class="fa">قدم ۵</span></div>
+  <h2><span class="en split">See <span class="hl">your volume</span></span><span class="fa split">دیدن <span class="hl">volume</span></span></h2>
+  <div style="display:grid;grid-template-columns:860px 1fr;gap:30px;margin-top:22px;direction:ltr">
+    <div class="term sm a" style="--d:.4;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run" data-step="1"><div class="cmd">docker volume ls</div><pre class="out">
+DRIVER    VOLUME NAME
+local     redisdata</pre></div>
+        <div class="run" data-step="3"><div class="cmd">docker volume inspect redisdata</div><pre class="out">
+[
+    {
+        "Driver": "local",
+        "Mountpoint": "/var/lib/docker/volumes/redisdata/_data",
+        "Name": "redisdata",
+        ...
+    }
+]</pre></div>
+      </div>
+    </div>
+    <div style="position:relative">
+      <div class="card sm" data-only="1 2"><div class="n"><span class="en">OWN LIST</span><span class="fa">فهرست جدا</span></div><p><span class="en">Named volumes have their own list, like images and containers. You may see other volumes too, created by other projects on your PC.</span><span class="fa">named volumeها هم مثل ایمیج‌ها و کانتینرها فهرست خودشان را دارند. ممکن است volumeهای دیگری هم ببینید که پروژه‌های دیگر روی کامپیوتر شما ساخته‌اند.</span></p></div>
+      <div class="card sm" data-only="2" style="margin-top:14px"><div class="n">❓ <code>~/my-data</code></div><p><span class="en">Is Lesson 8's folder in this list? <b>No.</b> It lists only volumes that <b>Docker manages</b>. A bind mount is just a folder on your PC.</span><span class="fa">پوشه‌ی درس ۸ در این فهرست هست؟ <b>نه.</b> فقط volumeهایی را فهرست می‌کند که <b>Docker مدیریت می‌کند</b>. bind mount فقط یک پوشه روی کامپیوتر شماست.</span></p></div>
+      <svg viewBox="0 0 500 420" data-step="3" style="position:absolute;top:0;left:0;width:500px;height:420px;overflow:visible">
+        <rect x="0" y="0" width="500" height="160" rx="18" fill="rgba(255,207,107,.06)" stroke="rgba(255,207,107,.45)"/>
+        <text x="20" y="34" fill="#ffcf6b" font-size="19" font-weight="700" class="stx en">💻 Your PC (owned by root)</text>
+        <text x="480" y="34" fill="#ffcf6b" font-size="20" font-weight="700" class="stx fa" text-anchor="start" direction="rtl">💻 کامپیوتر شما (مال root)</text>
+        <g transform="translate(70 100)"><g transform="scale(.55)"><use href="#disk" x="-62" y="-24" width="124" height="108"/></g></g>
+        <text x="120" y="112" fill="#eef2fb" font-size="13.5" font-family="JetBrains Mono,monospace">/var/lib/docker/volumes/</text>
+        <text x="120" y="134" fill="#eef2fb" font-size="13.5" font-family="JetBrains Mono,monospace">redisdata/<tspan fill="#c4a3ff" font-weight="700">_data</tspan></text>
+        <path d="M250 165V255" stroke="#c4a3ff" stroke-width="3" class="flow"/>
+        <path d="M240 175l10-12 10 12M240 245l10 12 10-12" fill="none" stroke="#c4a3ff" stroke-width="3"/>
+        <text x="270" y="216" fill="#c4a3ff" font-size="17" font-weight="600" class="stx en">same folder, two names</text>
+        <text x="480" y="216" fill="#c4a3ff" font-size="18" font-weight="600" class="stx fa" text-anchor="start" direction="rtl">یک پوشه، دو نام</text>
+        <rect x="0" y="260" width="500" height="130" rx="18" fill="rgba(60,207,127,.06)" stroke="rgba(60,207,127,.45)"/>
+        <text x="20" y="294" fill="#3ccf7f" font-size="19" font-weight="700" class="stx en">📦 Container cache</text>
+        <text x="480" y="294" fill="#3ccf7f" font-size="20" font-weight="700" class="stx fa" text-anchor="start" direction="rtl">📦 کانتینر cache</text>
+        <g transform="translate(80 350)"><use href="#cube" x="-30" y="-32" width="60" height="60"/></g>
+        <text x="130" y="356" fill="#c4a3ff" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">/data</text>
+      </svg>
+      <div class="card sm" data-step="4" style="position:absolute;top:410px;left:0;right:0"><p><span class="en">It lives in <b>Docker's own storage folder</b>. You don't open it yourself: you use it through containers, and Docker takes care of it.</span><span class="fa">در <b>پوشه‌ی ذخیره‌سازی خود Docker</b> است. خودتان بازش نمی‌کنید: از طریق کانتینرها از آن استفاده می‌کنید و Docker مراقبش است.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 9 · RECREATE WITH VOLUME ======================= -->
+<section class="slide" data-title-en="Recreate again: it remembers" data-title-fa="ساخت دوباره: یادش می‌ماند">
+  <div class="kicker a"><span class="en">Step 6</span><span class="fa">قدم ۶</span></div>
+  <h2><span class="en split">Recreate again: <span class="hl">does it remember now?</span></span><span class="fa split">ساخت دوباره: <span class="hl">حالا یادش می‌ماند؟</span></span></h2>
+  <div style="display:grid;grid-template-columns:860px 1fr;gap:30px;margin-top:24px;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="term sm a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Stop and delete cache, cleanly." data-task-fa="👉 cache را با آرامش متوقف و حذف کنید."><div class="cmd">docker stop cache</div><pre class="out">
+cache</pre></div>
+          <div class="run recall nohint" data-step="1" data-reveal="2"><div class="cmd">docker rm cache</div><pre class="out">
+cache</pre></div>
+          <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Start a new cache exactly like in step 4 (same volume), and count once." data-task-fa="👉 یک cache جدید دقیقاً مثل قدم ۴ (با همان volume) اجرا کنید و یک بار بشمارید."><div class="cmd">docker run -d --name cache -v redisdata:/data redis:alpine</div><pre class="out">
+f3a9c1e7b5d2084c6e1a9f3b7d5c2e8a0f4b6d1c9e3a7f5b2d8c0e6a4f1b9d3c</pre></div>
+          <div class="run recall nohint" data-step="3" data-reveal="4"><div class="cmd">docker exec cache redis-cli INCR visits</div><pre class="out">
+4</pre></div>
+          <div class="run" data-step="6"><div class="cmd">docker exec cache ls -l /data</div><pre class="out">
+-rw-------    1 redis    redis          104 Oct 10 10:48 dump.rdb</pre></div>
+        </div>
+      </div>
+      <div class="card sm tip" data-step="6"><p><span class="en">That's the database file Redis wrote when you stopped the old container.</span><span class="fa">این همان فایل دیتابیس است که Redis هنگام متوقف کردن کانتینر قبلی نوشت.</span></p></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <svg viewBox="0 0 500 400" class="a blur" style="--d:.5;width:500px;height:400px;overflow:visible">
+        <g class="crash" data-only="0 1">
+          <g transform="translate(200 110)"><use href="#cube" x="-62" y="-68" width="124" height="124"/></g>
+          <text x="200" y="30" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">cache</text>
+        </g>
+        <g data-step="4" class="pop-in">
+          <g transform="translate(200 110)"><use href="#cube" x="-62" y="-68" width="124" height="124"/><circle cx="46" cy="-54" r="7" fill="#3ccf7f" class="pulse"/></g>
+          <text x="200" y="30" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">cache</text>
+        </g>
+        <path d="M200 190V270" stroke="#c4a3ff" stroke-width="4" stroke-dasharray="8 8" class="flow"/>
+        <g transform="translate(200 300)"><g transform="scale(1.3)"><use href="#disk" x="-62" y="-24" width="124" height="108"/></g></g>
+        <text x="200" y="310" text-anchor="middle" fill="#1a1030" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">redisdata</text>
+        <g data-step="2">
+          <rect x="300" y="330" width="170" height="44" rx="10" fill="#0d1426" stroke="rgba(196,163,255,.6)"/>
+          <text x="385" y="358" text-anchor="middle" fill="#c4a3ff" font-size="17" font-family="JetBrains Mono,monospace">dump.rdb · 3</text>
+        </g>
+        <g data-step="4">
+          <rect x="330" y="60" width="140" height="96" rx="16" fill="#0d1426" stroke="#3ccf7f" stroke-width="2"/>
+          <text x="400" y="86" text-anchor="middle" fill="#93a0bb" font-size="15" font-family="JetBrains Mono,monospace">visits</text>
+          <text x="400" y="138" text-anchor="middle" fill="#3ccf7f" font-size="48" font-weight="700" font-family="Space Grotesk,sans-serif">4</text>
+          <text x="470" y="56" text-anchor="middle" font-size="36">✅</text>
+        </g>
+      </svg>
+      <div class="stack" style="height:170px">
+      <div class="card sm" data-only="2 3"><p><span class="en">When you ran <code>docker stop</code>, Redis saved its data to <code>/data</code>, which is the volume. The volume outlived the container.</span><span class="fa">وقتی <code>docker stop</code> زدید، Redis داده‌هایش را در <code>/data</code> ذخیره کرد، که همان volume است. volume بیشتر از کانتینر عمر کرد.</span></p></div>
+      <div class="card sm" data-step="5"><div class="n"><span class="en">AFTER RECREATING, INCR PRINTS…</span><span class="fa">بعد از ساخت دوباره، INCR چاپ می‌کند…</span></div><p><span class="en">without a volume (step 3): ❌ <b>1</b><br>with <code>-v redisdata:/data</code>: ✅ <b>4</b></span><span class="fa">بدون volume (قدم ۳): ❌ <b>1</b><br>با <code>-v redisdata:/data</code>: ✅ <b>4</b></span></p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 10 · STOP CLEANLY ======================= -->
+<section class="slide" data-title-en="Stop databases cleanly" data-title-fa="دیتابیس‌ها را با آرامش متوقف کنید">
+  <div class="kicker a"><span class="en">Step 6 · Careful</span><span class="fa">قدم ۶ · مراقب باشید</span></div>
+  <h2><span class="en split">⚠ Stop databases <span class="hl">cleanly</span></span><span class="fa split">⚠ دیتابیس‌ها را <span class="hl">با آرامش</span> متوقف کنید</span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">Redis keeps data in <b>memory</b> and saves it to <b>disk</b> when it stops. A volume only keeps what is <b>written to disk</b>.</span><span class="fa">Redis داده‌ها را در <b>حافظه</b> نگه می‌دارد و وقتی متوقف می‌شود روی <b>دیسک</b> ذخیره‌شان می‌کند. volume فقط چیزی را نگه می‌دارد که <b>روی دیسک نوشته</b> شده باشد.</span></p>
+  <svg viewBox="0 0 1420 420" style="width:1420px;height:420px;margin-top:16px;direction:ltr;overflow:visible">
+    <!-- lane 1: docker stop -->
+    <g data-step="1">
+      <rect x="0" y="10" width="1420" height="180" rx="22" fill="rgba(60,207,127,.05)" stroke="rgba(60,207,127,.35)"/>
+      <rect x="30" y="74" width="230" height="52" rx="12" fill="#0d1426" stroke="rgba(110,155,255,.5)"/>
+      <text x="145" y="108" text-anchor="middle" fill="#a9c4ff" font-size="22" font-family="JetBrains Mono,monospace">docker stop</text>
+      <g transform="translate(420 100)">
+        <rect x="-80" y="-50" width="160" height="100" rx="12" fill="#16213d" stroke="#6e9bff" stroke-width="2"/>
+        <path d="M-60 -50v-12M-30 -50v-12M0 -50v-12M30 -50v-12M60 -50v-12M-60 50v12M-30 50v12M0 50v12M30 50v12M60 50v12" stroke="#6e9bff" stroke-width="4"/>
+        <text x="0" y="-14" text-anchor="middle" fill="#93a0bb" font-size="16" class="stx en">memory</text>
+        <text direction="rtl" x="0" y="-14" text-anchor="middle" fill="#93a0bb" font-size="17" class="stx fa">حافظه</text>
+        <text x="0" y="28" text-anchor="middle" fill="#eef2fb" font-size="30" font-weight="700" font-family="Space Grotesk,sans-serif">5</text>
+      </g>
+      <path id="saveP" d="M520 100H820" stroke="#3ccf7f" stroke-width="3" class="flow" fill="none"/>
+      <path d="M812 90l12 10-12 10" fill="none" stroke="#3ccf7f" stroke-width="3"/>
+      <text x="670" y="80" text-anchor="middle" fill="#3ccf7f" font-size="18" font-weight="600" class="stx en">saves to dump.rdb</text>
+      <text direction="rtl" x="670" y="80" text-anchor="middle" fill="#3ccf7f" font-size="19" font-weight="600" class="stx fa">در dump.rdb ذخیره می‌کند</text>
+      <circle r="8" fill="#3ccf7f"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#saveP"/></animateMotion></circle>
+      <g transform="translate(920 80)"><use href="#disk" x="-62" y="-24" width="124" height="108"/></g>
+      <text x="920" y="90" text-anchor="middle" fill="#1a1030" font-size="26" font-weight="700" font-family="Space Grotesk,sans-serif">5</text>
+      <text x="1080" y="90" fill="#eef2fb" font-size="22" font-weight="700" class="stx en">new container: 5 ✅</text>
+      <text x="1390" y="90" fill="#eef2fb" font-size="23" font-weight="700" class="stx fa" text-anchor="start" direction="rtl">کانتینر جدید: 5 ✅</text>
+      <text x="1080" y="124" fill="#93a0bb" font-size="17" class="stx en">nothing lost</text>
+      <text x="1390" y="124" fill="#93a0bb" font-size="18" class="stx fa" text-anchor="start" direction="rtl">چیزی از دست نرفت</text>
+    </g>
+    <!-- lane 2: docker rm -f -->
+    <g data-step="2">
+      <rect x="0" y="220" width="1420" height="180" rx="22" fill="rgba(255,107,107,.05)" stroke="rgba(255,107,107,.4)"/>
+      <rect x="30" y="284" width="230" height="52" rx="12" fill="#0d1426" stroke="rgba(255,107,107,.6)"/>
+      <text x="145" y="318" text-anchor="middle" fill="#ff8a8a" font-size="22" font-family="JetBrains Mono,monospace">docker rm -f</text>
+      <g transform="translate(420 310)">
+        <rect x="-80" y="-50" width="160" height="100" rx="12" fill="#16213d" stroke="#ff6b6b" stroke-width="2"/>
+        <path d="M-60 -50v-12M-30 -50v-12M0 -50v-12M30 -50v-12M60 -50v-12M-60 50v12M-30 50v12M0 50v12M30 50v12M60 50v12" stroke="#ff6b6b" stroke-width="4"/>
+        <text x="0" y="-14" text-anchor="middle" fill="#93a0bb" font-size="16" class="stx en">memory</text>
+        <text direction="rtl" x="0" y="-14" text-anchor="middle" fill="#93a0bb" font-size="17" class="stx fa">حافظه</text>
+        <text x="0" y="28" text-anchor="middle" fill="#eef2fb" font-size="30" font-weight="700" font-family="Space Grotesk,sans-serif" opacity=".4">5</text>
+      </g>
+      <path d="M520 310H660" stroke="#ff6b6b" stroke-width="3" stroke-dasharray="6 10"/>
+      <text x="700" y="324" text-anchor="middle" fill="#ff6b6b" font-size="46" font-weight="800" font-family="Space Grotesk,sans-serif">✕</text>
+      <text x="700" y="270" text-anchor="middle" fill="#ff8a8a" font-size="18" font-weight="600" class="stx en">killed before it can save</text>
+      <text direction="rtl" x="700" y="270" text-anchor="middle" fill="#ff8a8a" font-size="19" font-weight="600" class="stx fa">قبل از ذخیره از کار افتاد</text>
+      <g transform="translate(920 290)"><use href="#disk" x="-62" y="-24" width="124" height="108"/></g>
+      <text x="920" y="300" text-anchor="middle" fill="#1a1030" font-size="26" font-weight="700" font-family="Space Grotesk,sans-serif">3</text>
+      <text x="1080" y="300" fill="#eef2fb" font-size="22" font-weight="700" class="stx en">new container: 3 ❌</text>
+      <text x="1390" y="300" fill="#eef2fb" font-size="23" font-weight="700" class="stx fa" text-anchor="start" direction="rtl">کانتینر جدید: 3 ❌</text>
+      <text x="1080" y="334" fill="#93a0bb" font-size="17" class="stx en">the value from the last clean stop</text>
+      <text x="1390" y="334" fill="#93a0bb" font-size="18" class="stx fa" text-anchor="start" direction="rtl">مقدار آخرین توقف آرام</text>
+    </g>
+  </svg>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:4px">
+    <div class="card sm" data-step="3"><p><span class="en">We tried it: counted to 5, ran <code>rm -f</code>, and the new container had <b>3</b>. The last visits were lost, even with a volume. Before the first <code>docker stop</code>, <code>/data</code> is still <b>empty</b>.</span><span class="fa">امتحانش کردیم: تا 5 شمردیم، <code>rm -f</code> زدیم، و کانتینر جدید <b>3</b> داشت. آخرین بازدیدها از دست رفتند، حتی با volume. قبل از اولین <code>docker stop</code>، پوشه‌ی <code>/data</code> هنوز <b>خالی</b> است.</span></p></div>
+    <div class="card sm key" data-step="4"><div class="n">🔑</div><p><span class="en">Redis also saves by itself from time to time, but you can't count on the latest changes being saved. Use <code>docker stop</code> first.</span><span class="fa">Redis هر از گاهی خودش هم ذخیره می‌کند، اما نمی‌شود روی ذخیره شدن آخرین تغییرات حساب کرد. اول از <code>docker stop</code> استفاده کنید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 11 · DELETE THE VOLUME ======================= -->
+<section class="slide" data-title-en="Delete the volume" data-title-fa="حذف volume">
+  <div class="kicker a"><span class="en">Step 7</span><span class="fa">قدم ۷</span></div>
+  <h2><span class="en split">Delete <span class="hl">the volume</span></span><span class="fa split">حذف <span class="hl">volume</span></span></h2>
+  <div style="display:grid;grid-template-columns:900px 1fr;gap:30px;margin-top:24px;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="term sm a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run" data-step="1"><div class="cmd">docker volume rm redisdata</div><pre class="out">
+<span class="err">Error response from daemon: remove redisdata: volume is in use - [73dbe5f93b9c…]</span></pre></div>
+          <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Stop and delete cache first." data-task-fa="👉 اول cache را متوقف و حذف کنید."><div class="cmd">docker stop cache</div><pre class="out">
+cache</pre></div>
+          <div class="run recall nohint" data-step="3" data-reveal="4"><div class="cmd">docker rm cache</div><pre class="out">
+cache</pre></div>
+          <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 Now delete the volume, then list the volumes to check." data-task-fa="👉 حالا volume را حذف کنید، بعد volumeها را فهرست کنید تا مطمئن شوید."><div class="cmd">docker volume rm redisdata</div><pre class="out">
+redisdata</pre></div>
+          <div class="run recall nohint" data-step="5" data-reveal="6"><div class="cmd">docker volume ls</div><pre class="out">
+DRIVER    VOLUME NAME</pre></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <svg viewBox="0 0 460 290" class="a blur" style="--d:.5;width:460px;height:290px;overflow:visible">
+        <g class="crash" data-only="0 1 2 3">
+          <g transform="translate(230 70)"><use href="#cube" x="-50" y="-54" width="100" height="100"/></g>
+          <text x="330" y="60" fill="#eef2fb" font-size="17" font-weight="700" font-family="JetBrains Mono,monospace">cache</text>
+          <path d="M230 120V170" stroke="#c4a3ff" stroke-width="4" stroke-dasharray="8 8" class="flow"/>
+        </g>
+        <g class="crash" data-only="0 1 2 3 4 5">
+          <g transform="translate(230 200)"><g transform="scale(1.2)"><use href="#disk" x="-62" y="-24" width="124" height="108"/></g></g>
+          <text x="230" y="210" text-anchor="middle" fill="#1a1030" font-size="17" font-weight="700" font-family="JetBrains Mono,monospace">redisdata</text>
+        </g>
+        <g data-only="1 2">
+          <text x="350" y="220" font-size="44">🔒</text>
+          <text x="360" y="262" text-anchor="middle" fill="#ffb54d" font-size="16" font-weight="700" class="stx en">in use</text>
+          <text direction="rtl" x="360" y="262" text-anchor="middle" fill="#ffb54d" font-size="17" font-weight="700" class="stx fa">در حال استفاده</text>
+        </g>
+        <g data-step="6">
+          <ellipse cx="230" cy="200" rx="74" ry="27" fill="none" stroke="rgba(255,107,107,.5)" stroke-width="2" stroke-dasharray="6 6"/>
+          <path d="M156 200V270A74 27 0 0 0 304 270V200" fill="none" stroke="rgba(255,107,107,.5)" stroke-width="2" stroke-dasharray="6 6"/>
+          <text x="230" y="140" text-anchor="middle" font-size="40">🗑</text>
+          <text x="230" y="250" text-anchor="middle" fill="#ff6b6b" font-size="22" font-weight="700" class="stx en">deleted for good</text>
+          <text direction="rtl" x="230" y="250" text-anchor="middle" fill="#ff6b6b" font-size="23" font-weight="700" class="stx fa">برای همیشه حذف شد</text>
+        </g>
+      </svg>
+      <div class="card sm" data-step="2"><p><span class="en">Docker refuses: <code>cache</code> is still using it. This protects you from deleting a database under a running app.</span><span class="fa">Docker قبول نمی‌کند: <code>cache</code> هنوز از آن استفاده می‌کند. این از شما محافظت می‌کند تا دیتابیس را از زیر پای یک برنامه‌ی در حال اجرا پاک نکنید.</span></p></div>
+      <div class="card sm warn" data-step="6"><div class="n">⚠</div><p><span class="en"><code>docker volume rm</code> deletes the data <b>for good</b>. No undo. Double-check the name.</span><span class="fa"><code>docker volume rm</code> داده‌ها را <b>برای همیشه</b> حذف می‌کند. راه برگشتی نیست. نام را دوباره بررسی کنید.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 12 · COMPARE ======================= -->
+<section class="slide" data-title-en="Bind mount vs named volume" data-title-fa="Bind mount و named volume">
+  <div class="kicker a"><span class="en">Compare</span><span class="fa">مقایسه</span></div>
+  <h2><span class="en split">Bind mount <span class="hl">vs</span> named volume</span><span class="fa split">Bind&nbsp;mount <span class="hl">و</span> named&nbsp;volume</span></h2>
+  <div class="cmpt">
+    <div class="h"></div>
+    <div class="h a" style="--d:.3;color:#ffcf6b"><span class="en">📁 Bind mount (Lesson 8)</span><span class="fa">📁 Bind mount (درس ۸)</span></div>
+    <div class="h a" style="--d:.4;color:#c4a3ff"><span class="en">💽 Named volume (Lesson 9)</span><span class="fa">💽 Named volume (درس ۹)</span></div>
+    <div class="rl" data-step="1"><span class="en">Written as</span><span class="fa">شکل نوشتن</span></div>
+    <div class="bm" data-step="1"><code>-v ~/my-data:/data</code></div>
+    <div class="nv" data-step="1"><code>-v redisdata:/data</code></div>
+    <div class="rl" data-step="2"><span class="en">Data lives</span><span class="fa">داده‌ها کجا هستند</span></div>
+    <div class="bm" data-step="2"><span class="en">a folder you choose on your PC</span><span class="fa">پوشه‌ای که خودتان روی کامپیوتر انتخاب می‌کنید</span></div>
+    <div class="nv" data-step="2"><span class="en">Docker's own storage</span><span class="fa">محل ذخیره‌سازی خود Docker</span></div>
+    <div class="rl" data-step="3"><span class="en">Managed by</span><span class="fa">مدیریت با</span></div>
+    <div class="bm" data-step="3"><span class="en">you (<code>mkdir</code>, <code>ls</code>, editors)</span><span class="fa">شما (<code>mkdir</code>، <code>ls</code>، ویرایشگرها)</span></div>
+    <div class="nv" data-step="3"><span class="en">Docker (<code>docker volume …</code>)</span><span class="fa">Docker (<code>docker volume …</code>)</span></div>
+    <div class="rl" data-step="4"><span class="en">Best for</span><span class="fa">مناسب برای</span></div>
+    <div class="bm" data-step="4"><span class="en">files you want to see and edit</span><span class="fa">فایل‌هایی که می‌خواهید ببینید و ویرایش کنید</span></div>
+    <div class="nv" data-step="4"><span class="en">databases and app data</span><span class="fa">دیتابیس‌ها و داده‌های برنامه</span></div>
+  </div>
+  <p class="lead" data-step="5" style="margin-top:26px;font-size:20px"><span class="en">You can keep the <code>redis:alpine</code> image, or delete it with <code>docker image rm redis:alpine</code> (Lesson 1).</span><span class="fa">می‌توانید ایمیج <code>redis:alpine</code> را نگه دارید، یا با <code>docker image rm redis:alpine</code> حذفش کنید (درس ۱).</span></p>
+</section>
+
+<!-- ======================= 13 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 Your database <span class="hl">remembers!</span></span><span class="fa split">🎉 دیتابیس شما <span class="hl">یادش می‌ماند!</span></span></h2>
+  <div class="sumgrid">
+    <div class="card a" style="--d:.4"><code>-v NAME:CONTAINER_FOLDER</code><p><span class="en">Use a named volume (created automatically if missing)</span><span class="fa">استفاده از named volume (اگر نباشد خودکار ساخته می‌شود)</span></p></div>
+    <div class="card a" style="--d:.5"><code>docker volume ls</code><p><span class="en">List volumes</span><span class="fa">فهرست volumeها</span></p></div>
+    <div class="card a" style="--d:.6"><code>docker volume inspect NAME</code><p><span class="en">Details, including where the data is stored</span><span class="fa">جزئیات، از جمله محل ذخیره‌ی داده‌ها</span></p></div>
+    <div class="card a" style="--d:.7"><code>docker volume rm NAME</code><p><span class="en">Delete a volume and its data for good (not while in use)</span><span class="fa">حذف volume و داده‌هایش برای همیشه (نه وقتی در حال استفاده است)</span></p></div>
+    <div class="card a" style="--d:.8;grid-column:1/3"><code>docker stop</code><p><span class="en">Stop databases cleanly, so they can save; avoid <code>rm -f</code></span><span class="fa">دیتابیس‌ها را با آرامش متوقف کنید تا ذخیره کنند؛ از <code>rm -f</code> پرهیز کنید</span></p></div>
+  </div>
+  <div class="btnrow a" style="--d:1.1">
+    <a class="bigbtn primary" href="../09-named-volumes.html"><span class="en">✔ Do it yourself: hands-on lesson with checklists</span><span class="fa">✔ خودتان انجام دهید: درس تمرینی با چک‌لیست</span></a>
+    <a class="bigbtn" href="10-live-edit.html"><span class="en">Next: Lesson 10 · Edit live →</span><span class="fa">بعدی: درس ۱۰ · ویرایش زنده ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 13</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
+</div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
+
+<script>
+/* ---------- lesson 9 scenes ---------- */
+window.SCENES = {
+  /* confetti */
+  sum(slide, api) {
+    const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+    const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+    const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+    const stop = api.loop(t => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of P) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+        if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+      }
+    });
+    return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+  }
+};
+</script>
+<script src="../tips.js"></script>
+<script src="deck.js"></script>
+</body>
+</html>

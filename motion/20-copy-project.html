@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 20 · Copy a whole project (motion)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="../docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- shared bits (same as lesson 1) ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:280px}
+  .goal svg{width:96px;height:96px}
+  .goal h3{font-size:26px}
+  .term.sm .body{font-size:17px}
+  .btnrow{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:30px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px}
+  .sumgrid code{font-size:22px;flex:none;min-width:330px;text-align:left}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .svgfa{font-family:Vazirmatn,sans-serif}
+  kbd{font:600 .85em var(--mono);padding:2px 8px;border-radius:6px;border:1px solid rgba(238,242,251,.3);background:rgba(238,242,251,.08);color:var(--text)}
+  .caps{position:relative}
+  .caps>div{position:absolute;inset:0}
+  .caps .n{font:600 14px var(--mono);color:var(--blue2);letter-spacing:.1em;margin-bottom:8px}
+  body.lang-fa .caps .n{font-family:var(--font);letter-spacing:0;font-size:16px}
+  .caps h3{font:700 30px/1.2 var(--display);margin:0 0 10px}
+  .caps p{font-size:21px;line-height:1.55;color:rgba(238,242,251,.84)}
+  /* ---- code editor (a file) ---- */
+  .editor{border-radius:18px;overflow:hidden;background:#0a1020;border:1px solid rgba(110,155,255,.22);box-shadow:0 30px 80px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .editor .bar{display:flex;align-items:center;gap:10px;padding:11px 16px;background:linear-gradient(180deg,#18213a,#111a30);border-bottom:1px solid rgba(110,155,255,.14);font:600 14px var(--mono);color:var(--sky)}
+  .editor .bar::before{content:"📄"}
+  .editor .body{padding:14px 0 16px;font:500 21px/1.75 var(--mono);color:#dfe6f5;counter-reset:ln}
+  .editor .ln{display:block;white-space:pre;padding-right:20px;transition:background .4s,box-shadow .4s,opacity .6s var(--ease),transform .7s var(--ease),filter .6s}
+  .editor .ln::before{counter-increment:ln;content:counter(ln);display:inline-block;width:50px;padding-right:18px;text-align:right;color:#4b5873}
+  .editor .ln.hot{background:rgba(110,155,255,.16);box-shadow:inset 4px 0 0 var(--blue2)}
+  .kw{color:#ff7aa8;font-weight:600}.pa{color:#7fd8a6}.sv{color:#ffcf6b}
+  /* ---- browser ---- */
+  .browser{border-radius:14px;overflow:hidden;background:#fbfcff;box-shadow:0 30px 70px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .browser .bar{display:flex;align-items:center;gap:7px;padding:10px 14px;background:#e3e7f0}
+  .browser .bar i{width:11px;height:11px;border-radius:50%;background:#ff5f57}.browser .bar i:nth-child(2){background:#febc2e}.browser .bar i:nth-child(3){background:#28c840}
+  .browser .bar span{margin-left:10px;flex:1;padding:5px 12px;border-radius:8px;background:#fff;font:500 15px var(--mono);color:#3a4256}
+  .browser .page{position:relative;height:120px;padding:24px 28px;color:#111}
+  .browser .page h1{font:700 38px/1.2 "Times New Roman",Times,serif}
+  .browser .page>[data-only]{position:absolute;left:28px;top:24px}
+  .stamp2{display:inline-block;font:800 30px var(--display);color:var(--red);border:4px solid var(--red);border-radius:12px;padding:4px 16px;transform:rotate(-6deg)}
+  .stamp2[data-step]{transform:scale(2) rotate(-14deg);filter:none}
+  .stamp2[data-step].in{transform:rotate(-6deg);transition:transform .45s cubic-bezier(.5,1.8,.6,1),opacity .2s}
+  /* ---- lesson 20 ---- */
+  :not(pre)>code{white-space:nowrap}
+  .drop[data-step]{transform:translateY(-140px)}
+  .drop[data-step].in{transform:none;transition:transform .8s cubic-bezier(.34,1.4,.64,1),opacity .4s,filter .4s}
+  .browser.err{box-shadow:0 0 0 3px var(--red),0 30px 70px rgba(255,107,107,.25)}
+  .browser .page p{font:500 17px/1.5 "Times New Roman",serif}
+  .browser .page .mono{font:600 19px/1.6 var(--mono);color:#b3261e}
+  .newb{display:inline-block;font:700 13px var(--font);letter-spacing:.08em;color:#0b1224;background:var(--green);border-radius:6px;padding:2px 8px;margin-inline-end:8px;vertical-align:middle}
+  .card.warn{border-color:rgba(255,107,107,.45);background:linear-gradient(160deg,rgba(60,16,20,.75),rgba(20,10,12,.8))}
+  .card.warn .n{color:var(--red)}
+  .term .body .bad{color:#ff8a8a;font-weight:600}
+  .plainout{white-space:pre;color:#a8b3c9;font:500 18px/1.6 var(--mono)}
+</style>
+</head>
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
+
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="folder" viewBox="0 0 120 96" overflow="visible">
+      <path d="M4 14a8 8 0 0 1 8-8h30l10 10h56a8 8 0 0 1 8 8v8H4z" fill="#d79a22"/>
+      <rect x="4" y="26" width="112" height="66" rx="8" fill="#ffcf6b"/>
+    </symbol>
+    <symbol id="file" viewBox="0 0 60 76" overflow="visible">
+      <path d="M4 4h36l16 16v52H4z" fill="#eef2fb"/><path d="M40 4v16h16" fill="#b9c4dc"/>
+      <path d="M14 34h32M14 44h32M14 54h22" stroke="#93a0bb" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="monitor" viewBox="0 0 200 170"><rect x="4" y="4" width="192" height="122" rx="14" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M80 126l-8 30h56l-8-30" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M56 158h88" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"/></symbol>
+
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="../index.html"><img src="../docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <a class="pill" href="../20-copy-project.html"><span class="en">✔ Hands-on version</span><span class="fa">✔ نسخه‌ی تمرینی</span></a>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
+</header>
+
+<div id="viewport"><div id="stage">
+
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 20 — Copy a whole project" data-title-fa="درس ۲۰ — کپی کل پروژه" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 20</span><span class="fa">دوره‌ی Docker · درس ۲۰</span></div>
+    <h1 style="font-size:110px;line-height:1.05;margin:26px 0 26px">
+      <span class="en split">Copy a <span class="hl">whole project</span></span><span class="fa split">کپی <span class="hl">کل پروژه</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en"><code>COPY . .</code> copies the <b>whole folder</b>. Convenient, and dangerous: it copies <b>everything</b>, secrets included.</span><span class="fa"><code>COPY . .</code> <b>کل پوشه</b> را کپی می‌کند. راحت است، و خطرناک: <b>همه‌چیز</b> را کپی می‌کند، حتی رمزها را.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:700px;height:620px;overflow:visible;direction:ltr" viewBox="0 0 700 620">
+    <circle cx="350" cy="310" r="290" fill="none" stroke="rgba(110,155,255,.14)" stroke-dasharray="4 10"/>
+    <use href="#folder" x="30" y="220" width="200" height="160"/>
+    <text x="130" y="420" text-anchor="middle" fill="#eef2fb" font-size="18" font-family="JetBrains Mono,monospace">~/site-app</text>
+    <!-- shield -->
+    <g transform="translate(380 300)">
+      <path d="M0-90l60 22v50c0 46-28 78-60 96c-32-18-60-50-60-96v-50z" fill="rgba(60,207,127,.14)" stroke="#3ccf7f" stroke-width="3"/>
+      <text x="0" y="135" text-anchor="middle" fill="#7fd8a6" font-size="17" font-weight="600" font-family="JetBrains Mono,monospace">.dockerignore</text>
+    </g>
+    <!-- image -->
+    <g class="bob"><g transform="translate(580 330) scale(1.3)">
+      <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+      <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/>
+    </g></g>
+    <text x="580" y="460" text-anchor="middle" fill="#eef2fb" font-size="18" font-family="JetBrains Mono,monospace">site-app</text>
+    <!-- good files pass -->
+    <g><animateTransform attributeName="transform" type="translate" values="0 0;440 30" dur="2.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="2.6s" repeatCount="indefinite"/>
+      <g transform="translate(120 250)"><use href="#file" width="40" height="50"/></g></g>
+    <g><animateTransform attributeName="transform" type="translate" values="0 0;440 40" dur="2.6s" begin=".9s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="2.6s" begin=".9s" repeatCount="indefinite"/>
+      <g transform="translate(120 290)"><use href="#file" width="40" height="50"/></g></g>
+    <!-- the secret bounces -->
+    <g><animateTransform attributeName="transform" type="translate" values="0 0;190 0;150 30;150 30" keyTimes="0;.45;.7;1" dur="2.6s" begin="1.7s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.75;1" dur="2.6s" begin="1.7s" repeatCount="indefinite"/>
+      <g transform="translate(110 300)"><rect width="56" height="40" rx="8" fill="#2a0f14" stroke="#ff6b6b" stroke-width="2"/><text x="28" y="27" text-anchor="middle" font-size="20">🔑</text></g></g>
+    <text x="350" y="560" text-anchor="middle" fill="#93a0bb" font-family="JetBrains Mono,monospace" font-size="20" letter-spacing="2">COPY . .</text>
+  </svg>
+</section>
+
+<!-- ======================= 2 · GOALS ======================= -->
+<section class="slide" data-title-en="What you'll do" data-title-fa="در این درس">
+  <div class="kicker a"><span class="en">Lesson 20 · Copy a whole project</span><span class="fa">درس ۲۰ · کپی کل پروژه</span></div>
+  <h2><span class="en split">In this lesson, <span class="hl">four steps</span></span><span class="fa split">در این درس، <span class="hl">چهار قدم</span></span></h2>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:46px">
+    <div class="card goal a" style="--d:.3">
+      <svg viewBox="0 0 100 100"><use href="#folder" x="10" y="18" width="80" height="64"/><text x="50" y="72" text-anchor="middle" font-size="18" font-weight="700" fill="#6b4a0a" font-family="JetBrains Mono,monospace">. .</text></svg>
+      <div class="n">01</div><h3><span class="en">Copy the whole folder</span><span class="fa">کپی کل پوشه</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.45">
+      <svg viewBox="0 0 100 100"><rect x="18" y="26" width="64" height="48" rx="8" fill="#2a0f14" stroke="#ff6b6b" stroke-width="4"/><text x="50" y="60" text-anchor="middle" font-size="26">🔑</text></svg>
+      <div class="n">02</div><h3><span class="en">Find the leaked secret</span><span class="fa">پیدا کردن رمزِ لو رفته</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.6">
+      <svg viewBox="0 0 100 100"><path d="M50 10l34 12v26c0 24-16 40-34 48c-18-8-34-24-34-48V22z" fill="rgba(60,207,127,.15)" stroke="#3ccf7f" stroke-width="4"/><path d="M36 50l10 10 18-20" fill="none" stroke="#3ccf7f" stroke-width="5" stroke-linecap="round"/></svg>
+      <div class="n">03</div><h3><span class="en">Fix it with <code>.dockerignore</code></span><span class="fa">درست کردن با <code>.dockerignore</code></span></h3>
+    </div>
+    <div class="card goal a" style="--d:.75">
+      <svg viewBox="0 0 100 100" fill="none" stroke-width="5" stroke-linecap="round"><rect x="12" y="30" width="34" height="40" rx="6" stroke="#6e9bff"/><text x="29" y="56" text-anchor="middle" font-size="13" fill="#6e9bff" stroke="none" font-weight="700">8000</text><rect x="54" y="30" width="34" height="40" rx="6" stroke="#ffb54d"/><text x="71" y="56" text-anchor="middle" font-size="13" fill="#ffb54d" stroke="none" font-weight="700">ENV</text></svg>
+      <div class="n">04</div><h3><span class="en"><code>EXPOSE</code> and <code>ENV</code></span><span class="fa"><code>EXPOSE</code> و <code>ENV</code></span></h3>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:26px">
+    <div class="card a" style="--d:1"><p><span class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</span><span class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</span></p></div>
+    <div class="card a" style="--d:1.15"><p><span class="en">🖱 Hover over any part of a command to see what it does.</span><span class="fa">🖱 نشانگر ماوس را روی هر بخش از دستور ببرید تا توضیحش را ببینید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 3 · PROJECT ======================= -->
+<section class="slide" data-title-en="A small project, with a secret" data-title-fa="یک پروژه‌ی کوچک، با یک راز">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">A small project, <span class="hl">with a secret</span></span><span class="fa split">یک پروژه‌ی کوچک، <span class="hl">با یک راز</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 480px;gap:28px;margin-top:24px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="term sm a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Make a project folder called site-app in your home folder." data-task-fa="👉 یک پوشه‌ی پروژه به نام site-app در پوشه‌ی خانه‌تان بسازید."><div class="cmd">mkdir ~/site-app</div></div>
+          <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Go into it." data-task-fa="👉 واردش شوید."><div class="cmd">cd ~/site-app</div></div>
+          <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 Create index.html with &lt;h1&gt;My site&lt;/h1&gt; (Lesson 6)." data-task-fa="👉 index.html را با &lt;h1&gt;My site&lt;/h1&gt; بسازید (درس ۶)."><div class="cmd">echo '&lt;h1&gt;My site&lt;/h1&gt;' &gt; index.html</div></div>
+          <div class="run recall" data-step="7" data-reveal="8" data-task-en="👉 Create about.html with &lt;h1&gt;About us&lt;/h1&gt;." data-task-fa="👉 about.html را با &lt;h1&gt;About us&lt;/h1&gt; بسازید." style="margin:0"><div class="cmd">echo '&lt;h1&gt;About us&lt;/h1&gt;' &gt; about.html</div></div>
+        </div>
+      </div>
+      <p data-step="9" style="font-size:20px"><span class="en">Real projects also keep secrets next to the code, like the env file from Lesson 11. Create <code>db.env</code> with <code>nano</code>:</span><span class="fa">پروژه‌های واقعی رمزها را هم کنار کد نگه می‌دارند، مثل env file درس ۱۱. با <code>nano</code> فایل <code>db.env</code> را بسازید:</span></p>
+      <div class="editor" data-step="9">
+        <div class="bar">db.env</div>
+        <div class="body" style="font-size:19px">
+          <div class="ln">POSTGRES_USER=ali</div>
+          <div class="ln">POSTGRES_PASSWORD=<span style="color:var(--red)">secret</span></div>
+          <div class="ln">POSTGRES_DB=shop</div>
+        </div>
+      </div>
+    </div>
+    <div class="card a" style="--d:.5;align-self:start;padding:18px 22px">
+      <div class="n">~/site-app</div>
+      <svg viewBox="0 0 430 330" style="width:100%;height:330px;direction:ltr">
+        <use href="#folder" x="60" y="20" width="310" height="248" opacity=".25"/>
+        <g data-step="6" class="pop-in"><g transform="translate(55 100)"><use href="#file" width="60" height="76"/></g><text x="85" y="205" text-anchor="middle" fill="#eef2fb" font-size="16" font-family="JetBrains Mono,monospace">index.html</text></g>
+        <g data-step="8" class="pop-in"><g transform="translate(175 100)"><use href="#file" width="60" height="76"/></g><text x="205" y="205" text-anchor="middle" fill="#eef2fb" font-size="16" font-family="JetBrains Mono,monospace">about.html</text></g>
+        <g data-step="9" class="pop-in"><g transform="translate(295 100)"><use href="#file" width="60" height="76"/><text x="30" y="58" text-anchor="middle" font-size="24">🔑</text></g><text x="325" y="205" text-anchor="middle" fill="#ff8a8a" font-size="16" font-weight="600" font-family="JetBrains Mono,monospace">db.env</text>
+          <circle cx="350" cy="100" r="16" fill="none" stroke="#ff6b6b" stroke-width="2" class="ripple"/></g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 4 · DOCKERFILE ======================= -->
+<section class="slide" data-scene="hot" data-title-en="COPY . . and EXPOSE" data-title-fa="COPY . . و EXPOSE">
+  <div class="kicker a"><span class="en">Step 2</span><span class="fa">قدم ۲</span></div>
+  <h2><span class="en split"><span class="hl">COPY&nbsp;.&nbsp;.</span> and <span class="hl">EXPOSE</span></span><span class="fa split"><span class="hl">COPY&nbsp;.&nbsp;.</span> و <span class="hl">EXPOSE</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:8px;font-size:21px"><span class="en">Create <code>Dockerfile</code> with <code>nano</code>:</span><span class="fa">با <code>nano</code> فایل <code>Dockerfile</code> را بسازید:</span></p>
+  <div style="display:grid;grid-template-columns:1fr 540px;gap:26px;margin-top:16px">
+    <div style="display:flex;flex-direction:column;gap:22px">
+      <div class="editor a" style="--d:.5">
+        <div class="bar">Dockerfile</div>
+        <div class="body">
+          <div class="ln"><span class="kw">FROM</span> python:3.13-slim</div>
+          <div class="ln"><span class="kw">WORKDIR</span> <span class="pa">/app</span></div>
+          <div class="ln" data-hot="1"><span class="kw">COPY</span> . .</div>
+          <div class="ln" data-hot="2"><span class="kw">EXPOSE</span> 8000</div>
+          <div class="ln" data-hot="3"><span class="kw">CMD</span> [<span class="sv">"python"</span>, <span class="sv">"-m"</span>, <span class="sv">"http.server"</span>, <span class="sv">"8000"</span>]</div>
+        </div>
+      </div>
+      <div class="caps" style="height:150px">
+        <div data-only="1"><div class="n"><span dir="ltr">COPY . .</span></div><p><span class="newb"><span class="en">NEW</span><span class="fa">جدید</span></span><span class="en">Copy <b>everything</b> in this folder (the first <code>.</code>) into the <code>WORKDIR</code> (the second <code>.</code>).</span><span class="fa"><b>همه‌چیزِ</b> این پوشه (<code>.</code> اول) را به <code>WORKDIR</code> (<code>.</code> دوم) کپی کن.</span></p></div>
+        <div data-only="2"><div class="n"><span dir="ltr">EXPOSE 8000</span></div><p><span class="newb"><span class="en">NEW</span><span class="fa">جدید</span></span><span class="en">Document that the app listens on port 8000. It does <b>not</b> publish the port: you still need <code>-p</code> (Lesson 4).</span><span class="fa">مستند می‌کند که برنامه روی پورت 8000 گوش می‌دهد. پورت را منتشر <b>نمی‌کند</b>: هنوز به <code>-p</code> نیاز دارید (درس ۴).</span></p></div>
+        <div data-only="3"><div class="n"><span dir="ltr">python -m http.server 8000</span></div><p><span class="en">Python's built-in web server: it serves the files of the current folder on port 8000.</span><span class="fa">وب‌سرور داخلی Python: فایل‌های پوشه‌ی فعلی را روی پورت 8000 سرو می‌کند.</span></p></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 540 480" style="width:540px;height:480px;overflow:visible;direction:ltr">
+      <g data-only="1">
+        <use href="#folder" x="10" y="140" width="190" height="152"/>
+        <g transform="translate(105 100)"><circle r="26" fill="#ffcf6b"/><circle r="5" cy="6" fill="#2a2418"/><text x="40" y="8" fill="#ffcf6b" font-size="16" font-family="Inter,sans-serif" class="en">1st</text><text x="40" y="8" fill="#ffcf6b" font-size="17" class="fa svgfa">اول</text></g>
+        <text x="105" y="325" text-anchor="middle" fill="#eef2fb" font-size="16" font-family="JetBrains Mono,monospace">~/site-app</text>
+        <path d="M210 220H330" stroke="#3ccf7f" stroke-width="3" class="flow"/><path d="M322 210l12 10-12 10" fill="none" stroke="#3ccf7f" stroke-width="3"/>
+        <circle r="7" fill="#3ccf7f"><animateMotion dur="1.1s" repeatCount="indefinite" path="M210 220H330"/></circle>
+        <g transform="translate(440 230)"><use href="#slab" x="-90" y="-20" width="180" height="125" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/><use href="#slab" x="-90" y="-58" width="180" height="125" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/></g>
+        <g transform="translate(440 100)"><circle r="26" fill="#3ccf7f"/><circle r="5" cy="6" fill="#0b1224"/><text x="40" y="8" fill="#7fd8a6" font-size="16" font-family="Inter,sans-serif" class="en">2nd</text><text x="40" y="8" fill="#7fd8a6" font-size="17" class="fa svgfa">دوم</text></g>
+        <text x="440" y="375" text-anchor="middle" fill="#eef2fb" font-size="16" font-family="JetBrains Mono,monospace">/app</text>
+        <text x="270" y="440" text-anchor="middle" fill="#93a0bb" font-size="18" font-family="Inter,sans-serif" class="en">everything → into the image</text>
+        <text x="270" y="440" text-anchor="middle" fill="#93a0bb" font-size="19" class="fa svgfa">همه‌چیز ← داخل ایمیج</text>
+      </g>
+      <g data-only="2">
+        <g transform="translate(270 220)"><use href="#cube" x="-90" y="-100" width="180" height="180"/></g>
+        <g transform="translate(330 120)"><rect x="0" y="0" width="120" height="44" rx="10" fill="#0d1426" stroke="#6e9bff" stroke-width="2"/><text x="60" y="29" text-anchor="middle" fill="#a9c4ff" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">8000</text><path d="M20 44V70" stroke="#6e9bff" stroke-width="2"/></g>
+        <text x="270" y="380" text-anchor="middle" fill="#93a0bb" font-size="18" font-family="Inter,sans-serif" class="en">a label, not a cable</text>
+        <text x="270" y="380" text-anchor="middle" fill="#93a0bb" font-size="19" class="fa svgfa">یک برچسب، نه یک کابل</text>
+      </g>
+      <g data-only="3">
+        <rect x="70" y="120" width="400" height="230" rx="16" fill="#fbfcff"/>
+        <rect x="70" y="120" width="400" height="40" rx="16" fill="#e3e7f0"/><rect x="70" y="146" width="400" height="14" fill="#e3e7f0"/>
+        <text x="100" y="147" fill="#3a4256" font-size="15" font-family="JetBrains Mono,monospace">:8000</text>
+        <g font-family="JetBrains Mono,monospace" font-size="18" fill="#1a1d28"><text x="100" y="205">📄 about.html</text><text x="100" y="240">📄 index.html</text><text x="100" y="275">📄 …</text></g>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================= 5 · BUILD + RUN ======================= -->
+<section class="slide" data-title-en="Build and run" data-title-fa="ساخت و اجرا">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Build and <span class="hl">run</span></span><span class="fa split">ساخت و <span class="hl">اجرا</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash · ~/site-app</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Build the image site-app." data-task-fa="👉 ایمیج site-app را بسازید."><div class="cmd">docker build -t site-app .</div></div>
+      <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Run it in the background, named site, with port 8080 on your PC → 8000 in the container." data-task-fa="👉 آن را در پس‌زمینه با نام site اجرا کنید، با پورت 8080 کامپیوتر شما ← 8000 کانتینر." style="margin:0"><div class="cmd">docker run -d --name site -p 8080:8000 site-app</div></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:680px 1fr;gap:30px;margin-top:26px;align-items:center">
+    <svg viewBox="0 0 680 240" style="width:680px;height:240px;overflow:visible;direction:ltr" data-step="4">
+      <use href="#monitor" x="10" y="20" width="220" height="187"/>
+      <text x="120" y="96" text-anchor="middle" fill="#eef2fb" font-size="17" font-family="Inter,sans-serif" class="en">Your PC</text>
+      <text x="120" y="96" text-anchor="middle" fill="#eef2fb" font-size="18" class="fa svgfa">کامپیوتر شما</text>
+      <rect x="160" y="110" width="80" height="36" rx="8" fill="#0d1426" stroke="#ffb54d" stroke-width="2"/><text x="200" y="134" text-anchor="middle" fill="#ffb54d" font-size="17" font-weight="700" font-family="JetBrains Mono,monospace">8080</text>
+      <path d="M240 128H440" stroke="#ffb54d" stroke-width="4"/>
+      <circle r="7" fill="#ffb54d"><animateMotion dur="1.2s" repeatCount="indefinite" path="M240 128H440"/></circle>
+      <rect x="440" y="110" width="80" height="36" rx="8" fill="#0d1426" stroke="#6e9bff" stroke-width="2"/><text x="480" y="134" text-anchor="middle" fill="#a9c4ff" font-size="17" font-weight="700" font-family="JetBrains Mono,monospace">8000</text>
+      <g transform="translate(600 130)"><use href="#cube" x="-70" y="-80" width="140" height="140"/><circle cx="54" cy="-66" r="8" fill="#3ccf7f" class="pulse"/></g>
+      <text x="600" y="232" text-anchor="middle" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">site</text>
+    </svg>
+    <div class="browser" data-step="5"><div class="bar"><i></i><i></i><i></i><span>localhost:8080</span></div><div class="page"><h1>My site</h1></div></div>
+  </div>
+</section>
+
+<!-- ======================= 6 · WHAT DOES EXPOSE DO ======================= -->
+<section class="slide" data-title-en="So what does EXPOSE do?" data-title-fa="پس EXPOSE چه کار می‌کند؟">
+  <div class="kicker a"><span class="en">Step 3 · A question</span><span class="fa">قدم ۳ · یک سؤال</span></div>
+  <h2><span class="en split">❓ So what does <span class="hl">EXPOSE</span> do?</span><span class="fa split">❓ پس <span class="hl">EXPOSE</span> چه کار می‌کند؟</span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">It's a note for people and tools. Run the image <b>without</b> <code>-p</code> and <code>docker ps</code> still shows the port in <code>PORTS</code>, just not published:</span><span class="fa">یک یادداشت برای آدم‌ها و ابزارهاست. ایمیج را <b>بدون</b> <code>-p</code> اجرا کنید؛ <code>docker ps</code> باز هم پورت را در <code>PORTS</code> نشان می‌دهد، فقط منتشرنشده:</span></p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:24px">
+    <div class="card" data-step="1">
+      <div class="n"><span class="en">WITHOUT <code>-p</code></span><span class="fa">بدون <code>-p</code></span></div>
+      <svg viewBox="0 0 600 190" style="width:100%;height:190px;direction:ltr">
+        <use href="#monitor" x="10" y="20" width="160" height="136"/>
+        <path d="M180 90H360" stroke="rgba(238,242,251,.25)" stroke-width="3" stroke-dasharray="6 8"/>
+        <g transform="translate(270 90)"><circle r="16" fill="#2a0f14" stroke="#ff6b6b" stroke-width="2"/><path d="M-6-6l12 12M6-6l-12 12" stroke="#ff6b6b" stroke-width="2.5"/></g>
+        <g transform="translate(470 100)"><use href="#cube" x="-60" y="-70" width="120" height="120"/></g>
+        <rect x="470" y="10" width="110" height="36" rx="8" fill="#0d1426" stroke="#6e9bff" stroke-width="2"/><text x="525" y="34" text-anchor="middle" fill="#a9c4ff" font-size="16" font-weight="700" font-family="JetBrains Mono,monospace">8000/tcp</text>
+      </svg>
+      <div class="term" style="margin-top:6px"><div class="body" style="padding:12px 18px"><div class="plainout">PORTS
+8000/tcp</div></div></div>
+    </div>
+    <div class="card tip" data-step="2">
+      <div class="n"><span class="en">WITH <code>-p 8080:8000</code></span><span class="fa">با <code>-p 8080:8000</code></span></div>
+      <svg viewBox="0 0 600 190" style="width:100%;height:190px;direction:ltr">
+        <use href="#monitor" x="10" y="20" width="160" height="136"/>
+        <path d="M180 90H400" stroke="#ffb54d" stroke-width="4"/>
+        <circle r="7" fill="#ffb54d"><animateMotion dur="1.2s" repeatCount="indefinite" path="M180 90H400"/></circle>
+        <g transform="translate(470 100)"><use href="#cube" x="-60" y="-70" width="120" height="120"/></g>
+        <text x="290" y="70" text-anchor="middle" fill="#ffb54d" font-size="17" font-weight="700" font-family="JetBrains Mono,monospace">8080 → 8000</text>
+      </svg>
+      <p style="margin-top:6px"><span class="en">Only <code>-p</code> really connects a port on your PC (Lesson 4).</span><span class="fa">فقط <code>-p</code> واقعاً یک پورت کامپیوتر شما را وصل می‌کند (درس ۴).</span></p>
+    </div>
+  </div>
+  <div class="card key" data-step="3" style="margin-top:20px"><div class="n">🔑 nginx</div><p><span class="en">That's why nginx showed <code>80/tcp</code> in Lesson 3: its Dockerfile has <code>EXPOSE 80</code> (you saw it in <code>docker history</code>, Lesson 16).</span><span class="fa">برای همین nginx در درس ۳ <code>80/tcp</code> را نشان داد: Dockerfile آن <code>EXPOSE 80</code> دارد (آن را در <code>docker history</code>، درس ۱۶ دیدید).</span></p></div>
+</section>
+
+<!-- ======================= 7 · WHAT GOT COPIED ======================= -->
+<section class="slide" data-title-en="What got copied?" data-title-fa="چه چیزی کپی شد؟">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">What got <span class="hl">copied?</span></span><span class="fa split">چه چیزی <span class="hl">کپی شد؟</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:24px">
+    <div class="term sm a" style="--d:.4;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 List ALL files in the image's /app: run ls -a in a new container from site-app, and delete it afterwards (Lesson 7)." data-task-fa="👉 همه‌ی فایل‌های /app در ایمیج را فهرست کنید: ls -a را در یک کانتینر جدید از site-app اجرا کنید و بعد حذفش کنید (درس ۷)." style="margin:0"><div class="cmd">docker run --rm site-app ls -a</div><pre class="out">
+.
+..
+Dockerfile
+about.html
+<span class="bad">db.env</span>          <span class="c"># ← your secret, inside the image!</span>
+index.html</pre></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <p data-step="3" style="font-size:20px"><span class="en">Worse: the web server serves <b>every</b> file in the folder. Open <code>localhost:8080/db.env</code>:</span><span class="fa">بدتر: وب‌سرور <b>همه‌ی</b> فایل‌های پوشه را سرو می‌کند. <code>localhost:8080/db.env</code> را باز کنید:</span></p>
+      <div class="browser err" data-step="3"><div class="bar"><i></i><i></i><i></i><span>localhost:8080/db.env</span></div><div class="page" style="height:130px"><div class="mono">POSTGRES_USER=ali<br>POSTGRES_PASSWORD=secret<br>POSTGRES_DB=shop</div></div></div>
+      <div class="card warn" data-step="4"><div class="n">😱</div><p style="font-size:18px"><span class="en">Anyone who can open your site can read your database password. And anyone who gets your <b>image</b> can read it too, even if you never run it.</span><span class="fa">هر کسی که بتواند سایت شما را باز کند، رمز دیتابیس شما را می‌خواند. و هر کسی که <b>ایمیج</b> شما را داشته باشد هم می‌تواند آن را بخواند، حتی اگر هیچ‌وقت اجرایش نکنید.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 8 · .dockerignore ======================= -->
+<section class="slide" data-title-en="Keep files out with .dockerignore" data-title-fa="بیرون نگه داشتن فایل‌ها با .dockerignore">
+  <div class="kicker a"><span class="en">Step 5</span><span class="fa">قدم ۵</span></div>
+  <h2><span class="en split">Keep files out: <span class="hl">.dockerignore</span></span><span class="fa split">بیرون نگه داشتن فایل‌ها: <span class="hl">.dockerignore</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:8px;font-size:21px"><span class="en">A file named <code>.dockerignore</code> lists files that <code>docker build</code> must <b>never</b> see, so <code>COPY</code> can't copy them. Create it with <code>nano</code> (the name starts with a dot):</span><span class="fa">فایلی به نام <code>.dockerignore</code> فایل‌هایی را فهرست می‌کند که <code>docker build</code> <b>هرگز</b> نباید ببیند، پس <code>COPY</code> نمی‌تواند کپی‌شان کند. با <code>nano</code> بسازیدش (نامش با نقطه شروع می‌شود):</span></p>
+  <div style="display:grid;grid-template-columns:460px 1fr;gap:28px;margin-top:20px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="editor a" style="--d:.5">
+        <div class="bar">.dockerignore</div>
+        <div class="body">
+          <div class="ln" data-step="1">db.env</div>
+          <div class="ln" data-step="2">Dockerfile</div>
+          <div class="ln" data-step="2">.dockerignore</div>
+        </div>
+      </div>
+      <p data-step="2" style="font-size:19px"><span class="en">One name per line. <code>Dockerfile</code> and <code>.dockerignore</code> are only needed for building, so they don't belong in the image either.</span><span class="fa">در هر خط یک نام. <code>Dockerfile</code> و <code>.dockerignore</code> فقط برای ساختن لازم‌اند، پس جایشان در ایمیج هم نیست.</span></p>
+    </div>
+    <svg viewBox="0 0 820 420" style="width:820px;height:420px;overflow:visible;direction:ltr" data-step="3">
+      <use href="#folder" x="0" y="120" width="180" height="144"/>
+      <text x="90" y="290" text-anchor="middle" fill="#eef2fb" font-size="16" font-family="JetBrains Mono,monospace">~/site-app</text>
+      <!-- gate -->
+      <g transform="translate(420 200)">
+        <path d="M0-150l70 26v70c0 70-34 118-70 140c-36-22-70-70-70-140v-70z" fill="rgba(60,207,127,.1)" stroke="#3ccf7f" stroke-width="3"/>
+        <text x="0" y="6" text-anchor="middle" fill="#7fd8a6" font-size="15" font-weight="600" font-family="JetBrains Mono,monospace">.dockerignore</text>
+      </g>
+      <g transform="translate(700 210)"><use href="#slab" x="-90" y="-20" width="180" height="125" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/><use href="#slab" x="-90" y="-58" width="180" height="125" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/></g>
+      <text x="700" y="340" text-anchor="middle" fill="#eef2fb" font-size="16" font-family="JetBrains Mono,monospace">site-app</text>
+      <!-- passing files -->
+      <g font-family="JetBrains Mono,monospace" font-size="15">
+        <g><animateTransform attributeName="transform" type="translate" values="0 0;520 30" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="3s" repeatCount="indefinite"/>
+          <rect x="120" y="130" width="120" height="30" rx="7" fill="#0d1426" stroke="#3ccf7f"/><text x="180" y="150" text-anchor="middle" fill="#7fd8a6">index.html</text></g>
+        <g><animateTransform attributeName="transform" type="translate" values="0 0;520 20" dur="3s" begin="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="3s" begin="1.5s" repeatCount="indefinite"/>
+          <rect x="120" y="170" width="120" height="30" rx="7" fill="#0d1426" stroke="#3ccf7f"/><text x="180" y="190" text-anchor="middle" fill="#7fd8a6">about.html</text></g>
+        <!-- blocked files -->
+        <g><animateTransform attributeName="transform" type="translate" values="0 0;180 0;120 60;120 60" keyTimes="0;.4;.7;1" dur="3s" begin=".7s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.75;1" dur="3s" begin=".7s" repeatCount="indefinite"/>
+          <rect x="120" y="210" width="120" height="30" rx="7" fill="#2a0f14" stroke="#ff6b6b"/><text x="180" y="230" text-anchor="middle" fill="#ff8a8a">db.env 🔑</text></g>
+        <g><animateTransform attributeName="transform" type="translate" values="0 0;180 0;120 70;120 70" keyTimes="0;.4;.7;1" dur="3s" begin="2.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.75;1" dur="3s" begin="2.2s" repeatCount="indefinite"/>
+          <rect x="120" y="250" width="120" height="30" rx="7" fill="#2a0f14" stroke="#ff6b6b"/><text x="180" y="270" text-anchor="middle" fill="#ff8a8a">Dockerfile</text></g>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================= 9 · REBUILD + CHECK ======================= -->
+<section class="slide" data-title-en="Rebuild and check" data-title-fa="ساخت دوباره و بررسی">
+  <div class="kicker a"><span class="en">Step 5 · Check</span><span class="fa">قدم ۵ · بررسی</span></div>
+  <h2><span class="en split">Rebuild and <span class="hl">check</span></span><span class="fa split">ساخت دوباره و <span class="hl">بررسی</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 520px;gap:26px;margin-top:22px">
+    <div class="term sm a" style="--d:.4;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash · ~/site-app</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Rebuild the image." data-task-fa="👉 ایمیج را دوباره بسازید."><div class="cmd">docker build -t site-app .</div></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Delete site in one command." data-task-fa="👉 site را با یک دستور حذف کنید."><div class="cmd">docker rm -f site</div></div>
+        <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 Run it again (step 3)." data-task-fa="👉 دوباره اجرایش کنید (قدم ۳)."><div class="cmd">docker run -d --name site -p 8080:8000 site-app</div></div>
+        <div class="run recall" data-step="7" data-reveal="8" data-task-en="👉 Check what's inside now (step 4)." data-task-fa="👉 ببینید حالا داخلش چیست (قدم ۴)." style="margin:0"><div class="cmd">docker run --rm site-app ls -a</div><pre class="out">
+.
+..
+about.html
+index.html</pre></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="browser" data-step="9"><div class="bar"><i></i><i></i><i></i><span>localhost:8080/db.env ⟳</span></div><div class="page" style="height:130px"><h1 style="font-size:30px">Error response</h1><p>Error code: 404 · Message: File not found.</p></div></div>
+      <div class="card key" data-step="10"><div class="n">🔑</div><p style="font-size:18px"><span class="en">Whenever you use <code>COPY . .</code>, add a <code>.dockerignore</code>. Put in it: secrets (<code>.env</code> files), <code>.git</code>, caches and anything else the app doesn't need. It's like <code>.gitignore</code>, but for images.</span><span class="fa">هر وقت از <code>COPY . .</code> استفاده می‌کنید، یک <code>.dockerignore</code> اضافه کنید. داخلش بگذارید: رمزها (فایل‌های <code>.env</code>)، <code>.git</code>، cacheها و هر چیز دیگری که برنامه لازم ندارد. مثل <code>.gitignore</code> است، ولی برای ایمیج‌ها.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 10 · ENV ======================= -->
+<section class="slide" data-scene="hot" data-title-en="Default settings with ENV" data-title-fa="تنظیمات پیش‌فرض با ENV">
+  <div class="kicker a"><span class="en">Step 6</span><span class="fa">قدم ۶</span></div>
+  <h2><span class="en split">Default settings with <span class="hl">ENV</span></span><span class="fa split">تنظیمات پیش‌فرض با <span class="hl">ENV</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:8px;font-size:21px"><span class="en">In Lesson 11 you set environment variables with <code>-e</code> when <b>running</b>. <code>ENV</code> sets one in the <b>image</b>, as a default. Add this line right after <code>WORKDIR /app</code>:</span><span class="fa">در درس ۱۱ متغیرهای محیطی را هنگام <b>اجرا</b> با <code>-e</code> تنظیم کردید. <code>ENV</code> یکی را در <b>ایمیج</b>، به‌عنوان پیش‌فرض، تنظیم می‌کند. این خط را درست بعد از <code>WORKDIR /app</code> اضافه کنید:</span></p>
+  <div style="display:grid;grid-template-columns:600px 1fr;gap:26px;margin-top:16px;direction:ltr">
+    <div class="editor a" style="--d:.5;align-self:start">
+      <div class="bar">Dockerfile</div>
+      <div class="body" style="font-size:18px">
+        <div class="ln"><span class="kw">FROM</span> python:3.13-slim</div>
+        <div class="ln"><span class="kw">WORKDIR</span> <span class="pa">/app</span></div>
+        <div class="ln" data-step="1" data-hot="1 2"><span class="kw">ENV</span> SITE_NAME=<span class="sv">"My site"</span></div>
+        <div class="ln"><span class="kw">COPY</span> . .</div>
+        <div class="ln"><span class="kw">EXPOSE</span> 8000</div>
+        <div class="ln"><span class="kw">CMD</span> [<span class="sv">"python"</span>, <span class="sv">"-m"</span>, <span class="sv">"http.server"</span>, <span class="sv">"8000"</span>]</div>
+      </div>
+    </div>
+    <div class="term sm a" style="--d:.6;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash · ~/site-app</span></div>
+      <div class="body" style="font-size:15.5px">
+        <div class="run recall" data-step="2" data-reveal="3" data-task-en="👉 Rebuild the image (step 3)." data-task-fa="👉 ایمیج را دوباره بسازید (قدم ۳)."><div class="cmd">docker build -t site-app .</div></div>
+        <div class="run" data-step="4"><div class="cmd">docker run --rm site-app printenv SITE_NAME</div><pre class="out">
+My site          <span class="c"># the default, from ENV</span></pre></div>
+        <div class="run" data-step="5" style="margin:0"><div class="cmd">docker run --rm -e SITE_NAME="Test site" site-app printenv SITE_NAME</div><pre class="out">
+Test site        <span class="c"># -e replaced it</span></pre></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 11 · ENV vs -e ======================= -->
+<section class="slide" data-title-en="ENV default, -e override" data-title-fa="پیش‌فرض ENV، جایگزینی با -e">
+  <div class="kicker a"><span class="en">Step 6 · Default vs override</span><span class="fa">قدم ۶ · پیش‌فرض و جایگزین</span></div>
+  <h2><span class="en split"><span class="hl">ENV</span> gives a default</span><span class="fa split"><span class="hl">ENV</span> یک پیش‌فرض می‌دهد</span></h2>
+  <svg viewBox="0 0 1420 350" style="width:1420px;height:350px;margin-top:14px;overflow:visible;direction:ltr">
+    <g class="a fade" style="--d:.4">
+      <g transform="translate(230 190)"><use href="#slab" x="-110" y="-20" width="220" height="153" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/><use href="#slab" x="-110" y="-66" width="220" height="153" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/></g>
+      <rect x="80" y="40" width="300" height="44" rx="10" fill="#0d1426" stroke="#ffb54d" stroke-width="2"/>
+      <text x="230" y="69" text-anchor="middle" fill="#ffcf6b" font-size="17" font-family="JetBrains Mono,monospace">ENV SITE_NAME="My site"</text>
+      <text x="230" y="345" text-anchor="middle" fill="#eef2fb" font-size="17" font-family="JetBrains Mono,monospace">site-app</text>
+    </g>
+    <g data-step="1">
+      <path d="M400 150 C 520 100, 600 90, 720 90" fill="none" stroke="#3ccf7f" stroke-width="3" class="flow"/>
+      <g transform="translate(800 100)"><use href="#cube" x="-55" y="-60" width="110" height="110"/></g>
+      <rect x="890" y="66" width="300" height="48" rx="10" fill="#0d1426" stroke="#3ccf7f" stroke-width="2"/>
+      <text x="1040" y="97" text-anchor="middle" fill="#7fd8a6" font-size="18" font-family="JetBrains Mono,monospace">SITE_NAME = My site</text>
+      <text x="1210" y="97" fill="#93a0bb" font-size="16" font-family="Inter,sans-serif" class="en">the default</text>
+      <text x="1210" y="97" fill="#93a0bb" font-size="17" class="fa svgfa" direction="rtl" text-anchor="end">پیش‌فرض</text>
+    </g>
+    <g data-step="2">
+      <path d="M400 230 C 520 260, 600 260, 720 250" fill="none" stroke="#b48cff" stroke-width="3" class="flow"/>
+      <rect x="500" y="262" width="110" height="34" rx="8" fill="#1a1230" stroke="#b48cff"/><text x="555" y="285" text-anchor="middle" fill="#c4a3ff" font-size="17" font-weight="700" font-family="JetBrains Mono,monospace">-e</text>
+      <g transform="translate(800 250)"><use href="#cube" x="-55" y="-60" width="110" height="110"/></g>
+      <rect x="890" y="216" width="300" height="48" rx="10" fill="#0d1426" stroke="#b48cff" stroke-width="2"/>
+      <text x="1040" y="247" text-anchor="middle" fill="#c4a3ff" font-size="18" font-family="JetBrains Mono,monospace">SITE_NAME = Test site</text>
+      <text x="1210" y="247" fill="#93a0bb" font-size="16" font-family="Inter,sans-serif" class="en">replaced for one container</text>
+      <text x="1210" y="247" fill="#93a0bb" font-size="17" class="fa svgfa" direction="rtl" text-anchor="end">برای یک کانتینر عوض شد</text>
+    </g>
+  </svg>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px">
+    <div class="card" data-step="3"><p style="font-size:18px"><span class="en"><code>ENV</code> gives a default that's always there; <code>-e</code> can still change it for one container. You saw image defaults like this in Lesson 11: PostgreSQL's <code>PG_VERSION</code> and <code>PGDATA</code> came from <code>ENV</code> lines in its Dockerfile.</span><span class="fa"><code>ENV</code> یک مقدار پیش‌فرض می‌دهد که همیشه هست؛ <code>-e</code> هنوز می‌تواند آن را برای یک کانتینر تغییر دهد. پیش‌فرض‌های این‌چنینی را در درس ۱۱ دیدید: <code>PG_VERSION</code> و <code>PGDATA</code> در PostgreSQL از خط‌های <code>ENV</code> در Dockerfile آن آمده بودند.</span></p></div>
+    <div class="card warn" data-step="4"><div class="n">⚠</div><p style="font-size:18px"><span class="en">Never put passwords in <code>ENV</code>: they'd be baked into the image for anyone to read. Pass them at run time (<code>-e</code>, <code>--env-file</code>) instead.</span><span class="fa">هرگز رمز را در <code>ENV</code> نگذارید: داخل ایمیج می‌ماند و هر کسی می‌تواند بخواندش. به‌جایش هنگام اجرا بدهید (<code>-e</code>، <code>--env-file</code>).</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 12 · CLEAN UP ======================= -->
+<section class="slide" data-title-en="Clean up" data-title-fa="تمیزکاری">
+  <div class="kicker a"><span class="en">Step 7</span><span class="fa">قدم ۷</span></div>
+  <h2><span class="en split">Clean <span class="hl">up</span></span><span class="fa split"><span class="hl">تمیزکاری</span></span></h2>
+  <div class="term a" style="--d:.4;margin-top:26px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Delete the site container in one command." data-task-fa="👉 کانتینر site را با یک دستور حذف کنید."><div class="cmd">docker rm -f site</div></div>
+      <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Delete the site-app image." data-task-fa="👉 ایمیج site-app را حذف کنید." style="margin:0"><div class="cmd">docker image rm site-app</div></div>
+    </div>
+  </div>
+  <svg viewBox="0 0 1420 220" style="width:1420px;height:220px;margin-top:30px;overflow:visible;direction:ltr">
+    <g data-only="0 1"><g transform="translate(560 110)"><use href="#cube" x="-60" y="-70" width="120" height="120"/></g><text x="560" y="210" text-anchor="middle" fill="#93a0bb" font-size="18" font-family="JetBrains Mono,monospace">site</text></g>
+    <g data-only="0 1 2 3"><g transform="translate(860 120)"><use href="#slab" x="-80" y="-10" width="160" height="111" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/><use href="#slab" x="-80" y="-46" width="160" height="111" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/></g><text x="860" y="210" text-anchor="middle" fill="#93a0bb" font-size="18" font-family="JetBrains Mono,monospace">site-app</text></g>
+    <g data-step="4" style="transition-delay:.3s">
+      <text x="710" y="120" text-anchor="middle" fill="#3ccf7f" font-size="26" font-weight="700" font-family="Inter,sans-serif" class="en">✓ all clean</text>
+      <text x="710" y="120" text-anchor="middle" fill="#3ccf7f" font-size="28" font-weight="700" class="fa svgfa">✓ همه تمیز شد</text>
+    </g>
+  </svg>
+</section>
+
+<!-- ======================= 13 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 Your images <span class="hl">keep secrets out!</span></span><span class="fa split">🎉 ایمیج‌های شما <span class="hl">رمزها را بیرون نگه می‌دارند!</span></span></h2>
+  <div class="sumgrid">
+    <div class="card a" style="--d:.4"><code>COPY . .</code><p><span class="en">Copy the whole folder into the <code>WORKDIR</code></span><span class="fa">کپی کل پوشه به <code>WORKDIR</code></span></p></div>
+    <div class="card a" style="--d:.55"><code>.dockerignore</code><p><span class="en">Files the build must never see: secrets, <code>.git</code>, caches</span><span class="fa">فایل‌هایی که build هرگز نباید ببیند: رمزها، <code>.git</code>، cacheها</span></p></div>
+    <div class="card a" style="--d:.7"><code>EXPOSE PORT</code><p><span class="en">Document the app's port (doesn't publish it)</span><span class="fa">مستند کردن پورت برنامه (منتشرش نمی‌کند)</span></p></div>
+    <div class="card a" style="--d:.85"><code>ENV NAME=value</code><p><span class="en">A default environment variable in the image; <code>-e</code> overrides it. No passwords!</span><span class="fa">یک متغیر محیطی پیش‌فرض در ایمیج؛ <code>-e</code> جایگزینش می‌کند. رمز نگذارید!</span></p></div>
+  </div>
+  <div class="btnrow a" style="--d:1.1">
+    <a class="bigbtn primary" href="../20-copy-project.html"><span class="en">✔ Do it yourself: hands-on lesson with checklists</span><span class="fa">✔ خودتان انجام دهید: درس تمرینی با چک‌لیست</span></a>
+    <a class="bigbtn" href="21-system-packages.html"><span class="en">Next: Lesson 21 · System packages and a safer image →</span><span class="fa">بعدی: درس ۲۱ · بسته‌های سیستمی و یک ایمیج امن‌تر ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 13</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
+</div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
+
+<script>
+/* ---------- lesson scenes ---------- */
+/* lines with data-hot="1 2" glow on those steps */
+const hotLines = slide => {
+  const els = [...slide.querySelectorAll('[data-hot]')];
+  return k => els.forEach(e => e.classList.toggle('hot', e.dataset.hot.split(' ').includes(String(k))));
+};
+window.SCENES = {
+  hot(slide) { const h = hotLines(slide); return { step(k) { h(k); } }; },
+
+
+  /* confetti */
+  sum(slide, api) {
+    const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+    const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+    const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+    const stop = api.loop(t => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of P) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+        if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+      }
+    });
+    return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+  }
+};
+</script>
+<script src="../tips.js"></script>
+<script src="deck.js"></script>
+</body>
+</html>

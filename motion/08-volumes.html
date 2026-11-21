@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 8 · Volumes (motion)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="../docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- shared bits (copied from lesson 1) ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  svg .fa{font-family:Vazirmatn,sans-serif;direction:rtl}
+  .card :not(pre)>code,.lead code{white-space:nowrap}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:280px}
+  .goal svg{width:96px;height:96px}
+  .goal h3{font-size:26px}
+  .term.sm .body{font-size:17px}
+  .term.xs .body{font-size:15px;line-height:1.6}
+  .btnrow{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:30px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px}
+  .sumgrid code{font-size:21px;flex:none;min-width:var(--cw,330px);text-align:left}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  /* ---- lesson 8 ---- */
+  .run.r1 .cmd::before{content:"root@a3c9e1f27b54:/# ";color:var(--amber)}
+  .run.r2 .cmd::before{content:"root@7d2e4b91c0a3:/# ";color:var(--amber)}
+  .fadeout{transition:opacity .9s var(--ease),transform .9s var(--ease),filter .9s}
+  .fadeout.gone{opacity:0;filter:blur(6px)}
+  .fadeout.dim.gone{opacity:.06;filter:blur(3px)}
+  .caps{position:relative}
+  .caps>.card{position:absolute;inset:0 0 auto;padding:16px 24px}
+  /* title loop: container leaves and comes back; the folder stays */
+  .cyc{animation:cyc 6s var(--ease) infinite}
+  @keyframes cyc{0%,6%{opacity:0;transform:translateY(-30px)}16%,80%{opacity:1;transform:none}92%,100%{opacity:0;transform:scale(.6) translateY(30px)}}
+  .cyc{transform-box:fill-box;transform-origin:center}
+  .link{animation:linkon 6s linear infinite}
+  @keyframes linkon{0%,14%{opacity:0}20%,80%{opacity:1}88%,100%{opacity:0}}
+  .vsplit{display:flex;justify-content:center;align-items:flex-end;font:600 54px/1 var(--mono);direction:ltr;margin-top:10px}
+  .vsplit>span{position:relative;padding:10px 12px;border-radius:12px;border:2px solid transparent;transition:border-color .5s,background .5s}
+  .vsplit small{position:absolute;left:50%;top:calc(100% + 12px);transform:translateX(-50%);font:700 18px var(--font);white-space:nowrap;opacity:0;transition:opacity .5s}
+  body.lang-fa .vsplit small{font-family:Vazirmatn,sans-serif}
+  .vsplit .lit{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
+  .vsplit .lit small{opacity:1;color:var(--c)}
+  .tbl{width:100%;border-collapse:separate;border-spacing:0 12px;font-size:22px;margin-top:30px}
+  .tbl th{font:700 16px var(--font);color:var(--muted);letter-spacing:.08em;text-transform:uppercase;text-align:start;padding:0 22px}
+  body.lang-fa .tbl th{letter-spacing:0;font-size:18px}
+  .tbl th code{text-transform:none}
+  .tbl td{padding:18px 22px;background:rgba(20,30,56,.85);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .tbl td:first-child{border-inline-start:1px solid var(--line);border-start-start-radius:14px;border-end-start-radius:14px;color:var(--muted)}
+  .tbl td:last-child{border-inline-end:1px solid var(--line);border-start-end-radius:14px;border-end-end-radius:14px}
+  .tbl .good{color:var(--green)}.tbl .bad{color:var(--red)}
+  .kinds{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:20px}
+  .kinds .card{text-align:center;padding:18px 14px}
+  .kinds .ic{font-size:40px;line-height:1.2}
+  .kinds h3{font-size:20px;margin:6px 0 0}
+</style>
+</head>
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
+
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="monitor" viewBox="0 0 200 170"><rect x="4" y="4" width="192" height="122" rx="14" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M80 126l-8 30h56l-8-30" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M56 158h88" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"/></symbol>
+    <!-- a folder -->
+    <symbol id="folder" viewBox="0 0 120 96">
+      <path d="M4 14a8 8 0 0 1 8-8h30l10 12h56a8 8 0 0 1 8 8v58a8 8 0 0 1-8 8H12a8 8 0 0 1-8-8z" fill="#3a2c0e" stroke="#ffb54d" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M4 30h112" stroke="#ffb54d" stroke-width="3" opacity=".6"/>
+    </symbol>
+    <!-- the "database" file -->
+    <symbol id="db" viewBox="0 0 80 96">
+      <path d="M4 4H52L76 28V92H4Z" fill="#f6f2e8" stroke="#3ccf7f" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M52 4V28H76" fill="#d9f5e5" stroke="#3ccf7f" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M16 46h46M16 60h36M16 74h42" stroke="#1a7f4b" stroke-width="5" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="../index.html"><img src="../docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <a class="pill" href="../08-volumes.html"><span class="en">✔ Hands-on version</span><span class="fa">✔ نسخه‌ی تمرینی</span></a>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
+</header>
+
+<div id="viewport"><div id="stage">
+
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 8 — Keep your data with volumes" data-title-fa="درس ۸ — نگه داشتن داده‌ها با volume" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 8</span><span class="fa">دوره‌ی Docker · درس ۸</span></div>
+    <h1 style="font-size:92px;line-height:1.08;margin:26px 0 26px">
+      <span class="en split">Keep your data with <span class="hl">volumes</span></span><span class="fa split">نگه داشتن داده‌ها با <span class="hl">volume</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en">Containers are <b>temporary</b>: delete one, and everything inside it is gone. But some files must survive. You'll first lose a pretend database, then save it with a volume.</span><span class="fa">کانتینرها <b>موقتی</b> هستند: یکی را حذف کنید، همه‌ی محتوای داخلش از بین می‌رود. ولی بعضی فایل‌ها باید باقی بمانند. اول یک دیتابیس فرضی را از دست می‌دهید، بعد با یک volume نجاتش می‌دهید.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:700px;height:640px;overflow:visible;direction:ltr" viewBox="0 0 700 640">
+    <circle cx="350" cy="320" r="290" fill="none" stroke="rgba(110,155,255,.15)" stroke-dasharray="4 10"/>
+    <!-- the PC with its folder: always there -->
+    <use href="#monitor" x="40" y="330" width="240" height="204"/>
+    <use href="#folder" x="95" y="365" width="130" height="104"/>
+    <use href="#db" x="135" y="395" width="50" height="60"/>
+    <text x="160" y="570" text-anchor="middle" fill="#ffb54d" font-size="20" font-family="JetBrains Mono,monospace">~/my-data</text>
+    <!-- the link and the container that comes and goes -->
+    <g class="link"><path id="tLink" d="M260 380 C 340 300, 380 260, 440 240" fill="none" stroke="#ffb54d" stroke-width="4" stroke-dasharray="8 8" class="flow"/></g>
+    <g class="cyc"><use href="#cube" x="430" y="110" width="220" height="220"/></g>
+    <text x="540" y="380" text-anchor="middle" fill="#a9c4ff" font-size="20" font-family="JetBrains Mono,monospace">/data</text>
+    <text x="350" y="610" text-anchor="middle" fill="#93a0bb" font-size="18" font-family="Inter,sans-serif" class="en">the container comes and goes · the data stays</text>
+    <text x="350" y="610" text-anchor="middle" fill="#93a0bb" font-size="19" class="fa">کانتینر می‌آید و می‌رود · داده‌ها می‌مانند</text>
+  </svg>
+</section>
+
+<!-- ======================= 2 · GOALS ======================= -->
+<section class="slide" data-title-en="What you'll do" data-title-fa="در این درس">
+  <div class="kicker a"><span class="en">Lesson 8 · Volumes</span><span class="fa">درس ۸ · volume</span></div>
+  <h2><span class="en split">In this lesson, <span class="hl">four small steps</span></span><span class="fa split">در این درس، <span class="hl">چهار قدم کوچک</span></span></h2>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:46px">
+    <div class="card goal a" style="--d:.3">
+      <svg viewBox="0 0 100 100"><use href="#db" x="26" y="14" width="48" height="58" opacity=".5"/><path d="M20 20 L 80 80 M80 20 L 20 80" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/></svg>
+      <div class="n">01</div><h3><span class="en">Lose a pretend database</span><span class="fa">از دست دادن یک دیتابیس فرضی</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.45">
+      <svg viewBox="0 0 100 100"><use href="#folder" x="4" y="50" width="44" height="36"/><use href="#cube" x="56" y="34" width="40" height="40"/><path d="M46 64 H 60" stroke="#ffb54d" stroke-width="4" stroke-dasharray="4 4"/><text x="50" y="26" text-anchor="middle" fill="#a9c4ff" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">-v</text></svg>
+      <div class="n">02</div><h3><span class="en">Add a volume with <code>-v</code></span><span class="fa">اضافه کردن volume با <code>-v</code></span></h3>
+    </div>
+    <div class="card goal a" style="--d:.6">
+      <svg viewBox="0 0 100 100"><use href="#folder" x="14" y="26" width="72" height="58"/><use href="#db" x="36" y="40" width="28" height="34"/></svg>
+      <div class="n">03</div><h3><span class="en">Save the database again</span><span class="fa">ذخیره‌ی دوباره‌ی دیتابیس</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.75">
+      <svg viewBox="0 0 100 100"><use href="#db" x="30" y="14" width="40" height="48"/><text x="50" y="88" text-anchor="middle" fill="#3ccf7f" font-size="22" font-weight="800" font-family="Inter,sans-serif">✓</text></svg>
+      <div class="n">04</div><h3><span class="en">It survives a delete</span><span class="fa">بعد از حذف باقی می‌ماند</span></h3>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:26px">
+    <div class="card a" style="--d:1"><p><span class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</span><span class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</span></p></div>
+    <div class="card a" style="--d:1.15"><p><span class="en">🖱 Hover over any part of a command to see what it does.</span><span class="fa">🖱 نشانگر ماوس را روی هر بخش از دستور ببرید تا توضیحش را ببینید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 3 · EPHEMERAL ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Containers are temporary" data-title-fa="کانتینرها موقتی هستند">
+  <div class="kicker a"><span class="en">Before we start</span><span class="fa">قبل از شروع</span></div>
+  <h2><span class="en split">Containers are <span class="hl">temporary</span></span><span class="fa split">کانتینرها <span class="hl">موقتی</span> هستند</span></h2>
+  <div style="display:grid;grid-template-columns:480px 1fr;gap:34px;margin-top:20px;align-items:center">
+    <svg viewBox="0 0 480 300" class="a blur" style="--d:.3;width:480px;height:300px;overflow:visible;direction:ltr">
+      <g class="fadeout dim" data-gone="2">
+        <use href="#cube" x="110" y="40" width="260" height="260"/>
+        <use href="#db" x="150" y="150" width="50" height="60"/>
+        <use href="#db" x="215" y="170" width="50" height="60"/>
+        <use href="#db" x="280" y="150" width="50" height="60"/>
+      </g>
+      <g data-step="2"><text x="240" y="160" text-anchor="middle" fill="#ff6b6b" font-size="40" font-weight="800" font-family="JetBrains Mono,monospace">docker rm</text>
+        <text x="240" y="205" text-anchor="middle" fill="#ff6b6b" font-size="22" font-weight="700" font-family="Inter,sans-serif" class="en">…and the files are gone</text>
+        <text x="240" y="205" text-anchor="middle" fill="#ff6b6b" font-size="23" font-weight="700" class="fa">…و فایل‌ها هم از بین رفتند</text></g>
+    </svg>
+    <div>
+      <p class="lead" data-step="1"><span class="en">Containers are <b>ephemeral</b> (temporary): when you delete a container, everything inside it is deleted too. You saw this in Lesson 6.</span><span class="fa">کانتینرها <b>موقتی</b> هستند (ephemeral): وقتی کانتینری را حذف می‌کنید، همه‌ی محتوای داخلش هم حذف می‌شود. این را در درس ۶ دیدید.</span></p>
+      <p class="lead" data-step="3" style="margin-top:18px"><span class="en">But some files <b>must survive</b>:</span><span class="fa">ولی بعضی فایل‌ها <b>باید باقی بمانند</b>:</span></p>
+    </div>
+  </div>
+  <div class="kinds">
+    <div class="card" data-step="3"><div class="ic">🗄</div><h3><span class="en">a database</span><span class="fa">یک دیتابیس</span></h3></div>
+    <div class="card" data-step="3" style="transition-delay:.12s"><div class="ic">📊</div><h3><span class="en">your program's outputs</span><span class="fa">خروجی‌های برنامه</span></h3></div>
+    <div class="card" data-step="3" style="transition-delay:.24s"><div class="ic">📤</div><h3><span class="en">uploaded files</span><span class="fa">فایل‌های آپلودشده</span></h3></div>
+    <div class="card" data-step="3" style="transition-delay:.36s"><div class="ic">📦</div><h3><span class="en">build artifacts</span><span class="fa">آرتیفکت‌ها</span></h3></div>
+  </div>
+</section>
+
+<!-- ======================= 4 · SAVE A DATABASE INSIDE ======================= -->
+<section class="slide" data-title-en="Save a database inside a container" data-title-fa="ذخیره‌ی یک دیتابیس داخل کانتینر">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Save a “database” <span class="hl">inside a container</span></span><span class="fa split">ذخیره‌ی یک «دیتابیس» <span class="hl">داخل کانتینر</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 400px;gap:30px;margin-top:22px;direction:ltr;align-items:start">
+    <div class="term xs a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Start nginx in the background and name it app. We don't need a port this time." data-task-fa="👉 nginx را در پس‌زمینه اجرا کنید و نامش را app بگذارید. این بار پورت لازم نداریم."><div class="cmd">docker run -d --name app nginx</div><pre class="out">
+a3c9e1f27b54d0e6c8a2f4b19d7e3c5a0b8f6e2d4c1a9b7e5f3d2c0a8b6e4f2d</pre></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Open a shell inside app." data-task-fa="👉 یک شل داخل app باز کنید."><div class="cmd">docker exec -it app bash</div><pre class="out">
+<span style="color:#ffb54d">root@a3c9e1f27b54:/#</span></pre></div>
+        <div class="run r1" data-step="5" style="margin-bottom:2px"><div class="cmd">mkdir /data</div></div>
+        <div class="run r1" data-step="6" style="margin-bottom:2px"><div class="cmd">echo "Ali, balance: 100" > /data/db.txt</div></div>
+        <div class="run r1" data-step="7"><div class="cmd">cat /data/db.txt</div><pre class="out">
+Ali, balance: 100</pre></div>
+        <div class="run r1" data-step="8" style="margin-bottom:0"><div class="cmd">exit</div></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 400 420" class="a blur" style="--d:.5;width:400px;height:420px;overflow:visible">
+      <g data-step="1" class="pop-in"><use href="#cube" x="40" y="60" width="320" height="320"/><circle cx="335" cy="78" r="9" fill="#3ccf7f" class="pulse"/></g>
+      <text x="200" y="410" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">app</text>
+      <g data-step="6" class="pop-in">
+        <use href="#db" x="160" y="190" width="80" height="96"/>
+        <rect x="100" y="0" width="200" height="40" rx="10" fill="#05080f" stroke="#3ccf7f"/>
+        <path d="M200 40 V 190" stroke="#3ccf7f" stroke-width="2" stroke-dasharray="4 5"/>
+        <text x="200" y="27" text-anchor="middle" fill="#3ccf7f" font-size="17" font-family="JetBrains Mono,monospace">/data/db.txt</text>
+      </g>
+    </svg>
+  </div>
+  <p class="lead" data-step="5" style="margin-top:12px;font-size:21px"><span class="en">Pretend the file <code>/data/db.txt</code> is your app's database: create the folder, save a record, and read it back.</span><span class="fa">فرض کنید فایل <code>/data/db.txt</code> دیتابیس برنامه‌ی شماست: پوشه را بسازید، یک رکورد ذخیره کنید و دوباره بخوانیدش.</span></p>
+</section>
+
+<!-- ======================= 5 · DELETE: GONE ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Delete the container: is the database still there?" data-title-fa="حذف کانتینر: دیتابیس هنوز هست؟">
+  <div class="kicker a"><span class="en">Step 2</span><span class="fa">قدم ۲</span></div>
+  <h2><span class="en split">Delete the container: <span class="hl">is the database still there?</span></span><span class="fa split">حذف کانتینر: <span class="hl">دیتابیس هنوز هست؟</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 400px;gap:30px;margin-top:20px;direction:ltr;align-items:start">
+    <div class="term xs a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Stop and delete app in one command." data-task-fa="👉 app را با یک دستور متوقف و حذف کنید."><div class="cmd">docker rm -f app</div><pre class="out">
+app</pre></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Start a new one, exactly like in step 1." data-task-fa="👉 یک کانتینر جدید دقیقاً مثل قدم ۱ اجرا کنید."><div class="cmd">docker run -d --name app nginx</div><pre class="out">
+e8b14f0c6d2a9e7b3f5c1d8a0e6b4f2c9d7a5e3b1f0c8d6a4e2b0f9c7d5a3e1b</pre></div>
+        <div class="run" data-step="5" style="margin-bottom:0"><div class="cmd">docker exec app cat /data/db.txt</div><pre class="out">
+<span style="color:#ff8a8a">cat: /data/db.txt: No such file or directory</span></pre></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 400 380" class="a blur" style="--d:.5;width:400px;height:380px;overflow:visible">
+      <g class="fadeout" data-gone="2">
+        <use href="#cube" x="60" y="40" width="280" height="280"/>
+        <use href="#db" x="165" y="160" width="70" height="84"/>
+        <text x="200" y="360" text-anchor="middle" fill="#93a0bb" font-size="18" font-family="Inter,sans-serif" class="en">old app · with db.txt</text>
+        <text x="200" y="360" text-anchor="middle" fill="#93a0bb" font-size="19" class="fa">app قبلی · با db.txt</text>
+      </g>
+      <g data-step="4" class="pop-in">
+        <use href="#cube" x="60" y="40" width="280" height="280"/><circle cx="318" cy="56" r="9" fill="#3ccf7f" class="pulse"/>
+        <text x="200" y="360" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="Inter,sans-serif" class="en">new app · empty</text>
+        <text x="200" y="360" text-anchor="middle" fill="#eef2fb" font-size="19" font-weight="700" class="fa">app جدید · خالی</text>
+      </g>
+      <g data-step="5" class="pop-in"><circle cx="200" cy="200" r="46" fill="rgba(255,107,107,.18)" stroke="#ff6b6b" stroke-width="4"/><text x="200" y="217" text-anchor="middle" fill="#ff6b6b" font-size="48" font-weight="800" font-family="Inter,sans-serif">?</text></g>
+    </svg>
+  </div>
+  <div class="caps" style="height:110px;margin-top:14px">
+    <div class="card tip" data-only="5"><p><span class="en">💡 Look with just one command. Without <code>-it</code>, <code>docker exec</code> runs it, prints the result, and you stay on your PC.</span><span class="fa">💡 فقط با یک دستور نگاه کنید. بدون <code>-it</code>، <code>docker exec</code> آن را اجرا می‌کند، نتیجه را چاپ می‌کند و شما روی کامپیوتر خودتان می‌مانید.</span></p></div>
+    <div class="card" data-only="6" style="border-color:rgba(255,107,107,.5)"><p><span class="en">❌ The database is gone. It lived inside the old container, and was deleted with it. Imagine this was your real users' data! (Delete this container too: <code>docker rm -f app</code>.)</span><span class="fa">❌ دیتابیس از بین رفت. داخل کانتینر قبلی بود و همراه آن حذف شد. تصور کنید این داده‌های واقعی کاربرانتان بود! (این کانتینر را هم حذف کنید: <code>docker rm -f app</code>.)</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 6 · ADD A VOLUME ======================= -->
+<section class="slide" data-scene="vsplit" data-title-en="Add a volume with -v" data-title-fa="اضافه کردن volume با -v">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Add a volume with <span class="hl">-v</span></span><span class="fa split">اضافه کردن volume با <span class="hl">&#x2066;-v&#x2069;</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:8px;font-size:22px"><span class="en">The fix: keep <code>/data</code> <b>outside</b> the container, in a folder on your PC. Make that folder, then start <code>app</code> again, plus <code>-v</code>:</span><span class="fa">راه‌حل: <code>/data</code> را <b>بیرون</b> از کانتینر، در یک پوشه روی کامپیوترتان نگه دارید. آن پوشه را بسازید، بعد <code>app</code> را دوباره اجرا کنید، به‌اضافه‌ی <code>-v</code>:</span></p>
+  <div class="term xs a" style="--d:.5;margin-top:16px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1" style="margin-bottom:6px"><div class="cmd">mkdir ~/my-data</div></div>
+      <div class="run" data-step="2" style="margin-bottom:0"><div class="cmd">docker run -d --name app -v ~/my-data:/data nginx</div><pre class="out">
+7d2e4b91c0a3f5e8d6c4b2a0f9e7d5c3b1a8f6e4d2c0b9a7f5e3d1c8b6a4f2e0</pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 600px;gap:30px;margin-top:20px;align-items:start">
+    <div>
+      <div class="vsplit" data-step="3" style="opacity:1;filter:none;transform:none">
+        <span>-v&nbsp;</span><span class="pc" style="--c:#ffb54d">~/my-data<small><span class="en">the folder on your PC</span><span class="fa">پوشه روی کامپیوتر شما</span></small></span><span style="color:var(--muted)">:</span><span class="ct" style="--c:#6e9bff">/data<small><span class="en">inside the container</span><span class="fa">داخل کانتینر</span></small></span>
+      </div>
+      <p class="lead" data-step="3" style="margin-top:60px;font-size:21px"><span class="en"><code>-v</code> means volume. It works like <code>-p</code>, but for folders: <b>your PC first, then the container</b>.</span><span class="fa"><code>-v</code> یعنی volume. مثل <code>-p</code> کار می‌کند ولی برای پوشه‌ها: <b>اول کامپیوتر شما، بعد کانتینر</b>.</span></p>
+    </div>
+    <svg viewBox="0 0 600 260" style="width:600px;height:260px;overflow:visible;direction:ltr" data-step="5" class="pop-in">
+      <use href="#monitor" x="0" y="20" width="220" height="187"/>
+      <use href="#folder" x="45" y="45" width="130" height="104"/>
+      <text x="110" y="240" text-anchor="middle" fill="#ffb54d" font-size="18" font-family="JetBrains Mono,monospace">~/my-data</text>
+      <path d="M222 100 H 380" stroke="#ffb54d" stroke-width="6" stroke-dasharray="10 8" class="flow"/>
+      <text x="300" y="62" text-anchor="middle" fill="#ffb54d" font-size="14" font-family="Inter,sans-serif" class="en">same folder,</text>
+      <text x="300" y="82" text-anchor="middle" fill="#ffb54d" font-size="14" font-family="Inter,sans-serif" class="en">seen from both sides</text>
+      <text x="300" y="62" text-anchor="middle" fill="#ffb54d" font-size="16" class="fa">یک پوشه،</text>
+      <text x="300" y="84" text-anchor="middle" fill="#ffb54d" font-size="16" class="fa">از هر دو طرف</text>
+      <use href="#cube" x="380" y="10" width="210" height="210"/>
+      <use href="#folder" x="440" y="100" width="90" height="72"/>
+      <text x="485" y="240" text-anchor="middle" fill="#a9c4ff" font-size="18" font-family="JetBrains Mono,monospace">app · /data</text>
+    </svg>
+  </div>
+  <div class="card key" data-step="6" style="margin-top:6px;padding:14px 22px"><p style="font-size:18px"><span class="en">🔑 It's not a copy: the container reads and writes your PC's folder directly. (Sharing a folder from your PC like this is called a <b>bind mount</b>.)</span><span class="fa">🔑 این یک کپی نیست: کانتینر مستقیماً در پوشه‌ی کامپیوتر شما می‌خواند و می‌نویسد. (به اشتراک گذاشتن یک پوشه‌ی کامپیوتر به این شکل <b>bind mount</b> نام دارد.)</span></p></div>
+</section>
+
+<!-- ======================= 7 · SAVE AGAIN ======================= -->
+<section class="slide" data-title-en="Save the database again" data-title-fa="ذخیره‌ی دوباره‌ی دیتابیس">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">Save the database <span class="hl">again</span></span><span class="fa split">ذخیره‌ی <span class="hl">دوباره‌ی</span> دیتابیس</span></h2>
+  <div style="display:grid;grid-template-columns:1fr 520px;gap:30px;margin-top:22px;direction:ltr;align-items:start">
+    <div class="term xs a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Go inside app (open a shell)." data-task-fa="👉 به داخل app بروید (یک شل باز کنید)."><div class="cmd">docker exec -it app bash</div><pre class="out">
+<span style="color:#ffb54d">root@7d2e4b91c0a3:/#</span></pre></div>
+        <div class="run r2" data-step="3" style="margin-bottom:2px"><div class="cmd">echo "Ali, balance: 100" > /data/db.txt</div></div>
+        <div class="run r2" data-step="4"><div class="cmd">exit</div></div>
+        <div class="run" data-step="5" style="margin-bottom:0"><div class="cmd">cat ~/my-data/db.txt</div><pre class="out">
+Ali, balance: 100   <span class="c"># on your PC, outside any container</span></pre></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 520 330" class="a blur" style="--d:.5;width:520px;height:330px;overflow:visible">
+      <use href="#monitor" x="0" y="70" width="210" height="179"/>
+      <use href="#folder" x="40" y="95" width="130" height="104"/>
+      <text x="105" y="280" text-anchor="middle" fill="#ffb54d" font-size="18" font-family="JetBrains Mono,monospace">~/my-data</text>
+      <path id="wr" d="M370 150 H 190" stroke="#ffb54d" stroke-width="5" stroke-dasharray="10 8" class="flow"/>
+      <use href="#cube" x="320" y="50" width="200" height="200"/>
+      <use href="#folder" x="375" y="140" width="90" height="72"/>
+      <text x="420" y="280" text-anchor="middle" fill="#a9c4ff" font-size="18" font-family="JetBrains Mono,monospace">app · /data</text>
+      <g data-step="3" class="pop-in"><use href="#db" x="400" y="152" width="40" height="48"/></g>
+      <g data-step="3"><g><use href="#db" x="-18" y="-22" width="36" height="44"/><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#wr"/></animateMotion></g></g>
+      <g data-step="3" class="pop-in" style="transition-delay:1.2s"><use href="#db" x="82" y="115" width="48" height="58"/></g>
+    </svg>
+  </div>
+  <div class="caps" style="height:110px;margin-top:16px">
+    <div class="card" data-only="3 4"><p><span class="en">Save the same record in <code>/data/db.txt</code>, and leave. (<code>/data</code> already exists now, so no <code>mkdir</code>.)</span><span class="fa">همان رکورد را در <code>/data/db.txt</code> ذخیره کنید و خارج شوید. (<code>/data</code> حالا وجود دارد، پس <code>mkdir</code> لازم نیست.)</span></p></div>
+    <div class="card tip" data-only="5"><p><span class="en">✅ Now look on your PC: the container wrote the database into <b>your PC's folder</b>.</span><span class="fa">✅ حالا روی کامپیوتر خودتان نگاه کنید: کانتینر دیتابیس را در <b>پوشه‌ی کامپیوتر شما</b> نوشت.</span></p></div>
+    <div class="card" data-only="6"><div class="n">❓ <span class="en">CAN'T EDIT db.txt ON MY PC?</span><span class="fa">نمی‌توانم db.txt را ویرایش کنم؟</span></div><p style="font-size:17px"><span class="en">Inside the container you were <code>root</code>, so the file belongs to root on your PC too (<code>ls -l ~/my-data</code> shows it). Your normal user can read it, but changing it gives <code>permission denied</code>. Use <code>sudo</code> if you really need to edit it.</span><span class="fa">داخل کانتینر شما <code>root</code> بودید، پس فایل روی کامپیوترتان هم مال root است (<code>ls -l ~/my-data</code> این را نشان می‌دهد). کاربر معمولی شما می‌تواند آن را بخواند ولی تغییرش خطای <code>permission denied</code> می‌دهد. اگر واقعاً لازم است ویرایشش کنید، از <code>sudo</code> استفاده کنید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 8 · DELETE AGAIN ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Delete again: does it survive?" data-title-fa="حذف دوباره: باقی می‌ماند؟">
+  <div class="kicker a"><span class="en">Step 5</span><span class="fa">قدم ۵</span></div>
+  <h2><span class="en split">Delete the container again: <span class="hl">does the database survive?</span></span><span class="fa split">حذف دوباره‌ی کانتینر: <span class="hl">دیتابیس باقی می‌ماند؟</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 520px;gap:30px;margin-top:22px;direction:ltr;align-items:start">
+    <div class="term xs a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Delete app in one command." data-task-fa="👉 app را با یک دستور حذف کنید."><div class="cmd">docker rm -f app</div><pre class="out">
+app</pre></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Start a new one exactly like in step 3 (with the same -v)." data-task-fa="👉 یک کانتینر جدید دقیقاً مثل قدم ۳ (با همان -v) اجرا کنید."><div class="cmd">docker run -d --name app -v ~/my-data:/data nginx</div><pre class="out">
+2f9c7e5a3b1d0f8e6c4a2b9d7f5e3c1a0b8d6f4e2c9a7b5d3f1e0c8a6b4d2f9c</pre></div>
+        <div class="run" data-step="5" style="margin-bottom:0"><div class="cmd">docker exec app cat /data/db.txt</div><pre class="out">
+<span style="color:#3ccf7f;font-weight:700">Ali, balance: 100</span></pre></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 520 330" class="a blur" style="--d:.5;width:520px;height:330px;overflow:visible">
+      <use href="#monitor" x="0" y="70" width="210" height="179"/>
+      <use href="#folder" x="40" y="95" width="130" height="104"/>
+      <use href="#db" x="82" y="115" width="48" height="58"/>
+      <text x="105" y="280" text-anchor="middle" fill="#ffb54d" font-size="18" font-family="JetBrains Mono,monospace">~/my-data</text>
+      <g class="fadeout" data-gone="2">
+        <path d="M370 150 H 190" stroke="#ffb54d" stroke-width="5" stroke-dasharray="10 8"/>
+        <use href="#cube" x="320" y="50" width="200" height="200"/>
+        <text x="420" y="280" text-anchor="middle" fill="#93a0bb" font-size="17" font-family="Inter,sans-serif" class="en">old app</text>
+        <text x="420" y="280" text-anchor="middle" fill="#93a0bb" font-size="18" class="fa">app قبلی</text>
+      </g>
+      <g data-step="4" class="pop-in">
+        <path d="M370 150 H 190" stroke="#ffb54d" stroke-width="5" stroke-dasharray="10 8" class="flow"/>
+        <use href="#cube" x="320" y="50" width="200" height="200"/><circle cx="500" cy="62" r="8" fill="#3ccf7f" class="pulse"/>
+        <text x="420" y="280" text-anchor="middle" fill="#eef2fb" font-size="17" font-weight="700" font-family="Inter,sans-serif" class="en">new app · same -v</text>
+        <text x="420" y="280" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" class="fa">app جدید · همان ‎-v</text>
+      </g>
+      <g data-step="2"><text x="105" y="40" text-anchor="middle" fill="#3ccf7f" font-size="19" font-weight="700" font-family="Inter,sans-serif" class="en">still here ✓</text><text x="105" y="40" text-anchor="middle" fill="#3ccf7f" font-size="20" font-weight="700" class="fa">هنوز اینجاست ✓</text></g>
+    </svg>
+  </div>
+  <div class="card key" data-step="6" style="margin-top:18px"><p><span class="en">✅ The database survived! The new container found it, because it was <b>never inside the container</b>: it's on your PC.</span><span class="fa">✅ دیتابیس باقی ماند! کانتینر جدید آن را پیدا کرد، چون <b>هیچ‌وقت داخل کانتینر نبود</b>: روی کامپیوتر شماست.</span></p></div>
+</section>
+
+<!-- ======================= 9 · COMPARE ======================= -->
+<section class="slide" data-title-en="Without -v vs with -v" data-title-fa="بدون -v و با -v">
+  <div class="kicker a"><span class="en">Step 5 · Compare</span><span class="fa">قدم ۵ · مقایسه</span></div>
+  <h2><span class="en split">Containers are temporary; <span class="hl">volumes are not</span></span><span class="fa split">کانتینرها موقتی هستند؛ <span class="hl">volumeها نه</span></span></h2>
+  <table class="tbl">
+    <tr class="a" style="--d:.3"><th></th><th><span class="en">Without <code>-v</code> (step 2)</span><span class="fa">بدون <code>-v</code> (قدم ۲)</span></th><th><span class="en">With <code>-v</code> (step 5)</span><span class="fa">با <code>-v</code> (قدم ۵)</span></th></tr>
+    <tr data-step="1"><td><span class="en"><code>db.txt</code> lives</span><span class="fa"><code>db.txt</code> کجاست</span></td><td><span class="en">inside the container</span><span class="fa">داخل کانتینر</span></td><td><span class="en">on your PC</span><span class="fa">روی کامپیوتر شما</span></td></tr>
+    <tr data-step="2"><td><span class="en">After <code>docker rm</code></span><span class="fa">بعد از <code>docker rm</code></span></td><td class="bad">❌ <span class="en">gone</span><span class="fa">از بین رفت</span></td><td class="good">✅ <span class="en">kept</span><span class="fa">باقی ماند</span></td></tr>
+  </table>
+  <div class="card key" data-step="3" style="margin-top:26px"><div class="n">🔑</div><p style="font-size:22px"><span class="en">Containers are temporary; volumes are not. Put anything you want to keep (databases, outputs, artifacts) in a volume.</span><span class="fa">کانتینرها موقتی هستند؛ volumeها نه. هر چیزی را که می‌خواهید نگه دارید (دیتابیس‌ها، خروجی‌ها، آرتیفکت‌ها) در یک volume بگذارید.</span></p></div>
+</section>
+
+<!-- ======================= 10 · CLEAN UP ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Clean up" data-title-fa="تمیزکاری">
+  <div class="kicker a"><span class="en">Step 6</span><span class="fa">قدم ۶</span></div>
+  <h2><span class="en split">Clean <span class="hl">up</span></span><span class="fa split"><span class="hl">تمیزکاری</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 520px;gap:30px;margin-top:30px;direction:ltr;align-items:start">
+    <div class="term sm a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Stop and delete app in one command." data-task-fa="👉 app را با یک دستور متوقف و حذف کنید." style="margin-bottom:0"><div class="cmd">docker rm -f app</div><pre class="out">
+app</pre></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 520 330" class="a blur" style="--d:.5;width:520px;height:330px;overflow:visible">
+      <use href="#monitor" x="0" y="70" width="210" height="179"/>
+      <use href="#folder" x="40" y="95" width="130" height="104"/>
+      <use href="#db" x="82" y="115" width="48" height="58"/>
+      <text x="105" y="280" text-anchor="middle" fill="#ffb54d" font-size="18" font-family="JetBrains Mono,monospace">~/my-data/db.txt</text>
+      <g class="fadeout" data-gone="2">
+        <path d="M370 150 H 190" stroke="#ffb54d" stroke-width="5" stroke-dasharray="10 8" class="flow"/>
+        <use href="#cube" x="320" y="50" width="200" height="200"/>
+        <text x="420" y="280" text-anchor="middle" fill="#eef2fb" font-size="18" font-family="JetBrains Mono,monospace">app</text>
+      </g>
+      <g data-step="2"><text x="105" y="40" text-anchor="middle" fill="#3ccf7f" font-size="19" font-weight="700" font-family="Inter,sans-serif" class="en">still on your PC ✓</text><text x="105" y="40" text-anchor="middle" fill="#3ccf7f" font-size="20" font-weight="700" class="fa">هنوز روی کامپیوتر شما ✓</text></g>
+    </svg>
+  </div>
+  <p class="lead" data-step="2" style="margin-top:8px"><span class="en">Deleting the container doesn't touch <code>~/my-data</code>: <code>db.txt</code> is still on your PC.</span><span class="fa">حذف کانتینر به <code>~/my-data</code> دست نمی‌زند: <code>db.txt</code> هنوز روی کامپیوتر شماست.</span></p>
+  <div class="card tip" data-step="3" style="margin-top:20px"><p><span class="en">💡 Can Docker manage the storage folder for you, instead of a PC folder? Yes: that's a <b>named volume</b>, the next lesson.</span><span class="fa">💡 Docker می‌تواند به‌جای پوشه‌ی کامپیوتر، خودش محل ذخیره‌سازی را مدیریت کند؟ بله: اسمش <b>named volume</b> است، موضوع درس بعد.</span></p></div>
+</section>
+
+<!-- ======================= 11 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 Your data <span class="hl">now survives!</span></span><span class="fa split">🎉 حالا داده‌های شما <span class="hl">باقی می‌مانند!</span></span></h2>
+  <div class="sumgrid" style="grid-template-columns:1fr;--cw:440px">
+    <div class="card a" style="--d:.4"><code style="font-family:var(--font)"><span class="en">Containers are ephemeral</span><span class="fa">کانتینرها موقتی هستند</span></code><p><span class="en">Delete the container → its files are gone</span><span class="fa">حذف کانتینر ← فایل‌هایش از بین می‌روند</span></p></div>
+    <div class="card a" style="--d:.55"><code>-v PC_FOLDER:CONTAINER_FOLDER</code><p><span class="en">Keep a container folder on your PC, so it survives</span><span class="fa">نگه داشتن پوشه‌ی کانتینر روی کامپیوتر شما تا باقی بماند</span></p></div>
+    <div class="card a" style="--d:.7"><code>docker exec NAME COMMAND</code><p><span class="en">Run one command inside a container (no shell)</span><span class="fa">اجرای یک دستور داخل کانتینر (بدون شل)</span></p></div>
+  </div>
+  <div class="btnrow a" style="--d:1">
+    <a class="bigbtn primary" href="../08-volumes.html"><span class="en">✔ Do it yourself: hands-on lesson with checklists</span><span class="fa">✔ خودتان انجام دهید: درس تمرینی با چک‌لیست</span></a>
+    <a class="bigbtn" href="09-named-volumes.html"><span class="en">Next: Lesson 9 · Named volumes →</span><span class="fa">بعدی: درس ۹ · Named volume ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 11</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
+</div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
+
+<script>
+/* ---------- lesson 8 scenes ---------- */
+window.SCENES = {
+  /* [data-hl="k"]: highlighted on step k · [data-gone="k"]: fades away from step k on */
+  fx(slide) {
+    const hl = [...slide.querySelectorAll('[data-hl]')], gone = [...slide.querySelectorAll('[data-gone]')];
+    return { step(k) {
+      hl.forEach(e => e.classList.toggle('on', e.dataset.hl.split(' ').includes(String(k))));
+      gone.forEach(e => e.classList.toggle('gone', k >= +e.dataset.gone));
+    } };
+  },
+
+  /* -v ~/my-data:/data : PC side on step 3, container side on step 4 */
+  vsplit(slide) {
+    const pc = slide.querySelector('.vsplit .pc'), ct = slide.querySelector('.vsplit .ct');
+    return { step(k) { pc.classList.toggle('lit', k >= 3); ct.classList.toggle('lit', k >= 4); } };
+  },
+
+  /* confetti */
+  sum(slide, api) {
+    const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+    const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+    const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+    const stop = api.loop(t => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of P) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+        if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+      }
+    });
+    return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+  }
+};
+</script>
+<script src="../tips.js"></script>
+<script src="deck.js"></script>
+</body>
+</html>

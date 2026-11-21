@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 14 · Docker Compose (motion)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="../docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- shared lesson bits ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  svg [data-step].pop-in,svg [data-only].pop-in{transform-box:fill-box;transform-origin:center}
+  [data-until]{transition:opacity .6s,filter .6s}
+  [data-until].gone{opacity:0!important;filter:blur(8px)}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:280px}
+  .goal svg{width:96px;height:96px}
+  .goal h3{font-size:25px}
+  .term.sm .body{font-size:17px}
+  .term.xs .body{font-size:15px;padding:16px 20px 18px}
+  .btnrow{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px;padding:20px 24px}
+  .sumgrid code{font-size:20px;flex:none;min-width:360px;text-align:left}
+  .sumgrid p{font-size:18px}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .browser{border-radius:14px;overflow:hidden;background:#f3f5fa;color:#1b2333;box-shadow:0 26px 60px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .browser .bar{display:flex;align-items:center;gap:7px;padding:9px 14px;background:#dde3ee}
+  .browser .bar i{width:11px;height:11px;border-radius:50%;background:#c3cad8}
+  .browser .bar .url{flex:1;margin-left:8px;background:#fff;border-radius:8px;padding:4px 12px;font:500 14px var(--mono);color:#556}
+  .browser .page{padding:14px 20px 16px;font-family:Tahoma,Verdana,sans-serif}
+  .browser .page h1{font:700 26px Tahoma,Verdana,sans-serif;letter-spacing:0;color:#1b2333;margin-bottom:6px}
+  .browser .page p{font:14px/1.5 Tahoma,Verdana,sans-serif;color:#34405a}
+  .browser.err .page p{color:#a3202c;background:#fde8ea;border-left:4px solid #e04050;padding:7px 10px;border-radius:6px}
+  .browser .page .crumb{color:#2f62b8}
+  .lead.sm{font-size:21px}
+  .vs{display:block;margin-top:8px}
+  code{font-variant-ligatures:none} /* JetBrains Mono's -- ligature breaks inside RTL text */
+  /* ---- lesson 14 ---- */
+
+  .yaml .yb{padding:16px 22px 18px;font:500 20px/1.7 var(--mono);color:#dfe6f5}
+  .yl{white-space:pre;border-radius:6px;padding:0 8px;margin:0 -8px;transition:background .35s,box-shadow .35s}
+  .yl .k{color:#7fb0ff}.yl .v{color:#ffcf6b}.yl .s{color:#7fd8a6}.yl .d{color:#93a0bb}
+  .yl.hot{background:rgba(110,155,255,.2);box-shadow:0 0 0 2px rgba(110,155,255,.7)}
+  .typein .yl{opacity:0;transform:translateX(-12px);transition:opacity .4s,transform .4s var(--ease),background .35s,box-shadow .35s}
+  .typein.in .yl{opacity:1;transform:none;transition-delay:calc(var(--i) * .3s),calc(var(--i) * .3s),0s,0s}
+  .drun{font:500 19px/1.4 var(--mono);direction:ltr;text-align:left;white-space:nowrap;padding:16px 22px;border-radius:14px;background:#05080f;border:1px solid rgba(110,155,255,.22);color:#dfe6f5}
+  .drun::before{content:"$ ";color:var(--green)}
+  .drun .sg{border-radius:6px;padding:1px 4px;transition:background .35s,box-shadow .35s,color .35s}
+  .drun .sg.hot{background:rgba(255,181,77,.22);box-shadow:0 0 0 2px #ffb54d;color:#fff}
+  .drun.big{font-size:22px;padding:22px 26px}
+  .pains{display:flex;gap:18px;margin-top:26px;flex-wrap:wrap}
+  .pain{font:700 26px var(--display);padding:14px 24px;border-radius:16px;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.45);color:#ffb3b3}
+  .pain[data-step]{transform:scale(.6) rotate(-6deg)}
+  .pain[data-step].in{transform:rotate(-2deg);transition:transform .5s var(--back),opacity .3s,filter .3s}
+  .tree{font:500 22px/1.5 var(--mono);direction:ltr;text-align:left;display:flex;flex-direction:column;gap:12px}
+  .tree .row{display:flex;gap:12px;align-items:center}
+  .tree .row.i1{margin-left:44px}.tree .row.i2{margin-left:88px}
+  .tree .ic{font-size:28px}
+  .tree .here{font:700 15px var(--font);color:var(--green);border:1px solid var(--green);border-radius:999px;padding:2px 10px;margin-left:8px}
+  body.lang-fa .tree .here{font-family:Vazirmatn,sans-serif}
+  .mapcap{position:relative;min-height:250px}
+  .mapcap>.card{position:absolute;inset:0 0 auto 0}
+  .mapcap .pair{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:14px;direction:ltr}
+  .mapcap .pair code{font-size:21px}
+  .mapcap .arr{color:var(--muted);font:700 22px var(--font)}
+  .mapcap p{font-size:22px}
+  .namebrk{display:flex;gap:4px;font:600 30px var(--mono);direction:ltr;justify-content:center;margin:6px 0 4px}
+  .namebrk span{padding:2px 6px;border-radius:8px}
+  .nbl{display:grid;grid-template-columns:repeat(3,auto);justify-content:center;gap:4px 30px;text-align:center;font-size:16px;color:var(--muted)}
+
+</style>
+</head>
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
+
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="cubec" viewBox="-62 -32 124 124" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V90L-60 60Z"/><path class="r-slab" d="M0 30L60 0V60L0 90Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="monitor" viewBox="0 0 200 170"><rect x="4" y="4" width="192" height="122" rx="14" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M80 126l-8 30h56l-8-30" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M56 158h88" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"/></symbol>
+    <symbol id="doc" viewBox="0 0 120 150"><path d="M8 6h76l28 28v108a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M84 6v28h28" fill="none" stroke="#6e9bff" stroke-width="4"/>
+      <g stroke-width="7" stroke-linecap="round"><path d="M20 50h40" stroke="#7fb0ff"/><path d="M32 70h34" stroke="#7fb0ff"/><path d="M44 90h30M80 90h16" stroke="#ffcf6b"/><path d="M44 110h36" stroke="#7fb0ff"/><path d="M56 128h36" stroke="#7fd8a6"/></g></symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="../index.html"><img src="../docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <a class="pill" href="../14-compose.html"><span class="en">✔ Hands-on version</span><span class="fa">✔ نسخه‌ی تمرینی</span></a>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
+</header>
+
+<div id="viewport"><div id="stage">
+
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 14 — Docker Compose" data-title-fa="درس ۱۴ — Docker Compose" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 14</span><span class="fa">دوره‌ی Docker · درس ۱۴</span></div>
+    <h1 style="font-size:112px;line-height:1.05;margin:26px 0 26px">
+      <span class="en split">Docker <span class="hl">Compose</span></span><span class="fa split">Docker <span class="hl">Compose</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en">Write all your container settings <b>in a file</b> once, then start everything with <b>one short command</b>.</span><span class="fa">همه‌ی تنظیمات کانتینرتان را یک بار <b>در یک فایل</b> بنویسید و بعد همه‌چیز را با <b>یک دستور کوتاه</b> اجرا کنید.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:700px;height:600px;overflow:visible;direction:ltr" viewBox="0 0 700 600">
+    <circle cx="350" cy="300" r="280" fill="none" stroke="rgba(110,155,255,.14)" stroke-dasharray="4 10"/>
+    <g class="bob"><use href="#doc" x="60" y="150" width="170" height="212"/></g>
+    <text x="145" y="400" text-anchor="middle" fill="#a9c4ff" font-size="20" font-family="JetBrains Mono,monospace">compose.yaml</text>
+    <path id="t14p" d="M250 260 H420" stroke="#6e9bff" stroke-width="3" class="flow" fill="none"/>
+    <path d="M412 250l12 10-12 10" stroke="#6e9bff" stroke-width="3" fill="none"/>
+    <rect x="272" y="212" width="126" height="34" rx="9" fill="#0d1426" stroke="rgba(110,155,255,.5)"/>
+    <text x="335" y="235" text-anchor="middle" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">up -d</text>
+    <circle r="7" fill="#3ccf7f"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#t14p"/></animateMotion></circle>
+    <path d="M440 380 H660" stroke="#3ccf7f" stroke-width="8" stroke-linecap="round" opacity=".45"/>
+    <path d="M440 380 H660" stroke="#b8f5d2" stroke-width="3" class="flow"/>
+    <path d="M550 330 V380" stroke="#3ccf7f" stroke-width="5"/>
+    <g><use href="#cube" x="480" y="190" width="140" height="140"/>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -10;0 0" dur="3s" repeatCount="indefinite"/></g>
+    <text x="550" y="430" text-anchor="middle" fill="#93a0bb" font-size="17" letter-spacing="2" font-family="JetBrains Mono,monospace" class="en">ONE FILE · ONE COMMAND</text>
+    <text x="550" y="430" text-anchor="middle" fill="#93a0bb" font-size="20" font-family="Vazirmatn,sans-serif" class="fa">یک فایل · یک دستور</text>
+  </svg>
+</section>
+
+<!-- ======================= 2 · GOALS ======================= -->
+<section class="slide" data-title-en="What you'll do" data-title-fa="در این درس">
+  <div class="kicker a"><span class="en">Lesson 14 · Docker Compose</span><span class="fa">درس ۱۴ · Docker Compose</span></div>
+  <h2><span class="en split">In this lesson, <span class="hl">five small steps</span></span><span class="fa split">در این درس، <span class="hl">پنج قدم کوچک</span></span></h2>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:40px">
+    <div class="card goal a" style="--d:.3">
+      <svg viewBox="0 0 100 100" fill="none" stroke="#6e9bff" stroke-width="5" stroke-linejoin="round"><path d="M10 28h28l8 9h44v45H10z"/></svg>
+      <div class="n">01</div><h3><span class="en">Make a project folder</span><span class="fa">ساختن پوشه‌ی پروژه</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.45">
+      <svg viewBox="0 0 100 100"><use href="#doc" x="20" y="8" width="64" height="84"/></svg>
+      <div class="n">02</div><h3><span class="en">Write <code>compose.yaml</code></span><span class="fa">نوشتن <code>compose.yaml</code></span></h3>
+    </div>
+    <div class="card goal a" style="--d:.6">
+      <svg viewBox="0 0 100 100" fill="none" stroke-linecap="round"><path d="M34 22l40 28-40 28z" fill="#3ccf7f" stroke="none"/></svg>
+      <div class="n">03 · 04</div><h3><span class="en">Start it and check it</span><span class="fa">اجرا و بررسی</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.75">
+      <svg viewBox="0 0 100 100"><rect x="28" y="28" width="44" height="44" rx="6" fill="#ff6b6b"/></svg>
+      <div class="n">05</div><h3><span class="en">Stop and remove it</span><span class="fa">توقف و حذف</span></h3>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:26px">
+    <div class="card a" style="--d:1"><p><span class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</span><span class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</span></p></div>
+    <div class="card a" style="--d:1.15"><p><span class="en">🖱 Hover over any part of a command to see what it does.</span><span class="fa">🖱 نشانگر ماوس را روی هر بخش از دستور ببرید تا توضیحش را ببینید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 3 · THE PROBLEM ======================= -->
+<section class="slide" data-title-en="Long docker run commands" data-title-fa="دستورهای طولانی docker run">
+  <div class="kicker a"><span class="en">Why Compose?</span><span class="fa">چرا Compose؟</span></div>
+  <h2><span class="en split">Your commands keep <span class="hl">getting longer</span></span><span class="fa split">دستورهای شما مدام <span class="hl">طولانی‌تر می‌شوند</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:14px"><span class="en">Remember this one from Lesson 10?</span><span class="fa">این یکی از درس ۱۰ یادتان هست؟</span></p>
+  <div class="drun big a" style="--d:.5;margin-top:18px"><span class="sg">docker run</span> <span class="sg">-d</span> <span class="sg">--name web</span> <span class="sg">-p 8080:80</span> <span class="sg">-v ~/my-site:/usr/share/nginx/html</span> <span class="sg">nginx</span></div>
+  <div class="pains">
+    <div class="pain" data-step="1"><span class="en">😵 Hard to remember</span><span class="fa">😵 به خاطر سپردنش سخت است</span></div>
+    <div class="pain" data-step="2"><span class="en">⌨️ Easy to mistype</span><span class="fa">⌨️ راحت اشتباه تایپ می‌شود</span></div>
+    <div class="pain" data-step="3"><span class="en">📤 Hard to share</span><span class="fa">📤 اشتراکش سخت است</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:240px 1fr;gap:30px;align-items:center;margin-top:34px" data-step="4">
+    <svg viewBox="0 0 240 170" style="width:240px;height:170px;direction:ltr">
+      <use href="#doc" x="10" y="10" width="110" height="138"/>
+      <path d="M130 80H180" stroke="#3ccf7f" stroke-width="3" class="flow"/><path d="M174 70l10 10-10 10" stroke="#3ccf7f" stroke-width="3" fill="none"/>
+      <use href="#cube" x="186" y="50" width="54" height="54"/>
+    </svg>
+    <div class="card key"><p style="font-size:21px"><span class="en"><b>Docker Compose</b> lets you write all of it <b>in a file</b> once, then start everything with one short command.</span><span class="fa"><b>Docker Compose</b> اجازه می‌دهد همه‌ی این‌ها را یک بار <b>در یک فایل</b> بنویسید و بعد همه‌چیز را با یک دستور کوتاه اجرا کنید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 4 · PROJECT FOLDER ======================= -->
+<section class="slide" data-title-en="Make a project folder" data-title-fa="ساختن پوشه‌ی پروژه">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Make a <span class="hl">project folder</span></span><span class="fa split">ساختن <span class="hl">پوشه‌ی پروژه</span></span></h2>
+  <p class="lead sm a" style="--d:.4;margin-top:10px"><span class="en">A Compose project lives in its own folder. Make <code>~/compose-demo</code> with an <code>html</code> folder inside, and go into it.</span><span class="fa">هر پروژه‌ی Compose در پوشه‌ی خودش است. پوشه‌ی <code>~/compose-demo</code> را با یک پوشه‌ی <code>html</code> داخلش بسازید و واردش شوید.</span></p>
+  <div style="display:grid;grid-template-columns:900px 1fr;gap:34px;margin-top:22px">
+    <div class="term sm a" style="--d:.5;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run" data-step="1"><div class="cmd">mkdir -p ~/compose-demo/html</div></div>
+        <div class="run" data-step="2"><div class="cmd">cd ~/compose-demo</div></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Put a page in html/index.html with the text &lt;h1&gt;Hello from Compose!&lt;/h1&gt;" data-task-fa="👉 یک صفحه با متن &lt;h1&gt;Hello from Compose!&lt;/h1&gt; در html/index.html بگذارید." style="margin-bottom:0"><div class="cmd">echo '&lt;h1&gt;Hello from Compose!&lt;/h1&gt;' &gt; html/index.html</div></div>
+      </div>
+    </div>
+    <div class="card a" style="--d:.6">
+      <div class="n"><span class="en">YOUR PC</span><span class="fa">کامپیوتر شما</span></div>
+      <div class="tree" style="margin-top:8px">
+        <div class="row" data-step="1"><span class="ic">📁</span>compose-demo/<span class="here" data-step="2"><span class="en">you are here</span><span class="fa">اینجا هستید</span></span></div>
+        <div class="row i1" data-step="1"><span class="ic">📁</span>html/</div>
+        <div class="row i2" data-step="4"><span class="ic">📄</span>index.html</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 5 · WRITE compose.yaml ======================= -->
+<section class="slide" data-title-en="Write compose.yaml" data-title-fa="نوشتن compose.yaml">
+  <div class="kicker a"><span class="en">Step 2</span><span class="fa">قدم ۲</span></div>
+  <h2><span class="en split">Write <span class="hl">compose.yaml</span></span><span class="fa split">نوشتن <span class="hl">compose.yaml</span></span></h2>
+  <div style="display:grid;grid-template-columns:720px 1fr;gap:34px;margin-top:24px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="term sm a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body"><div class="run" data-step="1" style="margin-bottom:0"><div class="cmd">nano compose.yaml</div></div></div>
+      </div>
+      <div class="term yaml typein" data-step="2">
+        <div class="bar"><i></i><i></i><i></i><span>compose.yaml</span></div>
+        <div class="yb">
+<div class="yl" style="--i:0"><span class="k">services:</span></div>
+<div class="yl" style="--i:1"><span class="d">··</span><span class="k">web:</span></div>
+<div class="yl" style="--i:2"><span class="d">····</span><span class="k">image:</span> <span class="v">nginx</span></div>
+<div class="yl" style="--i:3"><span class="d">····</span><span class="k">ports:</span></div>
+<div class="yl" style="--i:4"><span class="d">······</span>- <span class="s">"8080:80"</span></div>
+<div class="yl" style="--i:5"><span class="d">····</span><span class="k">volumes:</span></div>
+<div class="yl" style="--i:6"><span class="d">······</span>- <span class="s">./html:/usr/share/nginx/html</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="card key" data-step="2"><div class="n"><span class="en">MIND THE SPACES</span><span class="fa">به فاصله‌ها دقت کنید</span></div><p><span class="en">Type it <b>with exactly these spaces</b>. YAML uses indentation, like Python. (The <code>·</code> dots here just show you the spaces.)</span><span class="fa">این را <b>دقیقاً با همین فاصله‌ها</b> تایپ کنید. YAML مثل Python از تورفتگی استفاده می‌کند. (نقطه‌های <code>·</code> اینجا فقط فاصله‌ها را نشان می‌دهند.)</span></p></div>
+      <div class="card" data-step="3"><div class="n"><span class="en">SAVE AND EXIT</span><span class="fa">ذخیره و خروج</span></div><p><span class="en">Save: <code>Ctrl</code> + <code>O</code>, <code>Enter</code>. Exit: <code>Ctrl</code> + <code>X</code>.</span><span class="fa">ذخیره: <code>Ctrl</code> + <code>O</code> و <code>Enter</code>. خروج: <code>Ctrl</code> + <code>X</code>.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 6 · YAML ↔ docker run ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Each line = a docker run part" data-title-fa="هر خط = بخشی از docker run">
+  <div class="kicker a"><span class="en">Step 2 · Read the file</span><span class="fa">قدم ۲ · خواندن فایل</span></div>
+  <h2><span class="en split">Every line matches <span class="hl">the old docker run</span></span><span class="fa split">هر خط با <span class="hl">docker&nbsp;run قبلی</span> جور است</span></h2>
+  <div class="drun a" style="--d:.4;margin-top:20px"><span class="sg">docker run</span> <span class="sg" data-hot="6">-d</span> <span class="sg" data-hot="2">--name web</span> <span class="sg" data-hot="4">-p 8080:80</span> <span class="sg" data-hot="5">-v ~/my-site:/usr/share/nginx/html</span> <span class="sg" data-hot="3">nginx</span></div>
+  <div style="display:grid;grid-template-columns:640px 1fr;gap:34px;margin-top:22px">
+    <div class="term yaml a" style="--d:.5">
+      <div class="bar"><i></i><i></i><i></i><span>compose.yaml</span></div>
+      <div class="yb">
+<div class="yl" data-hot="1"><span class="k">services:</span></div>
+<div class="yl" data-hot="2">  <span class="k">web:</span></div>
+<div class="yl" data-hot="3">    <span class="k">image:</span> <span class="v">nginx</span></div>
+<div class="yl" data-hot="4">    <span class="k">ports:</span></div>
+<div class="yl" data-hot="4">      - <span class="s">"8080:80"</span></div>
+<div class="yl" data-hot="5">    <span class="k">volumes:</span></div>
+<div class="yl" data-hot="5">      - <span class="s">./html:/usr/share/nginx/html</span></div>
+      </div>
+    </div>
+    <div class="mapcap">
+      <div class="card a" style="--d:.6" data-until="1"><p><span class="en">Press → to match each line of the file to a part of the command.</span><span class="fa">→ را بزنید تا هر خط فایل را به بخشی از دستور وصل کنید.</span></p></div>
+      <div class="card on" data-only="1"><div class="pair"><code>services:</code></div><p><span class="en">The list of containers in this project.</span><span class="fa">فهرست کانتینرهای این پروژه.</span></p></div>
+      <div class="card on" data-only="2"><div class="pair"><code>web:</code><span class="arr">↔</span><code>--name web</code></div><p><span class="en">One service, called <code>web</code>.</span><span class="fa">یک سرویس به نام <code>web</code>.</span></p></div>
+      <div class="card on" data-only="3"><div class="pair"><code>image: nginx</code><span class="arr">↔</span><code>nginx</code></div><p><span class="en">The image to run.</span><span class="fa">ایمیجی که اجرا می‌شود.</span></p></div>
+      <div class="card on" data-only="4"><div class="pair"><code>ports: - "8080:80"</code><span class="arr">↔</span><code>-p 8080:80</code></div><p><span class="en">Publish a port (Lesson 4).</span><span class="fa">منتشر کردن پورت (درس ۴).</span></p></div>
+      <div class="card on" data-only="5"><div class="pair"><code>volumes: - ./html:…</code><span class="arr">↔</span><code>-v …:…</code></div><p><span class="en">Share a folder (Lessons 8 and 10). <code>./html</code> = the <code>html</code> folder <b>next to this file</b>.</span><span class="fa">اشتراک پوشه (درس‌های ۸ و ۱۰). <code>./html</code> یعنی پوشه‌ی <code>html</code> <b>کنار همین فایل</b>.</span></p></div>
+      <div class="card key" data-only="6"><div class="pair"><code>-d</code><span class="arr">?</span></div><p><span class="en">No <code>-d</code> here: that goes on the command in the next step.</span><span class="fa"><code>-d</code> اینجا نیست: در دستور قدم بعد می‌آید.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 7 · UP ======================= -->
+<section class="slide" data-title-en="docker compose up" data-title-fa="docker compose up">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Start it: <span class="hl">docker compose up</span></span><span class="fa split">اجرا: <span class="hl">docker&nbsp;compose&nbsp;up</span></span></h2>
+  <p class="lead sm a" style="--d:.4;margin-top:10px"><span class="en">In the same folder as <code>compose.yaml</code>, run it. <code>-d</code> means the same as in Lesson 3: run in the background.</span><span class="fa">در همان پوشه‌ای که <code>compose.yaml</code> هست اجرا کنید. <code>-d</code> همان معنی درس ۳ را دارد: اجرا در پس‌زمینه.</span></p>
+  <div class="term sm a" style="--d:.5;margin-top:18px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1" style="margin-bottom:0"><div class="cmd">docker compose up -d</div><pre class="out">
+[+] up 2/2
+ ✔ Network compose-demo_default Created       <span class="c"># a network, made for you (Lesson 13)</span>
+ ✔ Container compose-demo-web-1 Started       <span class="c"># your container</span></pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:520px 1fr;gap:30px;margin-top:20px;align-items:start">
+    <svg viewBox="0 0 520 250" style="width:520px;height:250px;overflow:visible;direction:ltr">
+      <g data-step="2">
+        <path d="M20 200 H500" stroke="#3ccf7f" stroke-width="10" stroke-linecap="round" class="draw" style="--len:480" opacity=".5"/>
+        <path d="M20 200 H500" stroke="#b8f5d2" stroke-width="3" class="flow"/>
+        <text x="260" y="240" text-anchor="middle" fill="#3ccf7f" font-size="18" font-weight="600" font-family="JetBrains Mono,monospace">compose-demo_default</text>
+      </g>
+      <g data-step="3" class="pop-in"><use href="#cube" x="200" y="30" width="120" height="120"/></g>
+      <g data-step="3"><path d="M260 160V200" stroke="#3ccf7f" stroke-width="5"/><text x="260" y="18" text-anchor="middle" fill="#eef2fb" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">compose-demo-web-1</text></g>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card" data-step="2"><div class="n"><span class="en">1 · NETWORK</span><span class="fa">۱ · شبکه</span></div><p><span class="en">Created a <b>network</b> for the project, <code>compose-demo_default</code>, named after the folder.</span><span class="fa">یک <b>شبکه</b> برای پروژه ساخت، <code>compose-demo_default</code>، که از نام پوشه می‌آید.</span></p></div>
+      <div class="card" data-step="3"><div class="n"><span class="en">2 · CONTAINER</span><span class="fa">۲ · کانتینر</span></div>
+        <div class="namebrk"><span style="color:#ffb54d">compose-demo</span><span style="color:var(--muted)">-</span><span style="color:#7fb0ff">web</span><span style="color:var(--muted)">-</span><span style="color:var(--green)">1</span></div>
+        <p style="text-align:center;font-size:18px"><span class="en">Created and started: <b style="color:#ffb54d">folder name</b>, <b style="color:#7fb0ff">service name</b>, <b style="color:var(--green)">number</b>.</span><span class="fa">ساخته و اجرا شد: <b style="color:#ffb54d">نام پوشه</b>، <b style="color:#7fb0ff">نام سرویس</b>، <b style="color:var(--green)">شماره</b>.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 8 · CHECK ======================= -->
+<section class="slide" data-title-en="Check it" data-title-fa="بررسی">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">Check <span class="hl">it</span></span><span class="fa split"><span class="hl">بررسی</span></span></h2>
+  <p class="lead sm a" style="--d:.4;margin-top:10px"><span class="en">List this project's containers. Like <code>docker ps</code>, but only for <b>this project</b>:</span><span class="fa">کانتینرهای این پروژه را فهرست کنید. مثل <code>docker ps</code>، ولی فقط برای <b>همین پروژه</b>:</span></p>
+  <div class="term sm a" style="--d:.5;margin-top:18px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1" style="margin-bottom:0"><div class="cmd">docker compose ps</div><pre class="out">
+NAME                 IMAGE     SERVICE   STATUS         PORTS
+compose-demo-web-1   nginx     web       Up 2 seconds   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp</pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:620px 1fr;gap:30px;margin-top:24px;align-items:start">
+    <div class="browser" data-step="2">
+      <div class="bar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+      <div class="page" style="padding:26px 24px 30px"><h1 style="font-size:34px">Hello from Compose!</h1></div>
+    </div>
+    <div class="card tip" data-step="3"><p><span class="en">It's a normal container. Everything you learned still works on it, e.g. <code>docker logs compose-demo-web-1</code>.</span><span class="fa">یک کانتینر معمولی است. هر چه یاد گرفتید رویش کار می‌کند، مثلاً <code>docker logs compose-demo-web-1</code>.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 9 · DOWN ======================= -->
+<section class="slide" data-scene="fx" data-title-en="docker compose down" data-title-fa="docker compose down">
+  <div class="kicker a"><span class="en">Step 5</span><span class="fa">قدم ۵</span></div>
+  <h2><span class="en split">Stop it: <span class="hl">docker compose down</span></span><span class="fa split">توقف: <span class="hl">docker&nbsp;compose&nbsp;down</span></span></h2>
+  <div style="display:grid;grid-template-columns:860px 1fr;gap:30px;margin-top:24px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="term sm a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run" data-step="1"><div class="cmd">docker compose down</div><pre class="out">
+ Container compose-demo-web-1 Removed
+ Network compose-demo_default Removed</pre></div>
+          <div class="run recall" data-step="2" data-reveal="3" data-task-en="👉 Check that the container is gone: list all containers, including stopped ones." data-task-fa="👉 بررسی کنید که کانتینر حذف شده: همه‌ی کانتینرها را فهرست کنید، حتی متوقف‌شده‌ها." style="margin-bottom:0"><div class="cmd">docker ps -a</div><pre class="out">
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+<span class="c"># compose-demo-web-1 is gone</span></pre></div>
+        </div>
+      </div>
+      <div class="card key" data-step="4"><p style="font-size:18px"><span class="en">🔑 With Compose, the whole setup lives in <code>compose.yaml</code>. <code>up -d</code> to start, <code>down</code> to remove. Run <code>docker compose up -d</code> again any time: same result, nothing to remember.</span><span class="fa">🔑 با Compose، کل تنظیمات در <code>compose.yaml</code> است. <code>up -d</code> برای اجرا، <code>down</code> برای حذف. هر وقت خواستید دوباره <code>docker compose up -d</code> بزنید: همان نتیجه، بدون نیاز به حفظ کردن چیزی.</span></p></div>
+    </div>
+    <div>
+      <svg viewBox="0 0 520 330" class="a fade" style="--d:.5;width:520px;height:330px;overflow:visible;direction:ltr">
+        <g data-until="1">
+          <path d="M20 290 H500" stroke="#3ccf7f" stroke-width="10" stroke-linecap="round" opacity=".5"/>
+          <path d="M20 290 H500" stroke="#b8f5d2" stroke-width="3" class="flow"/>
+          <use href="#cube" x="300" y="130" width="110" height="110"/>
+          <path d="M355 245V290" stroke="#3ccf7f" stroke-width="5"/>
+          <text x="355" y="115" text-anchor="middle" fill="#eef2fb" font-size="16" font-weight="700" font-family="JetBrains Mono,monospace">compose-demo-web-1</text>
+        </g>
+        <use href="#doc" x="40" y="40" width="100" height="125"/>
+        <text x="90" y="190" text-anchor="middle" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">compose.yaml</text>
+        <text x="90" y="230" text-anchor="middle" font-size="30">📁</text>
+        <text x="90" y="258" text-anchor="middle" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">html/</text>
+        <g data-step="1">
+          <text x="90" y="20" text-anchor="middle" fill="#3ccf7f" font-size="16" font-weight="700" font-family="Inter,sans-serif" class="en">✓ still here</text>
+          <text x="90" y="20" text-anchor="middle" fill="#3ccf7f" font-size="17" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">✓ هنوز هست</text>
+        </g>
+      </svg>
+      <div class="card" data-step="4" style="margin-top:8px"><p style="font-size:18px"><span class="en">One command stopped and deleted the container <b>and</b> the network. Your <code>html</code> folder is untouched (Lesson 8).</span><span class="fa">یک دستور کانتینر <b>و</b> شبکه را متوقف و حذف کرد. پوشه‌ی <code>html</code> شما دست‌نخورده می‌ماند (درس ۸).</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 10 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 You used <span class="hl">Docker Compose!</span></span><span class="fa split">🎉 از <span class="hl">Docker&nbsp;Compose</span> استفاده کردید!</span></h2>
+  <div class="sumgrid">
+    <div class="card a" style="--d:.4"><code>compose.yaml</code><p><span class="en">Your containers' settings, written in a file</span><span class="fa">تنظیمات کانتینرهای شما، نوشته‌شده در یک فایل</span></p></div>
+    <div class="card a" style="--d:.5"><code>docker compose up -d</code><p><span class="en">Create and start everything in the background</span><span class="fa">ساختن و اجرای همه‌چیز در پس‌زمینه</span></p></div>
+    <div class="card a" style="--d:.6"><code>docker compose ps</code><p><span class="en">This project's containers</span><span class="fa">کانتینرهای همین پروژه</span></p></div>
+    <div class="card a" style="--d:.7"><code>docker compose down</code><p><span class="en">Stop and delete the containers and the network</span><span class="fa">توقف و حذف کانتینرها و شبکه</span></p></div>
+  </div>
+  <p class="a" style="--d:.85;margin-top:18px;font-size:17px;color:var(--muted)"><span class="en">📥 Stuck? The finished files are in the course folder under <code>examples/14-compose/</code>.</span><span class="fa">📥 گیر کرده‌اید؟ فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/14-compose/</code> هستند.</span></p>
+  <div class="btnrow a" style="--d:1.1">
+    <a class="bigbtn primary" href="../14-compose.html"><span class="en">✔ Do it yourself: hands-on lesson with checklists</span><span class="fa">✔ خودتان انجام دهید: درس تمرینی با چک‌لیست</span></a>
+    <a class="bigbtn" href="15-compose-services.html"><span class="en">Next: Lesson 15 · Compose: an app and its database →</span><span class="fa">بعدی: درس ۱۵ · Compose: یک برنامه و دیتابیسش ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 10</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
+</div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
+
+<script>
+/* ---------- lesson 14 scenes ---------- */
+(() => {
+  /* [data-until="k"]: visible until the slide reaches step k.  [data-hot="k m"]: highlighted on exactly those steps */
+  const fx = (slide) => ({ step(k) {
+    slide.querySelectorAll('[data-until]').forEach(el => el.classList.toggle('gone', k >= +el.dataset.until));
+    slide.querySelectorAll('[data-hot]').forEach(el => el.classList.toggle('hot', el.dataset.hot.split(' ').includes(String(k))));
+  } });
+  window.SCENES = {
+    fx,
+    sum(slide, api) {
+      const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+      const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+      const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+      const stop = api.loop(t => {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of P) {
+          p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+          if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+        }
+      });
+      return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+    }
+  };
+})();
+</script>
+<script src="../tips.js"></script>
+<script src="deck.js"></script>
+</body>
+</html>

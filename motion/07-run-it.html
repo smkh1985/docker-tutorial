@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 7 · Run a command in a new container (motion)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="../docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- shared bits (copied from lesson 1) ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  svg .fa{font-family:Vazirmatn,sans-serif;direction:rtl}
+  .card :not(pre)>code,.lead code{white-space:nowrap}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:280px}
+  .goal svg{width:96px;height:96px}
+  .goal h3{font-size:26px}
+  .term.sm .body{font-size:17px}
+  .term.xs .body{font-size:15px;line-height:1.6}
+  .btnrow{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:30px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px}
+  .sumgrid code{font-size:21px;flex:none;min-width:var(--cw,330px);text-align:left}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  /* ---- lesson 7 ---- */
+  .run.root2 .cmd::before{content:"root@e51c490f4f10:/# ";color:var(--amber)}
+  .fadeout{transition:opacity .9s var(--ease),transform .9s var(--ease),filter .9s}
+  .fadeout.gone{opacity:0;filter:blur(6px)}
+  /* title loop: image → container pops → prints → disappears */
+  .life .ctr{transform-box:fill-box;transform-origin:center bottom;animation:life 5s var(--ease) infinite}
+  .life .outl{animation:outl 5s linear infinite;opacity:0}
+  .life .outl:nth-child(2){animation-delay:.15s}.life .outl:nth-child(3){animation-delay:.3s}
+  .life .rmtag{animation:rmtag 5s linear infinite;opacity:0}
+  @keyframes life{0%,12%{transform:scale(0);opacity:0}24%{transform:scale(1.08);opacity:1}30%,62%{transform:none;opacity:1}78%,100%{transform:scale(.4) translateY(-40px);opacity:0}}
+  @keyframes outl{0%,30%{opacity:0}36%,88%{opacity:1}96%,100%{opacity:0}}
+  @keyframes rmtag{0%,62%{opacity:0}68%,86%{opacity:1}94%,100%{opacity:0}}
+  .flash{animation:flashc 2.2s var(--ease) infinite;transform-box:fill-box;transform-origin:center bottom}
+  @keyframes flashc{0%,10%{transform:scale(0);opacity:0}25%,45%{transform:none;opacity:1}65%,100%{transform:scale(.3);opacity:0}}
+  .stages{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:22px}
+  .stages .card{padding:16px 18px;text-align:center}
+  .stages .ic{font-size:40px;line-height:1.2}
+  .stages p{font-size:17px}
+  .stages .card[data-step]:not(:last-child)::after{content:"";}
+  .cmdline{display:flex;justify-content:center;gap:22px;font:600 44px/1 var(--mono);direction:ltr;margin-top:56px}
+  .cmdline .seg{position:relative;padding:12px 16px;border-radius:14px;border:2px solid transparent;transition:border-color .5s,background .5s}
+  .cmdline .seg small{position:absolute;left:50%;top:calc(100% + 14px);transform:translateX(-50%);font:700 19px var(--font);white-space:nowrap;opacity:0;transition:opacity .5s}
+  body.lang-fa .cmdline .seg small{font-family:Vazirmatn,sans-serif}
+  .cmdline .seg.lit{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
+  .cmdline .seg.lit small{opacity:1;color:var(--c)}
+  .cmp{display:grid;grid-template-columns:240px 1fr 1fr;gap:12px;margin-top:22px;font-size:19px}
+  .cmp>div{padding:14px 18px;border-radius:14px;background:rgba(20,30,56,.85);border:1px solid var(--line)}
+  .cmp .h{background:none;border:none;font:700 15px var(--font);color:var(--muted);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center}
+  body.lang-fa .cmp .h{letter-spacing:0;font-size:17px}
+  .cmp .h code{text-transform:none}
+  .cmp .top{text-align:center;background:#05080f}
+  .cmp .top code{font-size:20px}
+</style>
+</head>
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
+
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="cubeoff" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#3a4358"/><path d="M0 30L60 0V60L0 90Z" fill="#2a3144"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#5d6982"/>
+    </symbol>
+    <symbol id="box3" viewBox="-62 -60 124 114" overflow="visible">
+      <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#2a5bd8;--l:#163a96;--r:#0f2a70"/>
+      <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+      <use href="#slab" x="-62" y="-58" width="124" height="86" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+    </symbol>
+    <symbol id="monitor" viewBox="0 0 200 170"><rect x="4" y="4" width="192" height="122" rx="14" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M80 126l-8 30h56l-8-30" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M56 158h88" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="../index.html"><img src="../docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <a class="pill" href="../07-run-it.html"><span class="en">✔ Hands-on version</span><span class="fa">✔ نسخه‌ی تمرینی</span></a>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
+</header>
+
+<div id="viewport"><div id="stage">
+
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 7 — Run a command in a new container" data-title-fa="درس ۷ — اجرای یک دستور در کانتینر جدید" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 7</span><span class="fa">دوره‌ی Docker · درس ۷</span></div>
+    <h1 style="font-size:84px;line-height:1.08;margin:26px 0 26px">
+      <span class="en split">Run a command in a <span class="hl">new container</span></span><span class="fa split">اجرای یک دستور در <span class="hl">کانتینر جدید</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en">Every image has a default program. But you can tell <code>docker run</code> to run <b>your own command</b> instead. Great for trying a Linux distro or running a quick tool, without installing anything.</span><span class="fa">هر ایمیج یک برنامه‌ی پیش‌فرض دارد. ولی می‌توانید به <code>docker run</code> بگویید به‌جای آن <b>دستور خودتان</b> را اجرا کند. عالی برای امتحان یک توزیع لینوکس یا اجرای سریع یک ابزار، بدون نصب هیچ چیز.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur life" style="--d:.3;width:700px;height:640px;overflow:visible;direction:ltr" viewBox="0 0 700 640">
+    <circle cx="350" cy="320" r="290" fill="none" stroke="rgba(110,155,255,.15)" stroke-dasharray="4 10"/>
+    <g class="bob"><use href="#box3" x="40" y="250" width="190" height="175"/></g>
+    <text x="135" y="470" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">alpine</text>
+    <rect x="70" y="150" width="270" height="46" rx="12" fill="#05080f" stroke="#6e9bff" stroke-width="2"/>
+    <text x="205" y="180" text-anchor="middle" fill="#a9c4ff" font-size="18" font-family="JetBrains Mono,monospace">cat /etc/os-release</text>
+    <path d="M250 340 H 330" stroke="#6e9bff" stroke-width="3" class="flow"/><path d="M324 331l10 9-10 9" fill="none" stroke="#6e9bff" stroke-width="3"/>
+    <g class="ctr"><use href="#cube" x="345" y="270" width="150" height="150"/></g>
+    <g>
+      <text class="outl" x="345" y="470" fill="#a8b3c9" font-size="17" font-family="JetBrains Mono,monospace">NAME="Alpine Linux"</text>
+      <text class="outl" x="345" y="496" fill="#a8b3c9" font-size="17" font-family="JetBrains Mono,monospace">ID=alpine</text>
+      <text class="outl" x="345" y="522" fill="#a8b3c9" font-size="17" font-family="JetBrains Mono,monospace">VERSION_ID=3.24.2</text>
+    </g>
+    <g class="rmtag"><rect x="530" y="300" width="100" height="40" rx="10" fill="rgba(255,107,107,.15)" stroke="#ff6b6b"/><text x="580" y="327" text-anchor="middle" fill="#ff6b6b" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">--rm</text></g>
+  </svg>
+</section>
+
+<!-- ======================= 2 · GOALS ======================= -->
+<section class="slide" data-title-en="What you'll do" data-title-fa="در این درس">
+  <div class="kicker a"><span class="en">Lesson 7 · Run a command in a new container</span><span class="fa">درس ۷ · اجرای یک دستور در کانتینر جدید</span></div>
+  <h2><span class="en split">In this lesson, <span class="hl">four small steps</span></span><span class="fa split">در این درس، <span class="hl">چهار قدم کوچک</span></span></h2>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:46px">
+    <div class="card goal a" style="--d:.3">
+      <svg viewBox="0 0 100 100"><rect x="8" y="30" width="84" height="40" rx="8" fill="#05080f" stroke="#6e9bff" stroke-width="3"/><text x="50" y="57" text-anchor="middle" fill="#3ccf7f" font-size="18" font-family="JetBrains Mono,monospace">$ cat</text></svg>
+      <div class="n">01</div><h3><span class="en">Run one command</span><span class="fa">اجرای یک دستور</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.45">
+      <svg viewBox="0 0 100 100"><use href="#cubeoff" x="22" y="22" width="56" height="56"/><path d="M20 20 L 80 80 M80 20 L 20 80" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/></svg>
+      <div class="n">02</div><h3><span class="en">Why <code>--rm</code>?</span><span class="fa">چرا <code>--rm</code>؟</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.6">
+      <svg viewBox="0 0 100 100"><use href="#cube" x="22" y="30" width="56" height="56"/><rect x="18" y="8" width="64" height="20" rx="5" fill="#05080f" stroke="#ffb54d" stroke-width="2"/><text x="50" y="23" text-anchor="middle" fill="#ffb54d" font-size="12" font-family="JetBrains Mono,monospace">root@…:/#</text></svg>
+      <div class="n">03</div><h3><span class="en">A shell in a new container</span><span class="fa">یک شل در کانتینر جدید</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.75">
+      <svg viewBox="0 0 100 100"><text x="50" y="44" text-anchor="middle" fill="#a9c4ff" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">run</text><text x="50" y="62" text-anchor="middle" fill="#93a0bb" font-size="15" font-family="Inter,sans-serif">vs</text><text x="50" y="84" text-anchor="middle" fill="#3ccf7f" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">exec</text></svg>
+      <div class="n">04</div><h3><span class="en"><code>run -it</code> or <code>exec -it</code>?</span><span class="fa"><code>run -it</code> یا <code>exec -it</code>؟</span></h3>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:26px">
+    <div class="card a" style="--d:1"><p><span class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</span><span class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</span></p></div>
+    <div class="card a" style="--d:1.15"><p><span class="en">🖱 Hover over any part of a command to see what it does.</span><span class="fa">🖱 نشانگر ماوس را روی هر بخش از دستور ببرید تا توضیحش را ببینید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 3 · DEFAULT PROGRAM ======================= -->
+<section class="slide" data-title-en="Every image has a default program" data-title-fa="هر ایمیج یک برنامه‌ی پیش‌فرض دارد">
+  <div class="kicker a"><span class="en">Before we start</span><span class="fa">قبل از شروع</span></div>
+  <h2><span class="en split">Every image has a <span class="hl">default program</span></span><span class="fa split">هر ایمیج یک <span class="hl">برنامه‌ی پیش‌فرض</span> دارد</span></h2>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px">
+    <div class="card" data-step="1" style="text-align:center">
+      <svg viewBox="0 0 360 200" style="width:100%;height:200px;direction:ltr">
+        <use href="#box3" x="20" y="50" width="110" height="101"/>
+        <path d="M140 100 H 200" stroke="#6e9bff" stroke-width="3" class="flow"/>
+        <use href="#cube" x="210" y="45" width="110" height="110"/><circle cx="306" cy="52" r="7" fill="#3ccf7f" class="pulse"/>
+        <text x="75" y="185" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">nginx</text>
+        <text x="265" y="185" text-anchor="middle" fill="#3ccf7f" font-size="17" font-family="Inter,sans-serif" class="en">🌐 web server</text>
+        <text x="265" y="185" text-anchor="middle" fill="#3ccf7f" font-size="18" class="fa">🌐 وب‌سرور</text>
+      </svg>
+      <p><span class="en"><code>nginx</code> starts a web server.</span><span class="fa"><code>nginx</code> یک وب‌سرور اجرا می‌کند.</span></p>
+    </div>
+    <div class="card" data-step="2" style="text-align:center">
+      <svg viewBox="0 0 360 200" style="width:100%;height:200px;direction:ltr">
+        <use href="#box3" x="20" y="50" width="110" height="101"/>
+        <path d="M140 100 H 200" stroke="#6e9bff" stroke-width="3" class="flow"/>
+        <rect x="196" y="70" width="162" height="60" rx="10" fill="#05080f" stroke="rgba(110,155,255,.4)"/>
+        <text x="277" y="105" text-anchor="middle" fill="#dfe6f5" font-size="14" font-family="JetBrains Mono,monospace">Hello from Docker!</text>
+        <text x="75" y="185" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">hello-world</text>
+      </svg>
+      <p><span class="en"><code>hello-world</code> prints a message.</span><span class="fa"><code>hello-world</code> یک پیام چاپ می‌کند.</span></p>
+    </div>
+    <div class="card key" data-step="3" style="text-align:center">
+      <svg viewBox="0 0 360 200" style="width:100%;height:200px;direction:ltr">
+        <use href="#box3" x="20" y="50" width="110" height="101"/>
+        <rect x="150" y="70" width="200" height="60" rx="10" fill="#05080f" stroke="#ffb54d" stroke-width="2"/>
+        <text x="250" y="96" text-anchor="middle" fill="#ffb54d" font-size="15" font-family="JetBrains Mono,monospace">your command</text>
+        <text x="250" y="118" text-anchor="middle" fill="#93a0bb" font-size="14" font-family="JetBrains Mono,monospace" class="en">instead</text>
+        <text x="250" y="118" text-anchor="middle" fill="#93a0bb" font-size="15" class="fa">به‌جای آن</text>
+        <text x="75" y="185" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">alpine</text>
+      </svg>
+      <p><span class="en">But you can tell <code>docker run</code> to run <b>your own command</b> instead.</span><span class="fa">ولی می‌توانید به <code>docker run</code> بگویید به‌جای آن <b>دستور خودتان</b> را اجرا کند.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 4 · RUN ONE COMMAND ======================= -->
+<section class="slide" data-title-en="Run one command" data-title-fa="اجرای یک دستور">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Run <span class="hl">one command</span></span><span class="fa split">اجرای <span class="hl">یک دستور</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">Ask a tiny Alpine Linux container which Linux it is:</span><span class="fa">از یک کانتینر کوچک Alpine Linux بپرسید چه لینوکسی است:</span></p>
+  <div class="term sm a" style="--d:.5;margin-top:18px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1" style="margin-bottom:0"><div class="cmd">docker run --rm alpine cat /etc/os-release</div><pre class="out">
+NAME="Alpine Linux"
+ID=alpine
+VERSION_ID=3.24.2
+PRETTY_NAME="Alpine Linux v3.24"
+...</pre></div>
+    </div>
+  </div>
+  <div class="stages">
+    <div class="card" data-step="2"><div class="ic">📦</div><p><span class="en">Docker created a <b>new container</b> from <code>alpine</code></span><span class="fa">Docker از <code>alpine</code> یک <b>کانتینر جدید</b> ساخت</span></p></div>
+    <div class="card" data-step="3"><div class="ic">▶️</div><p><span class="en">ran <code>cat /etc/os-release</code> in it</span><span class="fa"><code>cat /etc/os-release</code> را در آن اجرا کرد</span></p></div>
+    <div class="card" data-step="4"><div class="ic">🖨</div><p><span class="en">printed the result</span><span class="fa">نتیجه را چاپ کرد</span></p></div>
+    <div class="card" data-step="5"><div class="ic">⏹</div><p><span class="en">and the container stopped</span><span class="fa">و کانتینر متوقف شد</span></p></div>
+    <div class="card tip" data-step="6"><div class="ic">🗑</div><p><span class="en"><code>--rm</code> (Lesson 2) deleted it right away</span><span class="fa"><code>--rm</code> (درس ۲) بلافاصله آن را حذف کرد</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 5 · ANATOMY ======================= -->
+<section class="slide" data-scene="anat" data-title-en="After the image name" data-title-fa="بعد از نام ایمیج">
+  <div class="kicker a"><span class="en">Step 1 · Reading the command</span><span class="fa">قدم ۱ · خواندن دستور</span></div>
+  <h2><span class="en split">Everything after the image name is <span class="hl">the command to run</span></span><span class="fa split">هر چیزی بعد از نام ایمیج <span class="hl">دستوری است که اجرا می‌شود</span></span></h2>
+  <div class="cmdline a" style="--d:.4">
+    <span class="seg" style="--c:#a9c4ff">docker run --rm<small><span class="en">options</span><span class="fa">گزینه‌ها</span></small></span>
+    <span class="seg" style="--c:#6e9bff">alpine<small><span class="en">image</span><span class="fa">ایمیج</span></small></span>
+    <span class="seg" style="--c:#ffb54d">cat /etc/os-release<small><span class="en">your command</span><span class="fa">دستور شما</span></small></span>
+  </div>
+  <p class="lead" data-step="4" style="margin-top:80px"><span class="en">Try another one:</span><span class="fa">یکی دیگر امتحان کنید:</span></p>
+  <div class="term sm" data-step="4" style="margin-top:14px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="4" style="margin-bottom:0"><div class="cmd">docker run --rm alpine echo "Hello from a new container"</div><pre class="out">
+Hello from a new container</pre></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 6 · WHY --rm ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Why --rm?" data-title-fa="چرا --rm؟">
+  <div class="kicker a"><span class="en">Step 2</span><span class="fa">قدم ۲</span></div>
+  <h2><span class="en split">Why <span class="hl">--rm?</span></span><span class="fa split">چرا <span class="hl">&#x2066;--rm&#x2069;؟</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 440px;gap:30px;margin-top:24px;direction:ltr;align-items:start">
+    <div class="term sm a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run" data-step="1"><div class="cmd">docker run --name once alpine echo hi</div><pre class="out">
+hi</pre></div>
+        <div class="run recall" data-step="2" data-reveal="3" data-task-en="👉 The command finished, but list all containers, including stopped ones." data-task-fa="👉 دستور تمام شد، ولی همه‌ی کانتینرها، حتی متوقف‌شده‌ها را فهرست کنید."><div class="cmd">docker ps -a</div><pre class="out">
+NAMES     STATUS                     <span class="c"># other columns left out</span>
+once      Exited (0) 1 second ago</pre></div>
+        <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 Delete the leftover container once." data-task-fa="👉 کانتینر باقی‌مانده‌ی once را حذف کنید." style="margin-bottom:0"><div class="cmd">docker rm once</div><pre class="out">
+once</pre></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 440 400" class="a blur" style="--d:.5;width:440px;height:400px;overflow:visible">
+      <g data-step="1" class="pop-in"><g class="fadeout" data-gone="6">
+        <use href="#cubeoff" x="150" y="120" width="140" height="140"/>
+        <rect x="160" y="290" width="120" height="34" rx="8" fill="#0d1426" stroke="#93a0bb"/>
+        <text x="220" y="313" text-anchor="middle" fill="#eef2fb" font-size="17" font-family="JetBrains Mono,monospace">once</text>
+        <text x="220" y="350" text-anchor="middle" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">Exited (0)</text>
+      </g></g>
+      <g data-step="4">
+        <g class="fadeout" data-gone="6"><use href="#cubeoff" x="20" y="170" width="100" height="100" opacity=".6"/><use href="#cubeoff" x="320" y="170" width="100" height="100" opacity=".6"/>
+        <use href="#cubeoff" x="80" y="40" width="80" height="80" opacity=".4"/><use href="#cubeoff" x="280" y="40" width="80" height="80" opacity=".4"/></g>
+        <g class="fadeout" data-gone="6"><text x="220" y="30" text-anchor="middle" fill="#ffb54d" font-size="18" font-weight="700" font-family="Inter,sans-serif" class="en">a leftover after every run…</text>
+        <text x="220" y="30" text-anchor="middle" fill="#ffb54d" font-size="19" font-weight="700" class="fa">بعد از هر اجرا یک باقی‌مانده…</text></g>
+      </g>
+      <g data-step="6"><text x="220" y="200" text-anchor="middle" fill="#3ccf7f" font-size="30" font-weight="800" font-family="Space Grotesk,sans-serif" class="en">clean ✓</text><text x="220" y="200" text-anchor="middle" fill="#3ccf7f" font-size="30" font-weight="800" class="fa">تمیز ✓</text></g>
+    </svg>
+  </div>
+  <div style="position:relative;height:100px;margin-top:18px">
+    <div class="card" data-only="3 4" style="position:absolute;inset:0 0 auto"><p><span class="en">A <b>leftover</b>. Every one-off command would leave one behind. Delete it:</span><span class="fa">یک <b>باقی‌مانده</b>. هر دستور یک‌باره یکی از این‌ها جا می‌گذارد. حذفش کنید:</span></p></div>
+    <div class="card key" data-only="7" style="position:absolute;inset:0 0 auto"><p><span class="en">🔑 For one-off commands, always add <code>--rm</code>.</span><span class="fa">🔑 برای دستورهای یک‌باره همیشه <code>--rm</code> را اضافه کنید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 7 · A SHELL IN A NEW CONTAINER ======================= -->
+<section class="slide" data-scene="fx" data-title-en="A shell in a new container" data-title-fa="یک شل در کانتینر جدید">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">A shell in a <span class="hl">new container</span></span><span class="fa split">یک شل در <span class="hl">کانتینر جدید</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px;font-size:22px"><span class="en">Want to look around Ubuntu without installing it? Run <code>bash</code> in a new <code>ubuntu</code> container, with <code>-it</code> so you can type (like <code>exec -it</code> in Lesson 6):</span><span class="fa">می‌خواهید بدون نصب، Ubuntu را بگردید؟ <code>bash</code> را در یک کانتینر جدید <code>ubuntu</code> اجرا کنید، با <code>-it</code> تا بتوانید تایپ کنید (مثل <code>exec -it</code> در درس ۶):</span></p>
+  <div style="display:grid;grid-template-columns:1fr 420px;gap:30px;margin-top:18px;direction:ltr;align-items:start">
+    <div class="term sm a" style="--d:.5">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run" data-step="1"><div class="cmd">docker run -it --rm ubuntu bash</div><pre class="out">
+<span style="color:#ffb54d">root@e51c490f4f10:/#</span>   <span class="c"># inside a fresh Ubuntu</span></pre></div>
+        <div class="run root2" data-step="2"><div class="cmd">cat /etc/os-release</div><pre class="out">
+PRETTY_NAME="Ubuntu 26.04.1 LTS"
+NAME="Ubuntu"
+...</pre></div>
+        <div class="run root2" data-step="3" style="margin-bottom:0"><div class="cmd">exit</div><pre class="out">
+exit</pre></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 420 380" class="a blur" style="--d:.5;width:420px;height:380px;overflow:visible">
+      <use href="#box3" x="20" y="30" width="120" height="110"/>
+      <text x="80" y="170" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">ubuntu</text>
+      <path d="M150 90 C 220 90, 240 150, 250 190" fill="none" stroke="#6e9bff" stroke-width="3" class="flow"/>
+      <g data-step="1" class="pop-in"><g class="fadeout" data-gone="3">
+        <use href="#cube" x="190" y="170" width="190" height="190"/><circle cx="362" cy="182" r="8" fill="#3ccf7f" class="pulse"/>
+        <rect x="170" y="120" width="230" height="40" rx="10" fill="#05080f" stroke="#ffb54d" stroke-width="2"/>
+        <text x="285" y="146" text-anchor="middle" fill="#ffb54d" font-size="17" font-family="JetBrains Mono,monospace">root@e51c490f4f10:/#</text>
+      </g></g>
+      <g data-step="3">
+        <text x="285" y="260" text-anchor="middle" fill="#ff6b6b" font-size="22" font-weight="700" font-family="Inter,sans-serif" class="en">stopped + deleted</text>
+        <text x="285" y="260" text-anchor="middle" fill="#ff6b6b" font-size="22" font-weight="700" class="fa">متوقف + حذف شد</text>
+        <text x="285" y="292" text-anchor="middle" fill="#93a0bb" font-size="17" font-family="JetBrains Mono,monospace">--rm</text>
+      </g>
+    </svg>
+  </div>
+  <div class="card key" data-step="4" style="margin-top:14px;padding:16px 24px"><p><span class="en">🔑 The shell <b>was</b> the container's program, so leaving it stopped the container, and <code>--rm</code> deleted it. Check: <code>docker ps -a</code> has no Ubuntu container.</span><span class="fa">🔑 شل <b>همان</b> برنامه‌ی کانتینر بود، پس خروج از آن کانتینر را متوقف کرد و <code>--rm</code> حذفش کرد. بررسی کنید: <code>docker ps -a</code> هیچ کانتینر Ubuntu ندارد.</span></p></div>
+</section>
+
+<!-- ======================= 8 · FORGET -it ======================= -->
+<section class="slide" data-title-en="What if I forget -it?" data-title-fa="اگر -it را فراموش کنم؟">
+  <div class="kicker a"><span class="en">Step 3 · A question</span><span class="fa">قدم ۳ · یک سؤال</span></div>
+  <h2><span class="en split">What if I forget <span class="hl">-it?</span></span><span class="fa split">اگر <span class="hl">&#x2066;-it&#x2069;</span> را فراموش کنم؟</span></h2>
+  <div style="display:grid;grid-template-columns:1fr 520px;gap:34px;margin-top:34px;direction:ltr;align-items:start">
+    <div class="term sm a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run" data-step="1" style="margin-bottom:0"><div class="cmd">docker run --rm ubuntu bash</div><pre class="out">
+<span class="c">$   ← back immediately: no prompt, no error</span></pre></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 520 320" class="a blur" style="--d:.5;width:520px;height:320px;overflow:visible">
+      <g data-step="2">
+        <g transform="translate(30 90)">
+          <rect width="170" height="80" rx="12" fill="#0d1426" stroke="#6e9bff" stroke-width="3"/>
+          <g fill="#6e9bff"><rect x="16" y="14" width="22" height="16" rx="3"/><rect x="44" y="14" width="22" height="16" rx="3"/><rect x="72" y="14" width="22" height="16" rx="3"/><rect x="100" y="14" width="22" height="16" rx="3"/><rect x="128" y="14" width="26" height="16" rx="3"/><rect x="16" y="38" width="22" height="16" rx="3"/><rect x="44" y="38" width="22" height="16" rx="3"/><rect x="72" y="38" width="22" height="16" rx="3"/><rect x="100" y="38" width="22" height="16" rx="3"/><rect x="128" y="38" width="26" height="16" rx="3"/><rect x="40" y="60" width="90" height="12" rx="3"/></g>
+          <path d="M-10 -10 L 180 90 M180 -10 L -10 90" stroke="#ff6b6b" stroke-width="7" stroke-linecap="round"/>
+        </g>
+        <text x="115" y="215" text-anchor="middle" fill="#ff6b6b" font-size="18" font-weight="700" font-family="Inter,sans-serif" class="en">no keyboard</text>
+        <text x="115" y="215" text-anchor="middle" fill="#ff6b6b" font-size="19" font-weight="700" class="fa">بدون صفحه‌کلید</text>
+        <g class="flash"><use href="#cube" x="300" y="70" width="150" height="150"/></g>
+        <text x="375" y="270" text-anchor="middle" fill="#93a0bb" font-size="18" font-family="JetBrains Mono,monospace">bash: 💤 exit</text>
+      </g>
+    </svg>
+  </div>
+  <div class="card key" data-step="2" style="margin-top:20px"><div class="n">❓ -it</div><p><span class="en"><code>docker run --rm ubuntu bash</code> returns immediately, with no prompt and no error. <code>bash</code> had no keyboard to read from, so it had nothing to do and exited. Interactive programs need <code>-it</code>.</span><span class="fa"><code>docker run --rm ubuntu bash</code> بلافاصله برمی‌گردد، بدون prompt و بدون خطا. <code>bash</code> صفحه‌کلیدی برای خواندن نداشت، پس کاری برای انجام نداشت و تمام شد. برنامه‌های تعاملی <code>-it</code> لازم دارند.</span></p></div>
+</section>
+
+<!-- ======================= 9 · RUN -it OR EXEC -it ======================= -->
+<section class="slide" data-title-en="run -it or exec -it?" data-title-fa="run -it یا exec -it؟">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split"><span class="hl">run&nbsp;-it</span> or <span class="hl">exec&nbsp;-it?</span></span><span class="fa split"><span class="hl">&#x2066;run&nbsp;-it&#x2069;</span> یا <span class="hl">&#x2066;exec&nbsp;-it&#x2069;؟</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:8px;font-size:22px"><span class="en">Both give you a shell, but in very different containers:</span><span class="fa">هر دو یک شل به شما می‌دهند، ولی در کانتینرهای خیلی متفاوت:</span></p>
+  <div class="cmp">
+    <div class="h"></div>
+    <div class="top a" style="--d:.5">
+      <code>docker exec -it NAME bash</code>
+      <svg viewBox="0 0 400 120" style="width:100%;height:120px;display:block;margin-top:6px;direction:ltr">
+        <use href="#cube" x="150" y="10" width="100" height="100"/><circle cx="238" cy="18" r="7" fill="#3ccf7f" class="pulse"/>
+        <path id="ex1" d="M30 60 H 160" stroke="rgba(255,181,77,.5)" stroke-width="3" class="flow"/>
+        <g><circle r="7" fill="#ffb54d"/><animateMotion dur="2s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;.5;1" calcMode="linear"><mpath href="#ex1"/></animateMotion></g>
+        <text x="300" y="66" fill="#3ccf7f" font-size="16" font-weight="700" font-family="Inter,sans-serif" class="en">stays Up</text>
+        <text x="380" y="66" text-anchor="start" fill="#3ccf7f" font-size="17" font-weight="700" class="fa">روشن می‌ماند</text>
+      </svg>
+    </div>
+    <div class="top a" style="--d:.6">
+      <code>docker run -it --rm IMAGE bash</code>
+      <svg viewBox="0 0 400 120" style="width:100%;height:120px;display:block;margin-top:6px;direction:ltr">
+        <use href="#box3" x="20" y="20" width="80" height="74"/>
+        <path d="M110 60 H 150" stroke="#6e9bff" stroke-width="3" class="flow"/>
+        <g class="flash" style="animation-duration:3s"><use href="#cube" x="160" y="10" width="100" height="100"/></g>
+        <text x="290" y="66" fill="#ff6b6b" font-size="16" font-weight="700" font-family="Inter,sans-serif" class="en">new, then gone</text>
+        <text x="390" y="66" text-anchor="start" fill="#ff6b6b" font-size="17" font-weight="700" class="fa">جدید، بعد حذف</text>
+      </svg>
+    </div>
+    <div class="h" data-step="1"><span class="en">Container</span><span class="fa">کانتینر</span></div>
+    <div data-step="1"><span class="en">an existing, running one (Lesson 6)</span><span class="fa">یک کانتینر موجود و در حال اجرا (درس ۶)</span></div>
+    <div data-step="1"><span class="en">a brand-new one, from an image</span><span class="fa">یک کانتینر کاملاً جدید، از روی ایمیج</span></div>
+    <div class="h" data-step="2"><span class="en">After <code>exit</code></span><span class="fa">بعد از <code>exit</code></span></div>
+    <div data-step="2"><span class="en">the container keeps running</span><span class="fa">کانتینر روشن می‌ماند</span></div>
+    <div data-step="2"><span class="en">the container stops (and <code>--rm</code> deletes it)</span><span class="fa">کانتینر متوقف می‌شود (و <code>--rm</code> حذفش می‌کند)</span></div>
+    <div class="h" data-step="3"><span class="en">Use it to</span><span class="fa">کاربرد</span></div>
+    <div data-step="3"><span class="en">look inside / fix a running app</span><span class="fa">نگاه کردن داخل / رفع مشکل برنامه‌ی در حال اجرا</span></div>
+    <div data-step="3"><span class="en">try an image, run a quick tool</span><span class="fa">امتحان یک ایمیج، اجرای سریع یک ابزار</span></div>
+  </div>
+  <p data-step="4" style="margin-top:16px;font-size:18px;color:var(--muted)"><span class="en">You can delete the images you pulled if you like (Lesson 1): <code>docker image rm alpine ubuntu</code></span><span class="fa">اگر خواستید، ایمیج‌هایی را که دانلود کردید حذف کنید (درس ۱): <code>docker image rm alpine ubuntu</code></span></p>
+</section>
+
+<!-- ======================= 10 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 You can run <span class="hl">any command</span> in a container!</span><span class="fa split">🎉 حالا می‌توانید <span class="hl">هر دستوری</span> را در کانتینر اجرا کنید!</span></h2>
+  <div class="sumgrid" style="grid-template-columns:1fr;--cw:420px">
+    <div class="card a" style="--d:.4"><code>docker run --rm IMAGE COMMAND</code><p><span class="en">Run one command in a new container, then delete it</span><span class="fa">اجرای یک دستور در کانتینر جدید و بعد حذف آن</span></p></div>
+    <div class="card a" style="--d:.55"><code>docker run -it --rm IMAGE bash</code><p><span class="en">A shell in a new container; <code>exit</code> ends it</span><span class="fa">یک شل در کانتینر جدید؛ <code>exit</code> تمامش می‌کند</span></p></div>
+    <div class="card a" style="--d:.7"><code>docker exec -it NAME bash</code><p><span class="en">A shell in an existing, running container</span><span class="fa">یک شل در کانتینر موجود و در حال اجرا</span></p></div>
+  </div>
+  <div class="btnrow a" style="--d:1">
+    <a class="bigbtn primary" href="../07-run-it.html"><span class="en">✔ Do it yourself: hands-on lesson with checklists</span><span class="fa">✔ خودتان انجام دهید: درس تمرینی با چک‌لیست</span></a>
+    <a class="bigbtn" href="08-volumes.html"><span class="en">Next: Lesson 8 · Keep your data with volumes →</span><span class="fa">بعدی: درس ۸ · نگه داشتن داده‌ها با volume ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 10</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
+</div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
+
+<script>
+/* ---------- lesson 7 scenes ---------- */
+window.SCENES = {
+  /* [data-hl="k"]: highlighted on step k · [data-gone="k"]: fades away from step k on */
+  fx(slide) {
+    const hl = [...slide.querySelectorAll('[data-hl]')], gone = [...slide.querySelectorAll('[data-gone]')];
+    return { step(k) {
+      hl.forEach(e => e.classList.toggle('on', e.dataset.hl.split(' ').includes(String(k))));
+      gone.forEach(e => e.classList.toggle('gone', k >= +e.dataset.gone));
+    } };
+  },
+
+  /* options · image · command light up one by one (steps 1–3) */
+  anat(slide) {
+    const segs = [...slide.querySelectorAll('.cmdline .seg')];
+    return { step(k) { segs.forEach((s, i) => s.classList.toggle('lit', k >= i + 1)); } };
+  },
+
+  /* confetti */
+  sum(slide, api) {
+    const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+    const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+    const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+    const stop = api.loop(t => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of P) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+        if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+      }
+    });
+    return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+  }
+};
+</script>
+<script src="../tips.js"></script>
+<script src="deck.js"></script>
+</body>
+</html>

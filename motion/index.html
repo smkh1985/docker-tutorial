@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Docker Course · Motion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="../docker.svg" type="image/svg+xml">
+<style>
+:root{--ink:#070b16;--panel:#111a30;--line:rgba(110,155,255,.18);--blue:#1D63ED;--sky:#a9c4ff;--green:#3ccf7f;--text:#eef2fb;--muted:#93a0bb;
+  --font:"Inter","Segoe UI",system-ui,sans-serif;--display:"Space Grotesk","Inter",system-ui,sans-serif;--ease:cubic-bezier(.2,.8,.2,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--ink);color:var(--text);font-family:var(--font);
+  background-image:radial-gradient(ellipse at 15% 10%,rgba(29,99,237,.22),transparent 55%),radial-gradient(ellipse at 90% 95%,rgba(60,207,127,.1),transparent 50%);background-attachment:fixed}
+body.lang-fa{--font:"Vazirmatn",Tahoma,sans-serif;--display:"Vazirmatn",Tahoma,sans-serif}
+body.lang-en .fa,body.lang-fa .en{display:none!important}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 60px}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top .sp{flex:1}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(17,26,48,.7);color:var(--text);font:600 15px var(--font);text-decoration:none;cursor:pointer}
+.pill:hover{border-color:var(--blue)}
+.pill img{width:22px;height:22px}
+h1{font:700 clamp(34px,6vw,60px)/1.1 var(--display);margin:56px 0 14px}
+h1 .hl{background:linear-gradient(90deg,#6e9bff,#3ccf7f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{color:var(--muted);font-size:19px;max-width:760px;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:40px}
+a.card{display:flex;flex-direction:column;gap:10px;padding:20px 22px;border-radius:18px;border:1px solid var(--line);background:rgba(17,26,48,.75);color:var(--text);text-decoration:none;
+  opacity:0;transform:translateY(18px);animation:in .6s var(--ease) forwards;animation-delay:calc(var(--i)*40ms);transition:border-color .25s,transform .25s,box-shadow .25s}
+a.card:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 16px 40px rgba(29,99,237,.25)}
+@keyframes in{to{opacity:1;transform:none}}
+.num{font:700 14px "JetBrains Mono",monospace;color:var(--sky);letter-spacing:.08em}
+body.lang-fa .num{font-family:var(--font);letter-spacing:0}
+.name{font:600 21px/1.3 var(--display)}
+.go{margin-top:auto;font-size:14px;color:var(--green);font-weight:600}
+.card.intro{border-color:rgba(60,207,127,.45)}
+</style>
+</head>
+<body class="lang-en">
+<div class="wrap">
+  <div class="top">
+    <a class="pill" href="../index.html"><img src="../docker.svg" alt=""><span class="en">Hands-on course</span><span class="fa">دوره‌ی تمرینی</span></a>
+    <span class="sp"></span>
+    <button class="pill" id="langBtn">فارسی</button>
+  </div>
+  <h1><span class="en">Docker, <span class="hl">in motion</span></span><span class="fa">Docker، <span class="hl">متحرک</span></span></h1>
+  <p class="lead"><span class="en">Animated slide versions of every lesson. Use <b>→</b> to step through, <b>L</b> to switch language. Then do the hands-on version with checklists.</span><span class="fa">نسخه‌ی اسلایدی و متحرک هر درس. با <b>→</b> جلو بروید و با <b>L</b> زبان را عوض کنید. بعد نسخه‌ی تمرینی با چک‌لیست را انجام دهید.</span></p>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+var LESSONS = [
+  { id: 'intro', file: 'why-docker.html', en: 'Why Docker?', fa: 'چرا Docker؟' },
+  { id: '00', file: '00-install.html', en: 'Install Docker', fa: 'نصب Docker' },
+  { id: '01', file: '01-images.html', en: 'Images', fa: 'ایمیج‌ها' },
+  { id: '02', file: '02-run.html', en: 'Run a container', fa: 'اجرای کانتینر' },
+  { id: '03', file: '03-background.html', en: 'Run in the background', fa: 'اجرا در پس‌زمینه' },
+  { id: '04', file: '04-ports.html', en: 'Open it in the browser', fa: 'باز کردن در مرورگر' },
+  { id: '05', file: '05-logs.html', en: 'Logs', fa: 'لاگ‌ها' },
+  { id: '06', file: '06-exec.html', en: 'Go inside a container', fa: 'رفتن به داخل کانتینر' },
+  { id: '07', file: '07-run-it.html', en: 'Run a command in a new container', fa: 'اجرای دستور در کانتینر جدید' },
+  { id: '08', file: '08-volumes.html', en: 'Keep your data', fa: 'نگه داشتن داده‌ها' },
+  { id: '09', file: '09-named-volumes.html', en: 'Named volumes', fa: 'Named volume' },
+  { id: '10', file: '10-live-edit.html', en: 'Edit live', fa: 'ویرایش زنده' },
+  { id: '11', file: '11-env.html', en: 'Settings with environment variables', fa: 'تنظیمات با متغیرهای محیطی' },
+  { id: '12', file: '12-restart.html', en: 'Restart policies', fa: 'سیاست‌های راه‌اندازی مجدد' },
+  { id: '13', file: '13-networks.html', en: 'Networks', fa: 'شبکه‌ها' },
+  { id: '14', file: '14-compose.html', en: 'Docker Compose', fa: 'Docker Compose' },
+  { id: '15', file: '15-compose-services.html', en: 'Compose: an app and its database', fa: 'Compose: برنامه و دیتابیس' },
+  { id: '16', file: '16-commit.html', en: 'Save a container as an image', fa: 'ذخیره‌ی کانتینر به‌صورت ایمیج' },
+  { id: '17', file: '17-dockerfile.html', en: 'Your first Dockerfile', fa: 'اولین Dockerfile' },
+  { id: '18', file: '18-tags.html', en: 'Tags and versions', fa: 'تگ‌ها و نسخه‌ها' },
+  { id: '19', file: '19-own-program.html', en: 'Package your own program', fa: 'بسته‌بندی برنامه‌ی خودتان' },
+  { id: '20', file: '20-copy-project.html', en: 'Copy a whole project', fa: 'کپی کل پروژه' },
+  { id: '21', file: '21-system-packages.html', en: 'System packages and a safer image', fa: 'بسته‌های سیستمی و ایمیج امن‌تر' },
+  { id: '22', file: '22-api-db.html', en: 'Your own API + database', fa: 'API خودتان + دیتابیس' },
+  { id: '23', file: '23-frontend.html', en: 'Frontend + backend + database', fa: 'Frontend + backend + دیتابیس' }
+];
+
+(() => {
+  const faNum = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  const grid = document.getElementById('grid');
+  (window.LESSONS || []).forEach((l, i) => {
+    const a = document.createElement('a'); a.className = 'card' + (l.id === 'intro' ? ' intro' : ''); a.href = l.file; a.style.setProperty('--i', i);
+    const n = l.id === 'intro' ? ['START HERE', 'از اینجا شروع کنید'] : ['LESSON ' + Number(l.id), 'درس ' + faNum(Number(l.id))];
+    a.innerHTML = `<span class="num"><span class="en">${n[0]}</span><span class="fa">${n[1]}</span></span>
+      <span class="name"><span class="en"></span><span class="fa"></span></span>
+      <span class="go"><span class="en">▶ Play</span><span class="fa">▶ نمایش</span></span>`;
+    a.querySelector('.name .en').textContent = l.en; a.querySelector('.name .fa').textContent = l.fa;
+    grid.appendChild(a);
+  });
+  const KEY = 'docker-course-lang', btn = document.getElementById('langBtn');
+  const get = () => { try { return localStorage.getItem(KEY) || 'en'; } catch (e) { return 'en'; } };
+  const set = l => {
+    document.body.className = 'lang-' + l; document.documentElement.lang = l; document.documentElement.dir = l === 'fa' ? 'rtl' : 'ltr';
+    btn.textContent = l === 'fa' ? 'English' : 'فارسی'; try { localStorage.setItem(KEY, l); } catch (e) {}
+  };
+  btn.onclick = () => set(document.body.classList.contains('lang-fa') ? 'en' : 'fa');
+  set(get());
+})();
+</script>
+</body>
+</html>

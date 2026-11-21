@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 6 · Go inside a container (motion)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="../docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- shared bits (copied from lesson 1) ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  svg .fa{font-family:Vazirmatn,sans-serif;direction:rtl}
+  .card :not(pre)>code,.lead code{white-space:nowrap}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:280px}
+  .goal svg{width:96px;height:96px}
+  .goal h3{font-size:26px}
+  .term.sm .body{font-size:17px}
+  .term.xs .body{font-size:15px;line-height:1.6}
+  .btnrow{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:30px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px}
+  .sumgrid code{font-size:21px;flex:none;min-width:var(--cw,330px);text-align:left}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  /* ---- browser mock ---- */
+  .browser{border-radius:14px;overflow:hidden;background:#f4f6fb;color:#1a1d28;box-shadow:0 24px 60px rgba(0,0,0,.5);direction:ltr;text-align:left;position:relative}
+  .browser .bbar{display:flex;align-items:center;gap:8px;padding:9px 12px;background:#d9e0ec}
+  .browser .bbar i{width:10px;height:10px;border-radius:50%;background:#b9c2d3}
+  .browser .url{flex:1;background:#fff;border-radius:8px;padding:5px 12px;font:500 15px var(--mono);color:#333}
+  .browser .pages{position:relative;min-height:120px}
+  .browser .page{padding:18px 22px}
+  .browser .pages>.page[data-only]{position:absolute;inset:0}
+  .browser .page h1{font:700 30px/1.2 "Times New Roman",serif;margin-bottom:6px}
+  .browser .page p{font:16px/1.4 "Times New Roman",serif;color:#333}
+  .browser .page.err h1{font:600 22px/1.3 Inter,sans-serif;color:#3a3f4b}
+  .browser .page.err p{font:15px Inter,sans-serif;color:#6b7280}
+  .browser .page.mine h1{color:#1D63ED}
+  /* ---- lesson 6 ---- */
+  .run.root .cmd::before{content:"root@118989b0b06f:/# ";color:var(--amber)}
+  .fadeout{transition:opacity .9s var(--ease),transform .9s var(--ease),filter .9s}
+  .fadeout.gone{opacity:.1;filter:blur(3px)}
+  .parts3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .parts3 .card{padding:18px 20px}
+  .parts3 .card p{font-size:17px}
+  .parts3 code{font-size:19px}
+  .tree{font:500 20px/1.9 var(--mono);direction:ltr;text-align:left}
+  .tree .f{display:flex;align-items:center;gap:10px;padding:2px 12px;border-radius:8px;transition:background .4s,box-shadow .4s}
+  .tree .f.on{background:rgba(255,181,77,.15);box-shadow:0 0 0 2px rgba(255,181,77,.6)}
+  .tbl{width:100%;border-collapse:separate;border-spacing:0 10px;font-size:20px}
+  .tbl td{padding:14px 20px;background:rgba(20,30,56,.85);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .tbl td:first-child{border-inline-start:1px solid var(--line);border-start-start-radius:14px;border-end-start-radius:14px}
+  .tbl td:last-child{border-inline-end:1px solid var(--line);border-start-end-radius:14px;border-end-end-radius:14px}
+  .tbl code{font-size:19px}
+  .tbl td.cmdc{direction:ltr}
+  body.lang-fa .tbl td.cmdc{text-align:right}
+  .swap .old,.swap .new{transition:opacity .8s,transform .8s var(--ease)}
+  .swap .new{opacity:0;transform:translateY(14px)}
+  .in.swap .old,.swap.in .old{opacity:0;transform:translateY(-14px)}
+  .in.swap .new,.swap.in .new{opacity:1;transform:none}
+</style>
+</head>
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
+
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="cubeoff" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#3a4358"/><path d="M0 30L60 0V60L0 90Z" fill="#2a3144"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#5d6982"/>
+    </symbol>
+    <symbol id="box3" viewBox="-62 -60 124 114" overflow="visible">
+      <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#2a5bd8;--l:#163a96;--r:#0f2a70"/>
+      <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+      <use href="#slab" x="-62" y="-58" width="124" height="86" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+    </symbol>
+    <symbol id="monitor" viewBox="0 0 200 170"><rect x="4" y="4" width="192" height="122" rx="14" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M80 126l-8 30h56l-8-30" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M56 158h88" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"/></symbol>
+    <symbol id="file" viewBox="0 0 100 120">
+      <path d="M6 4H66L94 32V116H6Z" fill="#0d1426" stroke="#a9c4ff" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M66 4V32H94" fill="none" stroke="#a9c4ff" stroke-width="4" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="../index.html"><img src="../docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <a class="pill" href="../06-exec.html"><span class="en">✔ Hands-on version</span><span class="fa">✔ نسخه‌ی تمرینی</span></a>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
+</header>
+
+<div id="viewport"><div id="stage">
+
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 6 — Go inside a container" data-title-fa="درس ۶ — رفتن به داخل کانتینر" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 6</span><span class="fa">دوره‌ی Docker · درس ۶</span></div>
+    <h1 style="font-size:100px;line-height:1.08;margin:26px 0 26px">
+      <span class="en split">Go <span class="hl">inside</span> a container</span><span class="fa split">رفتن به <span class="hl">داخل</span> کانتینر</span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en">A container is like a small Linux machine. You'll open a shell inside the running nginx, look around, change its welcome page, and see your change in the browser.</span><span class="fa">کانتینر مثل یک ماشین لینوکس کوچک است. یک شل داخل nginx در حال اجرا باز می‌کنید، اطراف را می‌گردید، صفحه‌ی خوش‌آمد آن را تغییر می‌دهید و تغییرتان را در مرورگر می‌بینید.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:700px;height:640px;overflow:visible;direction:ltr" viewBox="0 0 700 640">
+    <circle cx="380" cy="320" r="290" fill="none" stroke="rgba(110,155,255,.15)" stroke-dasharray="4 10"/>
+    <use href="#monitor" x="20" y="400" width="190" height="162"/>
+    <text x="115" y="465" text-anchor="middle" fill="#3ccf7f" font-size="22" font-family="JetBrains Mono,monospace">$ exec</text>
+    <path id="tIn" d="M200 440 C 280 380, 330 360, 380 330" fill="none" stroke="rgba(110,155,255,.5)" stroke-width="3" class="flow"/>
+    <g><circle r="8" fill="#ffb54d"/><animateMotion dur="1.6s" repeatCount="indefinite"><mpath href="#tIn"/></animateMotion></g>
+    <g transform="translate(470 290)">
+      <g class="bob"><use href="#cube" x="-180" y="-160" width="360" height="360"/></g>
+    </g>
+    <!-- a window on the left face showing the shell inside -->
+    <g transform="translate(316 318) matrix(1 .5 0 1 0 0)">
+      <rect x="0" y="0" width="140" height="90" rx="10" fill="#05080f" stroke="#ffb54d" stroke-width="3"/>
+      <text x="12" y="38" fill="#ffb54d" font-size="16" font-family="JetBrains Mono,monospace">root@…:/#</text>
+      <rect x="12" y="52" width="10" height="18" fill="#6e9bff"><animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/></rect>
+    </g>
+    <circle cx="630" cy="170" r="11" fill="#3ccf7f" class="pulse"/>
+    <text x="470" y="560" text-anchor="middle" fill="#eef2fb" font-size="26" font-weight="700" font-family="JetBrains Mono,monospace">web</text>
+  </svg>
+</section>
+
+<!-- ======================= 2 · GOALS ======================= -->
+<section class="slide" data-title-en="What you'll do" data-title-fa="در این درس">
+  <div class="kicker a"><span class="en">Lesson 6 · Go inside a container</span><span class="fa">درس ۶ · رفتن به داخل کانتینر</span></div>
+  <h2><span class="en split">In this lesson, <span class="hl">four small steps</span></span><span class="fa split">در این درس، <span class="hl">چهار قدم کوچک</span></span></h2>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:46px">
+    <div class="card goal a" style="--d:.3">
+      <svg viewBox="0 0 100 100"><use href="#cube" x="22" y="26" width="64" height="64"/><path d="M6 30 H 36" stroke="#ffb54d" stroke-width="5" stroke-linecap="round"/><path d="M28 22l10 8-10 8" fill="none" stroke="#ffb54d" stroke-width="5" stroke-linecap="round"/></svg>
+      <div class="n">01</div><h3><span class="en">Go inside with a shell</span><span class="fa">با یک شل به داخل بروید</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.45">
+      <svg viewBox="0 0 100 100" fill="none" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"><circle cx="44" cy="44" r="22"/><path d="M60 60l22 22"/><path d="M36 38h16M36 50h10" stroke="#3ccf7f"/></svg>
+      <div class="n">02</div><h3><span class="en">Look around</span><span class="fa">نگاهی به اطراف</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.6">
+      <svg viewBox="0 0 100 100" fill="none" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"><rect x="12" y="18" width="76" height="62" rx="8"/><path d="M12 32h76"/><path d="M26 50h48M26 64h30" stroke="#3ccf7f"/></svg>
+      <div class="n">03</div><h3><span class="en">Change the web page</span><span class="fa">تغییر صفحه‌ی وب</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.75">
+      <svg viewBox="0 0 100 100"><use href="#cube" x="8" y="30" width="44" height="44"/><use href="#cubeoff" x="52" y="30" width="44" height="44"/><text x="50" y="96" text-anchor="middle" fill="#ffb54d" font-size="22" font-weight="700" font-family="Inter,sans-serif">?</text></svg>
+      <div class="n">04</div><h3><span class="en">Is my change still there?</span><span class="fa">تغییر من هنوز هست؟</span></h3>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:26px">
+    <div class="card a" style="--d:1"><p><span class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</span><span class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</span></p></div>
+    <div class="card a" style="--d:1.15"><p><span class="en">🖱 Hover over any part of a command to see what it does.</span><span class="fa">🖱 نشانگر ماوس را روی هر بخش از دستور ببرید تا توضیحش را ببینید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 3 · START NGINX ======================= -->
+<section class="slide" data-title-en="Start nginx" data-title-fa="اجرای nginx">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Start <span class="hl">nginx</span></span><span class="fa split">اجرای <span class="hl">nginx</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:26px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Start nginx in the background, named web, reachable at localhost:8080." data-task-fa="👉 nginx را در پس‌زمینه، با نام web و در دسترس روی localhost:8080 اجرا کنید."><div class="cmd">docker run -d --name web -p 8080:80 nginx</div><pre class="out">
+118989b0b06f3d2c7a5e41f09b8d6c2e5a7f3b1d9e0c4a6b8f2d1e3c5a7b9d0f</pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:520px 1fr;gap:30px;margin-top:26px;align-items:center">
+    <div class="browser" data-step="3">
+      <div class="bbar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+      <div class="page"><h1>Welcome to nginx!</h1><p>If you see this page, nginx is successfully installed and working. …</p></div>
+    </div>
+    <div class="card tip" data-step="3"><p><span class="en">Open <code>http://localhost:8080</code> and <b>keep the tab open</b>. You should see “Welcome to nginx!”.</span><span class="fa"><code>http://localhost:8080</code> را باز کنید و <b>تب را باز نگه دارید</b>. باید «Welcome to nginx!» را ببینید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 4 · GO INSIDE ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Go inside" data-title-fa="رفتن به داخل">
+  <div class="kicker a"><span class="en">Step 2</span><span class="fa">قدم ۲</span></div>
+  <h2><span class="en split">Go <span class="hl">inside</span></span><span class="fa split">رفتن به <span class="hl">داخل</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 470px;gap:30px;margin-top:26px;direction:ltr;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="term a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run" data-step="1" style="margin-bottom:0"><div class="cmd">docker exec -it web bash</div><pre class="out">
+<span style="color:#ffb54d">root@118989b0b06f:/#</span></pre></div>
+        </div>
+      </div>
+      <div class="parts3 dirauto">
+        <div class="card" data-step="2"><code>exec</code><p style="margin-top:8px"><span class="en">Execute: run a command inside a container that is <b>already running</b>.</span><span class="fa">Execute: یک دستور را داخل کانتینری اجرا می‌کند که <b>از قبل در حال اجراست</b>.</span></p></div>
+        <div class="card" data-step="3"><code>-it</code><p style="margin-top:8px"><span class="en">Interactive + terminal: so you can type into it. Needed for a shell.</span><span class="fa">Interactive + terminal: تا بتوانید در آن تایپ کنید. برای شل لازم است.</span></p></div>
+        <div class="card" data-step="4"><code>bash</code><p style="margin-top:8px"><span class="en">The command to run: a shell.</span><span class="fa">دستوری که اجرا می‌شود: یک شل.</span></p></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 470 520" class="a blur" style="--d:.5;width:470px;height:520px;overflow:visible">
+      <use href="#monitor" x="20" y="10" width="190" height="162"/>
+      <text x="115" y="80" text-anchor="middle" fill="#3ccf7f" font-size="18" font-family="JetBrains Mono,monospace">you@pc:~$</text>
+      <text x="115" y="200" text-anchor="middle" fill="#93a0bb" font-size="17" font-family="Inter,sans-serif" class="en">your PC</text>
+      <text x="115" y="200" text-anchor="middle" fill="#93a0bb" font-size="18" class="fa">کامپیوتر شما</text>
+      <path id="goIn" d="M180 120 C 300 140, 320 220, 310 290" fill="none" stroke="rgba(255,181,77,.55)" stroke-width="3" class="flow"/>
+      <g data-step="1"><g><circle r="8" fill="#ffb54d"/><animateMotion dur="1.5s" repeatCount="indefinite"><mpath href="#goIn"/></animateMotion></g></g>
+      <use href="#cube" x="200" y="270" width="230" height="230"/>
+      <circle cx="410" cy="282" r="9" fill="#3ccf7f" class="pulse"/>
+      <g data-step="5" class="pop-in">
+        <rect x="150" y="215" width="250" height="44" rx="12" fill="#05080f" stroke="#ffb54d" stroke-width="2"/>
+        <text x="275" y="244" text-anchor="middle" fill="#ffb54d" font-size="18" font-family="JetBrains Mono,monospace">root@118989b0b06f:/#</text>
+      </g>
+      <text x="315" y="515" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">web</text>
+    </svg>
+  </div>
+  <div class="card key" data-step="5" style="margin-top:4px;padding:16px 24px"><p><span class="en">🔑 Your prompt changed. You are now <b>inside the container</b>, as <code>root</code>. The name after <code>@</code> is the container's ID.</span><span class="fa">🔑 prompt شما عوض شد. حالا <b>داخل کانتینر</b> هستید، با کاربر <code>root</code>. نام بعد از <code>@</code> شناسه‌ی کانتینر است.</span></p></div>
+</section>
+
+<!-- ======================= 5 · LOOK AROUND ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Look around" data-title-fa="نگاهی به اطراف">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Look <span class="hl">around</span></span><span class="fa split">نگاهی به <span class="hl">اطراف</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px;font-size:22px"><span class="en">nginx serves its web pages from the folder <code>/usr/share/nginx/html</code>. List it, then print the home page:</span><span class="fa">nginx صفحه‌های وب را از پوشه‌ی <code>/usr/share/nginx/html</code> سرو می‌کند. محتوایش را ببینید، بعد صفحه‌ی اصلی را چاپ کنید:</span></p>
+  <div style="display:grid;grid-template-columns:1fr 470px;gap:30px;margin-top:22px;direction:ltr;align-items:start">
+    <div class="term sm a" style="--d:.5">
+      <div class="bar"><i></i><i></i><i></i><span>root@118989b0b06f · <span class="en">inside the container</span><span class="fa">داخل کانتینر</span></span></div>
+      <div class="body">
+        <div class="run root" data-step="1"><div class="cmd">ls /usr/share/nginx/html</div><pre class="out">
+50x.html
+index.html</pre></div>
+        <div class="run root" data-step="2"><div class="cmd">cat /usr/share/nginx/html/index.html</div><pre class="out">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;<span style="color:#fff;background:rgba(255,181,77,.25)">Welcome to nginx!</span>&lt;/title&gt;
+...</pre></div>
+      </div>
+    </div>
+    <div class="card a" style="--d:.6;padding:20px 22px">
+      <div class="tree">
+        <div class="f">📁 /usr/share/nginx/html</div>
+        <div class="f" data-step="1" style="padding-inline-start:44px">📄 50x.html</div>
+        <div class="f" data-step="1" data-hl="2 3" style="padding-inline-start:44px">📄 index.html <span style="font:600 14px var(--font);color:var(--amber)" data-step="2"><span class="en">home page</span><span class="fa">صفحه‌ی اصلی</span></span></div>
+      </div>
+      <div style="text-align:center;font-size:30px;color:var(--amber);margin:6px 0" data-step="3">↓</div>
+      <div class="browser" data-step="3">
+        <div class="bbar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+        <div class="page" style="padding:12px 18px"><h1 style="font-size:24px;margin:0">Welcome to nginx!</h1></div>
+      </div>
+    </div>
+  </div>
+  <p class="lead" data-step="3" style="margin-top:14px"><span class="en">That's the page you see in the browser.</span><span class="fa">این همان صفحه‌ای است که در مرورگر می‌بینید.</span></p>
+</section>
+
+<!-- ======================= 6 · CHANGE THE PAGE ======================= -->
+<section class="slide" data-title-en="Change the page" data-title-fa="تغییر صفحه">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">Change <span class="hl">the page</span></span><span class="fa split">تغییر <span class="hl">صفحه</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>root@118989b0b06f · <span class="en">inside the container</span><span class="fa">داخل کانتینر</span></span></div>
+    <div class="body">
+      <div class="run root" data-step="1" style="margin-bottom:0"><div class="cmd">echo '&lt;h1&gt;Hello from my container!&lt;/h1&gt;' &gt; /usr/share/nginx/html/index.html</div></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 460px;gap:22px;margin-top:22px;align-items:start" class="dirauto">
+    <div class="card" data-step="2"><div class="n">echo · &gt;</div><p><span class="en"><code>echo</code> prints the text, and <code>&gt;</code> writes it into the file instead of the screen, <b>replacing</b> what was there.</span><span class="fa"><code>echo</code> متن را چاپ می‌کند و <code>&gt;</code> آن را به‌جای صفحه‌ی نمایش در فایل می‌نویسد و محتوای قبلی را <b>جایگزین</b> می‌کند.</span></p></div>
+    <div class="card tip" data-step="4"><div class="n">💡 '…'</div><p style="font-size:17px"><span class="en">Note the single quotes <code>'…'</code>. With double quotes, the <code>!</code> in the text confuses the shell and you get <code>event not found</code>. Single quotes pass the text exactly as written.</span><span class="fa">به کوتیشن تکی <code>'…'</code> دقت کنید. با کوتیشن دوتایی، علامت <code>!</code> در متن شل را گیج می‌کند و خطای <code>event not found</code> می‌گیرید. کوتیشن تکی متن را دقیقاً همان‌طور که نوشته شده می‌فرستد.</span></p></div>
+    <div style="direction:ltr">
+      <svg viewBox="0 0 460 150" style="--d:.5;width:460px;height:150px;overflow:visible" class="a fade">
+        <use href="#file" x="10" y="10" width="100" height="120"/>
+        <text x="60" y="148" text-anchor="middle" fill="#a9c4ff" font-size="15" font-family="JetBrains Mono,monospace">index.html</text>
+        <g class="swap" data-step="1" style="opacity:1;filter:none;transform:none">
+          <g class="old"><text x="130" y="62" fill="#93a0bb" font-size="17" font-family="JetBrains Mono,monospace">Welcome to nginx!</text></g>
+          <g class="new"><text x="130" y="62" fill="#3ccf7f" font-size="17" font-weight="700" font-family="JetBrains Mono,monospace">&lt;h1&gt;Hello from</text><text x="130" y="86" fill="#3ccf7f" font-size="17" font-weight="700" font-family="JetBrains Mono,monospace">my container!&lt;/h1&gt;</text></g>
+        </g>
+      </svg>
+      <div class="browser" data-step="3" style="margin-top:8px">
+        <div class="bbar"><i></i><i></i><i></i><span class="url">localhost:8080</span><span style="color:#55607a">⟳</span></div>
+        <div class="page mine"><h1>Hello from my container!</h1></div>
+      </div>
+    </div>
+  </div>
+  <p class="lead" data-step="3" style="margin-top:16px"><span class="en">Now reload the browser tab: your page! 🎉</span><span class="fa">حالا تب مرورگر را reload کنید: صفحه‌ی شما! 🎉</span></p>
+</section>
+
+<!-- ======================= 7 · NO NANO ======================= -->
+<section class="slide" data-title-en="Why not nano?" data-title-fa="چرا nano نه؟">
+  <div class="kicker a"><span class="en">Step 4 · A question</span><span class="fa">قدم ۴ · یک سؤال</span></div>
+  <h2><span class="en split">Why not open the file in <span class="hl">nano?</span></span><span class="fa split">چرا فایل را با <span class="hl">nano</span> باز نکنیم؟</span></h2>
+  <div style="display:grid;grid-template-columns:1fr 520px;gap:34px;margin-top:34px;direction:ltr;align-items:start">
+    <div class="term sm a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>root@118989b0b06f · <span class="en">inside the container</span><span class="fa">داخل کانتینر</span></span></div>
+      <div class="body">
+        <div class="run root" data-step="1" style="margin-bottom:0"><div class="cmd">nano /usr/share/nginx/html/index.html</div><pre class="out">
+<span style="color:#ff8a8a">bash: nano: command not found</span></pre></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 520 330" class="a blur" style="--d:.5;width:520px;height:330px;overflow:visible">
+      <g class="bob"><use href="#box3" x="20" y="40" width="200" height="184"/></g>
+      <text x="120" y="280" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en">nginx image</text>
+      <text x="120" y="280" text-anchor="middle" fill="#eef2fb" font-size="21" font-weight="700" class="fa">ایمیج nginx</text>
+      <g font-family="JetBrains Mono,monospace" font-size="24" font-weight="600">
+        <g data-step="2"><text x="290" y="90" fill="#3ccf7f">✓ nginx</text></g>
+        <g data-step="2" style="transition-delay:.2s"><text x="290" y="150" fill="#ff6b6b">✗ nano</text></g>
+        <g data-step="2" style="transition-delay:.4s"><text x="290" y="210" fill="#ff6b6b">✗ vi</text></g>
+      </g>
+    </svg>
+  </div>
+  <div class="card key" data-step="2" style="margin-top:20px"><div class="n">🔑</div><p><span class="en">The nginx image has no <code>nano</code> and no <code>vi</code>. Images are kept small, so they only contain what the app needs.</span><span class="fa">ایمیج nginx نه <code>nano</code> دارد نه <code>vi</code>. ایمیج‌ها کوچک نگه داشته می‌شوند و فقط چیزهایی را دارند که برنامه لازم دارد.</span></p></div>
+</section>
+
+<!-- ======================= 8 · COME BACK OUT ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Come back out" data-title-fa="بیرون آمدن">
+  <div class="kicker a"><span class="en">Step 5</span><span class="fa">قدم ۵</span></div>
+  <h2><span class="en split">Come back <span class="hl">out</span></span><span class="fa split"><span class="hl">بیرون</span> آمدن</span></h2>
+  <div class="term xs a" style="--d:.4;margin-top:24px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body" style="font-size:14px">
+      <div class="run root" data-step="1"><div class="cmd">exit</div><pre class="out">
+exit
+<span class="c">$   ← your normal prompt is back</span></pre></div>
+      <div class="run recall" data-step="2" data-reveal="3" data-task-en="👉 Is the container still running? List the running containers." data-task-fa="👉 کانتینر هنوز در حال اجراست؟ کانتینرهای در حال اجرا را فهرست کنید." style="margin-bottom:0"><div class="cmd">docker ps</div><pre class="out">
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS                                     NAMES
+118989b0b06f   nginx     "/docker-entrypoint.…"   3 minutes ago   <span style="color:#3ccf7f;font-weight:700">Up 3 minutes</span>   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   web</pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:520px 1fr;gap:30px;margin-top:18px;align-items:center">
+    <svg viewBox="0 0 520 270" class="a blur" style="--d:.5;width:520px;height:270px;overflow:visible;direction:ltr">
+      <use href="#monitor" x="0" y="60" width="150" height="128"/>
+      <text x="75" y="116" text-anchor="middle" fill="#3ccf7f" font-size="15" font-family="JetBrains Mono,monospace">you@pc:~$</text>
+      <use href="#cube" x="260" y="70" width="190" height="190"/>
+      <circle cx="432" cy="80" r="9" fill="#3ccf7f" class="pulse"/>
+      <g class="fadeout" data-gone="1">
+        <rect x="230" y="10" width="250" height="44" rx="12" fill="#05080f" stroke="#ffb54d" stroke-width="2"/>
+        <text x="355" y="39" text-anchor="middle" fill="#ffb54d" font-size="18" font-family="JetBrains Mono,monospace">root@118989b0b06f:/#</text>
+      </g>
+      <g data-step="1"><path d="M220 32 C 180 40, 170 80, 155 100" fill="none" stroke="rgba(255,181,77,.55)" stroke-width="3" class="flow"/></g>
+      <g data-step="3"><text x="355" y="268" text-anchor="middle" fill="#3ccf7f" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en">web is still Up ✓</text><text x="355" y="268" text-anchor="middle" fill="#3ccf7f" font-size="20" font-weight="700" class="fa">web هنوز Up است ✓</text></g>
+    </svg>
+    <div class="card key" data-step="4"><div class="n">🔑</div><p><span class="en"><code>exit</code> closed only the <b>shell</b> that <code>exec</code> started, not the container. The browser still shows your page. It's like <code>Ctrl+C</code> on <code>docker logs -f</code> in Lesson 5.</span><span class="fa"><code>exit</code> فقط <b>شلی</b> را بست که <code>exec</code> باز کرده بود، نه کانتینر را. مرورگر هنوز صفحه‌ی شما را نشان می‌دهد. مثل <code>Ctrl+C</code> روی <code>docker logs -f</code> در درس ۵.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 9 · STOP AND START ======================= -->
+<section class="slide" data-title-en="Stop and start again" data-title-fa="توقف و اجرای دوباره">
+  <div class="kicker a"><span class="en">Step 6</span><span class="fa">قدم ۶</span></div>
+  <h2><span class="en split">Stop and start again: <span class="hl">is my change still there?</span></span><span class="fa split">توقف و اجرای دوباره: <span class="hl">تغییر من هنوز هست؟</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 500px;gap:30px;margin-top:26px;direction:ltr;align-items:start">
+    <div class="term sm a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Stop the container." data-task-fa="👉 کانتینر را متوقف کنید."><div class="cmd">docker stop web</div><pre class="out">
+web</pre></div>
+        <div class="run" data-step="4" style="margin-bottom:0"><div class="cmd">docker start web</div><pre class="out">
+web</pre></div>
+      </div>
+    </div>
+    <div>
+      <div class="browser a" style="--d:.5">
+        <div class="bbar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+        <div class="pages">
+          <div class="page mine" data-only="0 1 2"><h1>Hello from my container!</h1></div>
+          <div class="page err" data-only="3 4"><h1>This site can't be reached</h1><p>localhost refused to connect.</p></div>
+          <div class="page mine" data-only="5 6"><h1>Hello from my container!</h1></div>
+        </div>
+      </div>
+      <svg viewBox="0 0 500 150" style="width:500px;height:150px;margin-top:10px;overflow:visible">
+        <g data-only="0 1"><use href="#cube" x="20" y="10" width="120" height="120"/><circle cx="128" cy="18" r="7" fill="#3ccf7f" class="pulse"/></g>
+        <g data-only="2 3 4"><use href="#cubeoff" x="20" y="10" width="120" height="120"/></g>
+        <g data-only="5 6"><use href="#cube" x="20" y="10" width="120" height="120"/><circle cx="128" cy="18" r="7" fill="#3ccf7f" class="pulse"/></g>
+        <g data-only="2 3 4"><text x="160" y="62" fill="#93a0bb" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en">web · stopped</text><text x="480" y="62" text-anchor="start" fill="#93a0bb" font-size="21" font-weight="700" class="fa">web · متوقف</text>
+          <text x="160" y="92" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">index.html: Hello… ✓</text></g>
+        <g data-only="5 6"><text x="160" y="62" fill="#3ccf7f" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en">web · Up again</text><text x="480" y="62" text-anchor="start" fill="#3ccf7f" font-size="21" font-weight="700" class="fa">web · دوباره Up</text>
+          <text x="160" y="92" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">index.html: Hello… ✓</text></g>
+      </svg>
+    </div>
+  </div>
+  <div style="position:relative;height:120px;margin-top:6px">
+    <div class="card" data-only="3 4" style="position:absolute;inset:0 0 auto"><p><span class="en">Reload the browser: nginx isn't running, so there is no page. But the container still <b>exists</b>, only stopped (remember <code>docker ps -a</code> from Lesson 3). Start the same container again:</span><span class="fa">مرورگر را reload کنید: nginx اجرا نمی‌شود، پس صفحه‌ای نیست. ولی کانتینر هنوز <b>وجود دارد</b>، فقط متوقف شده (<code>docker ps -a</code> در درس ۳ یادتان هست؟). همان کانتینر را دوباره روشن کنید:</span></p></div>
+    <div class="card key" data-only="5" style="position:absolute;inset:0 0 auto"><p><span class="en">✅ Your change is still there. Stopping a container doesn't delete it, so its files are kept.</span><span class="fa">✅ تغییر شما هنوز هست. متوقف کردن کانتینر آن را حذف نمی‌کند، پس فایل‌هایش باقی می‌مانند.</span></p></div>
+    <div class="card tip" data-only="6" style="position:absolute;inset:0 0 auto"><p><span class="en">💡 <code>docker start</code> restarts an <b>existing</b> container, with the same name, port and files. <code>docker run</code> always creates a <b>new</b> one.</span><span class="fa">💡 <code>docker start</code> یک کانتینر <b>موجود</b> را دوباره روشن می‌کند، با همان نام، پورت و فایل‌ها. <code>docker run</code> همیشه یک کانتینر <b>جدید</b> می‌سازد.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 10 · DELETE AND RUN AGAIN ======================= -->
+<section class="slide" data-title-en="Delete and run again" data-title-fa="حذف و اجرای دوباره">
+  <div class="kicker a"><span class="en">Step 7</span><span class="fa">قدم ۷</span></div>
+  <h2><span class="en split">Delete and run again: <span class="hl">where did my change go?</span></span><span class="fa split">حذف و اجرای دوباره: <span class="hl">تغییر من کجا رفت؟</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 480px;gap:30px;margin-top:26px;direction:ltr;align-items:start">
+    <div class="term sm a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Stop and delete web in one command." data-task-fa="👉 web را با یک دستور متوقف و حذف کنید."><div class="cmd">docker rm -f web</div><pre class="out">
+web</pre></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Create a new one, exactly like in step 1." data-task-fa="👉 یک کانتینر جدید بسازید، دقیقاً مثل قدم ۱." style="margin-bottom:0"><div class="cmd">docker run -d --name web -p 8080:80 nginx</div><pre class="out">
+5a1c3e7f9b2d4086a8c0e2f4b6d8a0c2e4f6b8d0a2c4e6f8b0d2a4c6e8f0b2d4</pre></div>
+      </div>
+    </div>
+    <div class="browser" data-step="5">
+      <div class="bbar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+      <div class="page"><h1>Welcome to nginx!</h1><p>If you see this page, nginx is successfully installed and working. …</p></div>
+    </div>
+  </div>
+  <div class="qbig" data-step="5" style="margin-top:34px;font:700 44px/1.2 var(--display);color:var(--red)"><span class="en">😮 Your page is gone!</span><span class="fa">😮 صفحه‌ی شما رفت!</span></div>
+</section>
+
+<!-- ======================= 11 · WHY ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Why is it gone?" data-title-fa="چرا رفت؟">
+  <div class="kicker a"><span class="en">Step 7 · Why?</span><span class="fa">قدم ۷ · چرا؟</span></div>
+  <h2><span class="en split">You changed the <span class="hl">container</span>, not the image</span><span class="fa split">شما <span class="hl">کانتینر</span> را تغییر دادید، نه ایمیج را</span></h2>
+  <svg viewBox="0 0 1420 330" style="width:1420px;height:330px;margin-top:10px;overflow:visible;direction:ltr">
+    <g class="a" style="--d:.3">
+      <g class="bob"><use href="#box3" x="80" y="60" width="200" height="184"/></g>
+      <text x="180" y="285" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="Inter,sans-serif" class="en">nginx image</text>
+      <text x="180" y="285" text-anchor="middle" fill="#eef2fb" font-size="23" font-weight="700" class="fa">ایمیج nginx</text>
+      <text x="180" y="315" text-anchor="middle" fill="#93a0bb" font-size="17" font-family="Inter,sans-serif" class="en">always “Welcome to nginx!”</text>
+      <text x="180" y="315" text-anchor="middle" fill="#93a0bb" font-size="18" class="fa">همیشه «&#x2066;Welcome to nginx!&#x2069;»</text>
+    </g>
+    <g class="a" style="--d:.5">
+      <path id="rA" d="M320 140 C 450 140, 470 90, 600 90" fill="none" stroke="rgba(110,155,255,.4)" stroke-width="3" class="flow"/>
+      <path id="rB" d="M320 160 C 450 160, 470 240, 600 240" fill="none" stroke="rgba(110,155,255,.4)" stroke-width="3" class="flow"/>
+      <text x="460" y="160" text-anchor="middle" fill="#a9c4ff" font-size="18" font-family="JetBrains Mono,monospace">docker run</text>
+    </g>
+    <g data-step="1" class="pop-in">
+      <g class="fadeout" data-gone="2"><use href="#cube" x="610" y="20" width="140" height="140"/>
+      <rect x="770" y="50" width="250" height="40" rx="10" fill="rgba(60,207,127,.15)" stroke="#3ccf7f"/>
+      <text x="895" y="77" text-anchor="middle" fill="#3ccf7f" font-size="16" font-family="JetBrains Mono,monospace">Hello from my container!</text></g>
+      <text x="1060" y="78" fill="#eef2fb" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en">old container · your change</text>
+      <text x="1400" y="78" text-anchor="start" fill="#eef2fb" font-size="21" font-weight="700" class="fa">کانتینر قبلی · تغییر شما</text>
+    </g>
+    <g data-step="2"><path d="M640 40 L 720 140 M720 40 L 640 140" stroke="#ff6b6b" stroke-width="8" stroke-linecap="round"/>
+      <text x="1060" y="108" fill="#ff6b6b" font-size="18" font-weight="700" font-family="Inter,sans-serif" class="en">deleted by docker rm</text>
+      <text x="1400" y="108" text-anchor="start" fill="#ff6b6b" font-size="19" font-weight="700" class="fa">با docker rm حذف شد</text></g>
+    <g data-step="3" class="pop-in">
+      <use href="#cube" x="610" y="170" width="140" height="140"/><circle cx="736" cy="180" r="7" fill="#3ccf7f" class="pulse"/>
+      <rect x="770" y="200" width="250" height="40" rx="10" fill="rgba(110,155,255,.12)" stroke="#6e9bff"/>
+      <text x="895" y="227" text-anchor="middle" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">Welcome to nginx!</text>
+      <text x="1060" y="228" fill="#eef2fb" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en">new container · fresh copy</text>
+      <text x="1400" y="228" text-anchor="start" fill="#eef2fb" font-size="21" font-weight="700" class="fa">کانتینر جدید · نسخه‌ی تازه</text>
+    </g>
+  </svg>
+  <p class="lead" data-step="3" style="margin-top:6px;font-size:21px"><span class="en">Deleting the container deleted the change. Every new container starts from the image, which never changed.</span><span class="fa">با حذف کانتینر، تغییر هم حذف شد. هر کانتینر جدید از روی ایمیج ساخته می‌شود، و ایمیج هیچ‌وقت تغییر نکرد.</span></p>
+  <table class="tbl" data-step="4" style="margin-top:12px">
+    <tr><td class="cmdc" style="width:400px;white-space:nowrap"><code>docker stop</code> → <code>docker start</code></td><td class="good">✅ <span class="en">kept: same container</span><span class="fa">باقی ماند: همان کانتینر</span></td></tr>
+    <tr><td class="cmdc"><code>docker rm</code> → <code>docker run</code></td><td class="bad">❌ <span class="en">lost: new container from the image</span><span class="fa">از بین رفت: کانتینر جدید از روی ایمیج</span></td></tr>
+  </table>
+</section>
+
+<!-- ======================= 12 · CLEAN UP ======================= -->
+<section class="slide" data-title-en="Clean up" data-title-fa="تمیزکاری">
+  <div class="kicker a"><span class="en">Step 7 · Clean up</span><span class="fa">قدم ۷ · تمیزکاری</span></div>
+  <h2><span class="en split">Changes live only as long as <span class="hl">the container</span></span><span class="fa split">تغییرات فقط تا وقتی <span class="hl">کانتینر</span> هست باقی می‌مانند</span></h2>
+  <div class="card key a" style="--d:.4;margin-top:34px"><div class="n">🔑</div><p style="font-size:22px"><span class="en">Changes made inside a container live only as long as the container. <b>Lesson 8</b> shows how to keep your changes.</span><span class="fa">تغییراتی که داخل کانتینر می‌دهید فقط تا وقتی کانتینر هست باقی می‌مانند. <b>درس ۸</b> نشان می‌دهد چطور تغییراتتان را نگه دارید.</span></p></div>
+  <p class="lead a" style="--d:.6;margin-top:34px"><span class="en">Clean up:</span><span class="fa">تمیزکاری:</span></p>
+  <div class="term sm a" style="--d:.7;margin-top:14px;max-width:900px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Stop and delete web in one command." data-task-fa="👉 web را با یک دستور متوقف و حذف کنید." style="margin-bottom:0"><div class="cmd">docker rm -f web</div><pre class="out">
+web</pre></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 13 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 You went <span class="hl">inside a container!</span></span><span class="fa split">🎉 به <span class="hl">داخل یک کانتینر</span> رفتید!</span></h2>
+  <div class="sumgrid" style="grid-template-columns:1fr;--cw:360px">
+    <div class="card a" style="--d:.4"><code>docker exec -it NAME bash</code><p><span class="en">Open a shell inside a running container</span><span class="fa">باز کردن شل داخل کانتینر در حال اجرا</span></p></div>
+    <div class="card a" style="--d:.55"><code>exit</code><p><span class="en">Leave the shell; the container keeps running</span><span class="fa">خروج از شل؛ کانتینر روشن می‌ماند</span></p></div>
+    <div class="card a" style="--d:.7"><code>docker start NAME</code><p><span class="en">Start an existing, stopped container again (changes kept)</span><span class="fa">روشن کردن دوباره‌ی یک کانتینر موجود و متوقف (تغییرات حفظ می‌شوند)</span></p></div>
+    <div class="card a" style="--d:.85"><code style="font-family:var(--font)"><span class="en">Changes inside a container</span><span class="fa">تغییرات داخل کانتینر</span></code><p><span class="en">Lost when the container is deleted; the image never changes</span><span class="fa">با حذف کانتینر از بین می‌روند؛ ایمیج هیچ‌وقت تغییر نمی‌کند</span></p></div>
+  </div>
+  <div class="btnrow a" style="--d:1.1">
+    <a class="bigbtn primary" href="../06-exec.html"><span class="en">✔ Do it yourself: hands-on lesson with checklists</span><span class="fa">✔ خودتان انجام دهید: درس تمرینی با چک‌لیست</span></a>
+    <a class="bigbtn" href="07-run-it.html"><span class="en">Next: Lesson 7 · Run a command in a new container →</span><span class="fa">بعدی: درس ۷ · اجرای یک دستور در کانتینر جدید ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 13</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
+</div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
+
+<script>
+/* ---------- lesson 6 scenes ---------- */
+window.SCENES = {
+  /* [data-hl="k"]: highlighted on step k · [data-gone="k"]: fades away from step k on */
+  fx(slide) {
+    const hl = [...slide.querySelectorAll('[data-hl]')], gone = [...slide.querySelectorAll('[data-gone]')];
+    return { step(k) {
+      hl.forEach(e => e.classList.toggle('on', e.dataset.hl.split(' ').includes(String(k))));
+      gone.forEach(e => e.classList.toggle('gone', k >= +e.dataset.gone));
+    } };
+  },
+
+  /* confetti */
+  sum(slide, api) {
+    const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+    const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+    const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+    const stop = api.loop(t => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of P) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+        if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+      }
+    });
+    return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+  }
+};
+</script>
+<script src="../tips.js"></script>
+<script src="deck.js"></script>
+</body>
+</html>

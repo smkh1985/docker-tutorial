@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why Docker? (motion)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="../docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  /* ---------- machines ---------- */
+  .machine{position:relative;border-radius:22px;padding:16px 18px 18px;background:linear-gradient(170deg,rgba(20,30,56,.9),rgba(9,14,28,.85));border:1px solid var(--line);box-shadow:0 30px 70px rgba(0,0,0,.45);direction:ltr}
+  .mhead{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+  .mhead h4{font:700 22px var(--display)}
+  .mhead small{font-size:14px;color:var(--muted)}
+  body.lang-fa .mhead{direction:rtl}
+  .badge{position:absolute;top:-22px;right:-16px;font-size:50px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
+  /* ---------- the app stack: frontend / backend / database ---------- */
+  .app3{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:30px repeat(4,54px);gap:6px}
+  .compact .app3{grid-template-rows:26px repeat(4,44px)}
+  .hd{font:700 14px var(--font);letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:8px;color:var(--c)}
+  body.lang-fa .hd{letter-spacing:0;font-size:15px}
+  .ly{--c:#9fb0c8;border-radius:10px;padding:4px 12px;display:flex;flex-direction:column;justify-content:center;min-width:0;
+      background:color-mix(in srgb,var(--c) 16%,#0a1122);border:1px solid color-mix(in srgb,var(--c) 45%,transparent);border-left:4px solid var(--c)}
+  .ly b{font:700 10.5px var(--font);letter-spacing:.12em;text-transform:uppercase;color:var(--c)}
+  body.lang-fa .ly b{letter-spacing:0;font-size:12.5px}
+  .ly .v{font:600 16px var(--mono);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+  .compact .ly .v{font-size:14px}.compact .ly b{font-size:9.5px}
+  .ly[data-step]{transform:translateY(-60px) scale(.9)}
+  .ly[data-step].in{transform:none;transition:transform .75s var(--back),opacity .4s,filter .4s}
+  .fe{--c:#61dafb}.be{--c:#3ccf7f}.db{--c:#6e9bff}.cfg{--c:#ff7aa8}.os{--c:#9fb0c8}.code{--c:#ffcf6b}
+  .from-left[data-step]{transform:translateX(-640px) rotate(-4deg);filter:none}
+  .from-left[data-step].in{transform:none;transition:transform 1.3s cubic-bezier(.3,1.25,.5,1),opacity .5s}
+  /* ---------- captions that replace each other ---------- */
+  .caps{position:relative}
+  .caps>div{position:absolute;inset:0}
+  .caps h3{font:700 34px/1.2 var(--display);margin:0 0 12px}
+  .caps p{font-size:23px;line-height:1.55;color:rgba(238,242,251,.84)}
+  .capbar{height:96px;margin-top:20px}
+  .capbar h3{font-size:30px;margin:0}
+  .caps .no{font:600 14px var(--mono);color:var(--blue2);letter-spacing:.1em;direction:ltr;display:inline-block;margin-bottom:8px}
+  code{font-size:.9em}
+  /* ---------- misc ---------- */
+  .bubble{position:absolute;z-index:5;display:flex;align-items:center;gap:12px;padding:14px 24px 14px 16px;border-radius:26px;
+    background:#f6f2e8;color:#1a1d28;font:700 italic 24px var(--font);box-shadow:6px 7px 0 rgba(0,0,0,.35);white-space:nowrap}
+  body.lang-fa .bubble{font-style:normal;font-family:Vazirmatn,sans-serif}
+  .bubble::after{content:"";position:absolute;left:40%;bottom:-16px;border:10px solid transparent;border-top:16px solid #f6f2e8;border-bottom:0}
+  .bubble .who{font-size:36px;font-style:normal}
+  .bubble[data-step]{transform:scale(.4) rotate(-8deg);transform-origin:40% 120%}
+  .bubble[data-step].in{transform:rotate(-2deg);transition:transform .6s var(--back),opacity .3s}
+  .bubble.inl{position:relative;transform:rotate(-2deg)}
+  .in>.bubble.inl{animation:bpop .6s var(--back)}
+  @keyframes bpop{from{transform:scale(.4) rotate(-10deg)}to{transform:rotate(-2deg)}}
+  .stamp{font:800 150px/1 var(--display);color:var(--red);border:10px solid var(--red);border-radius:26px;padding:6px 40px;display:inline-block;text-shadow:0 0 40px rgba(255,107,107,.4)}
+  .stamp[data-step]{transform:scale(2.4) rotate(-14deg);filter:none}
+  .stamp[data-step].in{transform:rotate(-8deg);transition:transform .45s cubic-bezier(.5,1.8,.6,1),opacity .2s}
+  .dest{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:40px}
+  .dest .card{text-align:center;padding:26px 18px}
+  .dest .ic{font-size:54px;line-height:1.2;margin-bottom:10px}
+  .dest h3{font-size:22px}
+  .term .body .err{color:#ff8a8a}
+  .clock{font:700 64px var(--display);color:var(--amber)}
+  .mates{display:flex;gap:16px;margin-top:10px}
+  .mate{text-align:center;padding:12px 16px;border-radius:14px;background:rgba(255,181,77,.1);border:1px solid rgba(255,181,77,.35)}
+  .mate div{font-size:40px}.mate small{font:700 15px var(--font);color:var(--amber)}
+  .setup{list-style:none;font:500 18px/1.5 var(--mono);direction:ltr;text-align:left}
+  .setup li{padding:7px 0;border-bottom:1px dashed rgba(110,155,255,.15);opacity:0;transform:translateX(-12px);transition:all .4s var(--ease);transition-delay:calc(var(--i) * .45s)}
+  .in .setup li,.setup.in li{opacity:1;transform:none}
+  .setup li::before{content:"$ ";color:var(--green)}
+  .setup li::after{content:" ✓";color:var(--green);opacity:0;transition:opacity .3s;transition-delay:calc(var(--i) * .45s + .35s)}
+  .in .setup li::after{opacity:1}
+  .servers{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .srv{border-radius:14px;padding:12px 12px 10px;background:rgba(13,20,38,.85);border:1px solid var(--line);font:600 13px var(--mono);color:var(--muted);direction:ltr}
+  .srv .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .srv .pb{height:8px;border-radius:5px;background:rgba(110,155,255,.12);overflow:hidden}
+  .srv .pb i{display:block;height:100%;width:0;background:var(--amber);border-radius:5px}
+  .srv .st{margin-top:6px;font-size:12px}
+  .srv.fail{border-color:var(--red)}.srv.fail .pb i{background:var(--red)}.srv.fail .st{color:var(--red)}
+  .srv.ok .pb i{background:var(--green)}.srv.ok .st{color:var(--green)}
+  .gauge{height:22px;border-radius:12px;background:rgba(110,155,255,.12);overflow:hidden;margin:8px 0 4px}
+  .gauge i{display:block;height:100%;width:10%;border-radius:12px;background:var(--green);transition:width .3s,background .3s}
+  .big-num{font:700 64px var(--display);font-variant-numeric:tabular-nums}
+  .recap{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:34px}
+  .recap .card{text-align:center;padding:22px 14px}
+  .recap .ic{font-size:44px}
+  .recap h3{font-size:19px;margin-top:8px}
+  .recap .x{display:inline-block;margin-top:12px;font:800 16px var(--font);color:var(--red);border:2px solid var(--red);border-radius:8px;padding:3px 10px;transform:rotate(-6deg)}
+  .need{margin-top:40px;font:700 40px/1.3 var(--display);text-align:center}
+  .bsr{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:40px}
+  .bsr .card{text-align:center;padding-top:20px}
+  .bsr svg{width:260px;height:150px}
+  .bsr h3{font-size:30px}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .svgfa{font-family:Vazirmatn,sans-serif}
+  .blink{animation:blinkk 1s steps(1) infinite}@keyframes blinkk{50%{opacity:.25}}
+</style>
+</head>
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+    <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+  </symbol>
+  <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+    <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+  </symbol>
+  <symbol id="box3" viewBox="-62 -60 124 114" overflow="visible">
+    <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#2a5bd8;--l:#163a96;--r:#0f2a70"/>
+    <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+    <use href="#slab" x="-62" y="-58" width="124" height="86" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+  </symbol>
+  <symbol id="monitor" viewBox="0 0 200 170"><rect x="4" y="4" width="192" height="122" rx="14" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M80 126l-8 30h56l-8-30" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M56 158h88" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"/></symbol>
+  <symbol id="server" viewBox="0 0 120 150">
+    <rect x="4" y="4" width="112" height="142" rx="12" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/>
+    <g fill="#16213d" stroke="#6e9bff" stroke-opacity=".5" stroke-width="2"><rect x="16" y="18" width="88" height="30" rx="5"/><rect x="16" y="60" width="88" height="30" rx="5"/><rect x="16" y="102" width="88" height="30" rx="5"/></g>
+    <g fill="#3ccf7f"><circle cx="92" cy="33" r="5" class="blink"/><circle cx="92" cy="75" r="5"/><circle cx="92" cy="117" r="5" class="blink" style="animation-delay:.4s"/></g>
+    <g stroke="#6e9bff" stroke-opacity=".6" stroke-width="3" stroke-linecap="round"><path d="M28 33h40M28 75h40M28 117h40"/></g>
+  </symbol>
+</defs></svg>
+
+<header class="topnav">
+  <a class="home pill" href="../index.html"><img src="../docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <a class="pill" href="../why-docker.html"><span class="en">Text version</span><span class="fa">نسخه‌ی متنی</span></a>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
+</header>
+
+<div id="viewport"><div id="stage">
+
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Why do we need Docker?" data-title-fa="چرا به Docker نیاز داریم؟" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Start here</span><span class="fa">دوره‌ی Docker · از اینجا شروع کنید</span></div>
+    <h1 style="font-size:96px;line-height:1.08;margin:26px 0">
+      <span class="en split">Why do we need <span class="hl">Docker?</span></span><span class="fa split">چرا به <span class="hl">Docker</span> نیاز داریم؟</span>
+    </h1>
+    <p class="lead a" style="--d:.7"><span class="en">Before any commands, let's follow one web application through its life and see the <b>problem</b> Docker solves.</span><span class="fa">قبل از هر دستوری، بیایید زندگی یک وب‌اپلیکیشن را دنبال کنیم و <b>مشکلی</b> را ببینیم که Docker حل می‌کند.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:720px;height:600px;overflow:visible" viewBox="0 0 720 600">
+    <use href="#monitor" x="0" y="350" width="210" height="178"/>
+    <use href="#server" x="500" y="90" width="130" height="162"/>
+    <text x="565" y="285" text-anchor="middle" fill="#93a0bb" font-size="20" font-family="Inter,sans-serif">server</text>
+    <use href="#monitor" x="500" y="400" width="160" height="136"/>
+    <text x="580" y="568" text-anchor="middle" fill="#93a0bb" font-size="20" font-family="Inter,sans-serif">teammate</text>
+    <path id="hopA" d="M105 380 C 180 160, 360 120, 480 170" fill="none" stroke="rgba(110,155,255,.3)" stroke-width="3" class="flow"/>
+    <path id="hopC" d="M105 380 C 250 520, 450 520, 580 440" fill="none" stroke="rgba(110,155,255,.3)" stroke-width="3" class="flow"/>
+    <g><use href="#box3" x="-30" y="-28" width="60" height="55"/><animateMotion dur="3s" repeatCount="indefinite"><mpath href="#hopA"/></animateMotion></g>
+    <g><use href="#box3" x="-30" y="-28" width="60" height="55"/><animateMotion dur="3s" begin="1.5s" repeatCount="indefinite"><mpath href="#hopC"/></animateMotion></g>
+    <use href="#box3" x="60" y="300" width="90" height="83"/>
+  </svg>
+</section>
+
+<!-- ======================= 2 · YOUR WEB APP ======================= -->
+<section class="slide" data-title-en="You're building a web app" data-title-fa="شما یک وب‌اپلیکیشن می‌سازید">
+  <div class="kicker a"><span class="en">The story begins</span><span class="fa">شروع داستان</span></div>
+  <h2><span class="en split">You're building a <span class="hl">web application</span></span><span class="fa split">شما یک <span class="hl">وب‌اپلیکیشن</span> می‌سازید</span></h2>
+  <div style="display:grid;grid-template-columns:760px 1fr;gap:50px;margin-top:40px;align-items:start">
+    <div class="machine a" style="--d:.3">
+      <div class="mhead"><h4><span class="en">💻 Your PC</span><span class="fa">💻 کامپیوتر شما</span></h4><small><span class="en">the developer</span><span class="fa">توسعه‌دهنده</span></small></div>
+      <div class="app3" data-mode="build"></div>
+      <div class="badge pop-in" data-step="5">✅</div>
+    </div>
+    <div class="caps" style="height:420px">
+      <div data-only="0"><span class="no">0 / 5</span><h3><span class="en">Three parts</span><span class="fa">سه بخش</span></h3><p><span class="en">A <b>frontend</b> users see, a <b>backend</b> with the logic, and a <b>database</b> that keeps the data.</span><span class="fa">یک <b>frontend</b> که کاربران می‌بینند، یک <b>backend</b> با منطق برنامه، و یک <b>دیتابیس</b> که داده‌ها را نگه می‌دارد.</span></p></div>
+      <div data-only="1"><span class="no">1 / 5</span><h3><span class="en">Frontend: React + JavaScript</span><span class="fa">Frontend: React و JavaScript</span></h3><p><span class="en">You install Node.js, npm and React.</span><span class="fa">Node.js، npm و React را نصب می‌کنید.</span></p></div>
+      <div data-only="2"><span class="no">2 / 5</span><h3><span class="en">Backend: Python + FastAPI</span><span class="fa">Backend: Python و FastAPI</span></h3><p><span class="en">You install Python 3.13 and FastAPI.</span><span class="fa">Python 3.13 و FastAPI را نصب می‌کنید.</span></p></div>
+      <div data-only="3"><span class="no">3 / 5</span><h3><span class="en">Database: PostgreSQL</span><span class="fa">دیتابیس: PostgreSQL</span></h3><p><span class="en">You install PostgreSQL 18 and set up its config file.</span><span class="fa">PostgreSQL 18 را نصب می‌کنید و فایل تنظیماتش را آماده می‌کنید.</span></p></div>
+      <div data-only="4"><span class="no">4 / 5</span><h3><span class="en">You start coding</span><span class="fa">شروع به کدنویسی می‌کنید</span></h3><p><span class="en"><code>App.jsx</code> for the frontend, <code>main.py</code> for the backend…</span><span class="fa"><code>App.jsx</code> برای frontend، <code>main.py</code> برای backend و …</span></p></div>
+      <div data-only="5"><span class="no">5 / 5</span><h3><span class="en">It runs! ✅</span><span class="fa">اجرا می‌شود! ✅</span></h3><p><span class="en">On your PC, every tool and version fits together.</span><span class="fa">روی کامپیوتر شما، همه‌ی ابزارها و نسخه‌ها با هم جورند.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 3 · DOES IT STAY? ======================= -->
+<section class="slide" data-title-en="Does the code stay on your PC?" data-title-fa="آیا کد روی کامپیوتر شما می‌ماند؟">
+  <div class="kicker a"><span class="en">A question</span><span class="fa">یک سؤال</span></div>
+  <h2><span class="en split">Does your code stay on <span class="hl">your machine forever?</span></span><span class="fa split">آیا کد شما برای همیشه روی <span class="hl">کامپیوتر خودتان</span> می‌ماند؟</span></h2>
+  <div style="text-align:center;margin-top:120px"><span class="stamp" data-step="1" style="font-size:200px"><span class="en">NO!</span><span class="fa">نه!</span></span></div>
+</section>
+
+<!-- ======================= 4 · CASE 1 TEAMMATE ======================= -->
+<section class="slide" data-title-en="Case 1 · A new teammate" data-title-fa="حالت ۱ · هم‌تیمی جدید">
+  <div class="kicker a"><span class="en">Case 1</span><span class="fa">حالت ۱</span></div>
+  <h2><span class="en split">A new <span class="hl">teammate</span> joins</span><span class="fa split">یک <span class="hl">هم‌تیمی جدید</span> می‌آید</span></h2>
+  <div class="compact" style="display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:30px;direction:ltr">
+    <div class="machine a" style="--d:.3">
+      <div class="mhead"><h4><span class="en">💻 Your PC</span><span class="fa">💻 کامپیوتر شما</span></h4></div>
+      <div class="app3" data-mode="full"></div>
+      <div class="badge">✅</div>
+    </div>
+    <div class="machine a" style="--d:.5">
+      <div class="mhead"><h4><span class="en">🧑‍💻 Teammate's PC</span><span class="fa">🧑‍💻 کامپیوتر هم‌تیمی</span></h4><small><span class="en">fresh laptop</span><span class="fa">لپ‌تاپ تازه</span></small></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="ly code from-left" data-step="1" style="height:44px"><b><span class="en">frontend code</span><span class="fa">کد frontend</span></b><span class="v">App.jsx</span></div>
+        <div class="ly code from-left" data-step="1" style="height:44px;transition-delay:.15s"><b><span class="en">backend code</span><span class="fa">کد backend</span></b><span class="v">main.py</span></div>
+        <div class="ly os" style="grid-column:1/3;height:44px"><b><span class="en">operating system</span><span class="fa">سیستم‌عامل</span></b><span class="v">Ubuntu 22.04</span></div>
+      </div>
+      <div class="term" data-step="2" style="margin-top:12px">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body" style="font-size:15px;padding:12px 16px 14px">
+          <div class="run" data-step="2"><div class="cmd">npm run dev</div><pre class="out"><span class="err">bash: npm: command not found</span></pre></div>
+          <div class="run" data-step="2"><div class="cmd">python3 -m uvicorn main:app</div><pre class="out"><span class="err">/usr/bin/python3: No module named uvicorn</span></pre></div>
+          <div class="run" data-step="2"><div class="cmd">psql -U postgres</div><pre class="out"><span class="err">bash: psql: command not found</span></pre></div>
+        </div>
+      </div>
+      <div class="badge pop-in" data-step="2" style="transition-delay:1.8s">💥</div>
+    </div>
+  </div>
+  <div class="caps capbar" style="height:110px">
+    <div data-only="0"><h3><span class="en">A new teammate will help you build more features</span><span class="fa">یک هم‌تیمی جدید قرار است در ساختن قابلیت‌های جدید کمک کند</span></h3><p><span class="en">They get a fresh laptop. First, they need your code…</span><span class="fa">یک لپ‌تاپ تازه دارد. اول کد شما را لازم دارد…</span></p></div>
+    <div data-only="1"><h3><span class="en">You share the code. They try to run it…</span><span class="fa">کد را به اشتراک می‌گذارید. سعی می‌کند اجرایش کند…</span></h3></div>
+    <div data-only="2"><h3><span class="en">Errors! 💥</span><span class="fa">خطا! 💥</span></h3><p><span class="en">Without the same tools and dependencies, the app can't run.</span><span class="fa">بدون همان ابزارها و وابستگی‌ها، برنامه اجرا نمی‌شود.</span></p></div>
+    <div data-only="3" style="display:flex;align-items:center;gap:30px">
+      <div class="clock">⏱ 1 <span class="en">day</span><span class="fa">روز</span></div>
+      <div style="flex:1"><h3><span class="en">Every new teammate spends a day just installing</span><span class="fa">هر هم‌تیمی جدید یک روز فقط صرف نصب کردن می‌کند</span></h3></div>
+      <div class="mates"><div class="mate"><div>🧑‍💻</div><small><span class="en">1 day</span><span class="fa">۱ روز</span></small></div><div class="mate"><div>👩‍💻</div><small><span class="en">1 day</span><span class="fa">۱ روز</span></small></div><div class="mate"><div>🧑‍🔧</div><small><span class="en">1 day</span><span class="fa">۱ روز</span></small></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 5 · CASE 2 DEPLOY ======================= -->
+<section class="slide" data-title-en="Case 2 · Deploy to a server" data-title-fa="حالت ۲ · استقرار روی سرور">
+  <div class="kicker a"><span class="en">Case 2</span><span class="fa">حالت ۲</span></div>
+  <h2><span class="en split">Deploy to a <span class="hl">server</span></span><span class="fa split">استقرار روی <span class="hl">سرور</span></span></h2>
+  <div style="display:grid;grid-template-columns:260px 700px 1fr;gap:30px;margin-top:36px;align-items:center;direction:ltr;position:relative">
+    <svg viewBox="0 0 260 330" class="a" style="--d:.3;width:260px;height:330px">
+      <use href="#server" x="40" y="20" width="180" height="225"/>
+      <text x="130" y="290" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="Space Grotesk,sans-serif">server</text>
+    </svg>
+    <div class="term a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>server · manual setup</span></div>
+      <div class="body" style="font-size:16px;min-height:260px">
+        <ul class="setup" data-step="1">
+          <li style="--i:0">sudo apt install nodejs npm</li>
+          <li style="--i:1">npm install</li>
+          <li style="--i:2">sudo apt install python3 python3-pip</li>
+          <li style="--i:3">pip install fastapi uvicorn</li>
+          <li style="--i:4">sudo apt install postgresql</li>
+          <li style="--i:5">sudo nano /etc/postgresql/…/postgresql.conf</li>
+        </ul>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <div data-step="2" style="font-size:44px;line-height:1.4">👩 🧑 👨‍🦱<br>👵 🧔 👩‍🦰</div>
+      <div data-step="2" style="font:700 20px var(--font);color:var(--green);margin-top:8px"><span class="en">users are online 🎉</span><span class="fa">کاربران آنلاین‌اند 🎉</span></div>
+    </div>
+  </div>
+  <div class="caps capbar">
+    <div data-only="0"><h3><span class="en">Your users can't use your laptop</span><span class="fa">کاربران نمی‌توانند از لپ‌تاپ شما استفاده کنند</span></h3><p><span class="en">Eventually you deploy the app on a server, so users can use it.</span><span class="fa">بالاخره برنامه را روی یک سرور مستقر می‌کنید تا کاربران از آن استفاده کنند.</span></p></div>
+    <div data-only="1"><h3><span class="en">So you set up the server by hand</span><span class="fa">پس سرور را دستی آماده می‌کنید</span></h3><p><span class="en">The same tools, the same versions, the same config. Again.</span><span class="fa">همان ابزارها، همان نسخه‌ها، همان تنظیمات. دوباره.</span></p></div>
+    <div data-only="2"><h3><span class="en">It works. Users can use it. 🎉</span><span class="fa">کار می‌کند. کاربران از آن استفاده می‌کنند. 🎉</span></h3></div>
+  </div>
+</section>
+
+<!-- ======================= 9 · NOT MANUALLY ======================= -->
+<section class="slide" data-title-en="We need a faster way" data-title-fa="به راه سریع‌تری نیاز داریم">
+  <div class="kicker a"><span class="en">So…</span><span class="fa">پس…</span></div>
+  <h2><span class="en split">Installing by hand is <span class="hl">too slow</span></span><span class="fa split">نصب دستی <span class="hl">خیلی کند است</span></span></h2>
+  <div class="recap" style="grid-template-columns:repeat(2,360px);justify-content:center;gap:30px">
+    <div class="card a" style="--d:.3"><div class="ic">🧑‍💻</div><h3><span class="en">Every new teammate</span><span class="fa">هر هم‌تیمی جدید</span></h3><p style="font-size:17px;margin-top:6px"><span class="en">a day of installing</span><span class="fa">یک روز نصب کردن</span></p><span class="x" data-step="1"><span class="en">✕ manual</span><span class="fa">✕ دستی</span></span></div>
+    <div class="card a" style="--d:.45"><div class="ic">🖥</div><h3><span class="en">Every server</span><span class="fa">هر سرور</span></h3><p style="font-size:17px;margin-top:6px"><span class="en">the same setup, again</span><span class="fa">همان نصب، دوباره</span></p><span class="x" data-step="1" style="transition-delay:.15s"><span class="en">✕ manual</span><span class="fa">✕ دستی</span></span></div>
+  </div>
+  <div class="need" data-step="2"><span class="en">We need a way to <span class="hl">install everything fast</span>,<br>on <span class="hl">any machine</span>.</span><span class="fa">به راهی نیاز داریم که <span class="hl">همه چیز را سریع نصب کند</span>،<br>روی <span class="hl">هر ماشینی</span>.</span></div>
+</section>
+
+<!-- ======================= 10 · BOXES ======================= -->
+<section class="slide" data-title-en="Pack each part into a box" data-title-fa="هر بخش در یک جعبه">
+  <div class="kicker a"><span class="en">The solution</span><span class="fa">راه‌حل</span></div>
+  <h2><span class="en split">Pack each part into <span class="hl">a box</span> 📦</span><span class="fa split">هر بخش را در <span class="hl">یک جعبه</span> بگذارید 📦</span></h2>
+  <svg viewBox="0 0 1420 470" style="width:1420px;height:470px;margin-top:10px;direction:ltr;overflow:visible">
+    <g class="a" style="--d:.3" font-family="Inter,sans-serif">
+      <g transform="translate(140 80)"><use href="#box3" x="-55" y="-50" width="110" height="101"/><text x="80" y="-6" fill="#61dafb" font-size="20" font-weight="700">Frontend</text><text x="80" y="18" fill="#93a0bb" font-size="15" font-family="JetBrains Mono,monospace">App.jsx · React · Node</text></g>
+      <g transform="translate(140 235)"><use href="#box3" x="-55" y="-50" width="110" height="101"/><text x="80" y="-6" fill="#3ccf7f" font-size="20" font-weight="700">Backend</text><text x="80" y="18" fill="#93a0bb" font-size="15" font-family="JetBrains Mono,monospace">main.py · FastAPI · Python</text></g>
+      <g transform="translate(140 390)"><use href="#box3" x="-55" y="-50" width="110" height="101"/><text x="80" y="-6" fill="#6e9bff" font-size="20" font-weight="700">Database</text><text x="80" y="18" fill="#93a0bb" font-size="15" font-family="JetBrains Mono,monospace">PostgreSQL 18 · .conf</text></g>
+    </g>
+    <g data-step="1">
+      <path id="toA" d="M420 235 C 560 235, 600 90, 720 90" fill="none" stroke="rgba(110,155,255,.4)" stroke-width="3" class="flow"/>
+      <path id="toB" d="M420 235 C 560 235, 600 300, 720 300" fill="none" stroke="rgba(110,155,255,.4)" stroke-width="3" class="flow"/>
+      <g><use href="#box3" x="-18" y="-17" width="36" height="33"/><animateMotion dur="1.6s" repeatCount="indefinite"><mpath href="#toA"/></animateMotion></g>
+      <g><use href="#box3" x="-18" y="-17" width="36" height="33"/><animateMotion dur="1.6s" begin=".5s" repeatCount="indefinite"><mpath href="#toB"/></animateMotion></g>
+      <g transform="translate(720 40)"><use href="#monitor" width="120" height="102"/><text x="60" y="130" text-anchor="middle" fill="#eef2fb" font-size="17" font-weight="600">🧑‍💻 teammate</text></g>
+      <g transform="translate(740 240)"><use href="#server" width="80" height="100"/><text x="40" y="130" text-anchor="middle" fill="#eef2fb" font-size="17" font-weight="600">server</text></g>
+    </g>
+    <g data-step="2" font-size="34">
+      <text x="850" y="60">✅</text><text x="830" y="270">✅</text>
+    </g>
+  </svg>
+  <div class="caps capbar" style="margin-top:4px">
+    <div data-only="0"><h3><span class="en">Each part goes into one box, with everything it needs</span><span class="fa">هر بخش با هر چیزی که لازم دارد در یک جعبه قرار می‌گیرد</span></h3><p><span class="en">That box is called an <b>image</b>.</span><span class="fa">به این جعبه <b>ایمیج</b> می‌گویند.</span></p></div>
+    <div data-only="1"><h3><span class="en">Any machine with Docker can run the boxes</span><span class="fa">هر ماشینی که Docker دارد می‌تواند جعبه‌ها را اجرا کند</span></h3><p><span class="en">Nothing else to install. Minutes, not days.</span><span class="fa">چیز دیگری لازم نیست نصب شود. چند دقیقه، نه چند روز.</span></p></div>
+    <div data-only="2"><h3><span class="en">Same boxes, same result, everywhere ✅</span><span class="fa">همان جعبه‌ها، همان نتیجه، همه‌جا ✅</span></h3><p><span class="en">A new teammate or a server: get the boxes, run them, done.</span><span class="fa">یک هم‌تیمی جدید یا یک سرور: جعبه‌ها را بگیرید، اجرا کنید، تمام.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 11 · BUILD SHIP RUN ======================= -->
+<section class="slide" data-title-en="Build, ship, run" data-title-fa="ساختن، فرستادن، اجرا">
+  <div class="kicker a"><span class="en">That's Docker</span><span class="fa">این Docker است</span></div>
+  <h2><span class="en split">That box is a <span class="hl">Docker image</span> 🐳</span><span class="fa split">آن جعبه یک <span class="hl">ایمیج Docker</span> است 🐳</span></h2>
+  <div class="bsr">
+    <div class="card a" style="--d:.4">
+      <svg viewBox="0 0 260 150">
+        <rect x="14" y="26" width="70" height="92" rx="8" fill="#f6f1e4"/><path d="M26 48h46M26 64h46M26 80h46M26 96h30" stroke="#c9b98f" stroke-width="5" stroke-linecap="round"/>
+        <path d="M96 72H150" stroke="#6e9bff" stroke-width="3" class="flow"/><path d="M144 63l10 9-10 9" fill="none" stroke="#6e9bff" stroke-width="3"/>
+        <g class="bob"><use href="#box3" x="160" y="22" width="90" height="83"/></g>
+      </svg>
+      <div class="n"><span class="en">BUILD</span><span class="fa">ساختن</span></div>
+      <h3><span class="en">Docker builds the box</span><span class="fa">Docker جعبه را می‌سازد</span></h3>
+      <p><span class="en">The box is called an <b>image</b>.</span><span class="fa">به این جعبه <b>ایمیج</b> می‌گویند.</span></p>
+    </div>
+    <div class="card a" style="--d:.6">
+      <svg viewBox="0 0 260 150">
+        <use href="#monitor" x="6" y="58" width="80" height="68"/><use href="#server" x="190" y="50" width="56" height="70"/>
+        <path id="shipp" d="M46 70 C 80 0, 180 0, 214 70" fill="none" stroke="rgba(110,155,255,.4)" stroke-width="2.5" class="flow"/>
+        <g><use href="#box3" x="-22" y="-22" width="44" height="40"/><animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#shipp"/></animateMotion></g>
+      </svg>
+      <div class="n"><span class="en">SHIP</span><span class="fa">فرستادن</span></div>
+      <h3><span class="en">…ships it anywhere</span><span class="fa">…به هر جایی می‌فرستد</span></h3>
+      <p><span class="en">To a teammate or a server.</span><span class="fa">به هم‌تیمی یا یک سرور.</span></p>
+    </div>
+    <div class="card a" style="--d:.8">
+      <svg viewBox="0 0 260 150">
+        <use href="#box3" x="20" y="30" width="90" height="83"/>
+        <path d="M120 72H160" stroke="#3ccf7f" stroke-width="3" class="flow"/><path d="M154 63l10 9-10 9" fill="none" stroke="#3ccf7f" stroke-width="3"/>
+        <use href="#cube" x="172" y="34" width="76" height="76"/><circle cx="236" cy="36" r="7" fill="#3ccf7f" class="pulse"/>
+      </svg>
+      <div class="n"><span class="en">RUN</span><span class="fa">اجرا</span></div>
+      <h3><span class="en">…and runs it in seconds</span><span class="fa">…و در چند ثانیه اجرایش می‌کند</span></h3>
+      <p><span class="en">A running box is called a <b>container</b>.</span><span class="fa">به جعبه‌ی در حال اجرا <b>کانتینر</b> می‌گویند.</span></p>
+    </div>
+  </div>
+  <p class="lead a" style="--d:1;margin-top:30px"><span class="en">Docker <b>builds</b> these boxes (images), <b>ships</b> them to other computers, and <b>runs</b> them as containers. That is what this course teaches.</span><span class="fa">Docker این جعبه‌ها (ایمیج‌ها) را <b>می‌سازد</b>، به کامپیوترهای دیگر <b>می‌فرستد</b> و به‌صورت کانتینر <b>اجرا می‌کند</b>. این دوره همین را یاد می‌دهد.</span></p>
+  <div class="a" style="--d:1.2;display:flex;gap:14px;margin-top:26px;flex-wrap:wrap">
+    <a class="bigbtn primary" href="../00-install.html"><span class="en">Start Lesson 0: Install Docker →</span><span class="fa">شروع درس ۰: نصب Docker ←</span></a>
+    <a class="bigbtn" href="01-images.html"><span class="en">Lesson 1 · Images (motion)</span><span class="fa">درس ۱ · ایمیج‌ها (متحرک)</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 11</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
+</div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
+
+<script>
+/* ---------- build the frontend / backend / database stacks (before deck.js reads data-step) ---------- */
+(function () {
+  const L = (cls, area, en, fa, v, step) =>
+    `<div class="ly ${cls}" style="grid-area:${area}"${step ? ` data-step="${step}"` : ''}><b><span class="en">${en}</span><span class="fa">${fa}</span></b><span class="v">${v}</span></div>`;
+  document.querySelectorAll('.app3').forEach(el => {
+    const b = el.dataset.mode === 'build';
+    const s = n => (b ? n : 0);
+    el.innerHTML =
+      `<div class="hd fe" style="grid-area:1/1"><span class="en">⚛ Frontend</span><span class="fa">⚛ Frontend</span></div>` +
+      `<div class="hd be" style="grid-area:1/2"><span class="en">⚡ Backend</span><span class="fa">⚡ Backend</span></div>` +
+      `<div class="hd db" style="grid-area:1/3"><span class="en">🐘 Database</span><span class="fa">🐘 دیتابیس</span></div>` +
+      L('code', '2/1', 'code', 'کد', 'App.jsx', s(4)) +
+      L('fe', '3/1', 'framework', 'فریم‌ورک', 'React 19', s(1)) +
+      L('fe', '4/1', 'runtime', 'محیط اجرا', 'Node.js 22 · npm', s(1)) +
+      L('code', '2/2', 'code', 'کد', 'main.py', s(4)) +
+      L('be', '3/2', 'framework', 'فریم‌ورک', 'FastAPI', s(2)) +
+      L('be', '4/2', 'language', 'زبان', 'Python 3.13', s(2)) +
+      L('cfg', '2/3', 'config', 'تنظیمات', 'postgresql.conf', s(3)) +
+      L('db', '3/3/5/4', 'database', 'دیتابیس', 'PostgreSQL 18', s(3)) +
+      L('os', '5/1/6/4', 'operating system', 'سیستم‌عامل', 'Ubuntu 24.04', 0);
+  });
+})();
+
+
+</script>
+<script src="../tips.js"></script>
+<script src="deck.js"></script>
+</body>
+</html>

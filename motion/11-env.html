@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 11 · Environment variables (motion)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="../docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- lesson 11 specifics ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:260px;padding:24px 22px}
+  .goal svg{width:90px;height:90px}
+  .goal h3{font-size:22px}
+  .term.sm .body{font-size:17px}
+  .nohint .hint{display:none}
+  .out .err{color:#ff8a8a}.out .hi{color:var(--amber);font-weight:600}.out .ok{color:var(--green)}
+  .card.sm{padding:18px 22px}.card.sm p{font-size:17.5px}
+  .card.warn{border-color:rgba(255,107,107,.45);background:linear-gradient(160deg,rgba(64,20,24,.75),rgba(20,10,14,.8))}
+  .card.warn .n{color:var(--red)}
+  body.lang-fa .card,body.lang-fa .lead{direction:rtl;text-align:right}
+  body.lang-fa .term .bar .fa{font-family:Vazirmatn,sans-serif}
+  :not(pre)>code{white-space:nowrap}
+  .stack{position:relative}.stack>*{position:absolute;left:0;right:0;top:0}
+  .stx{font-family:Inter,sans-serif}.stx.fa{font-family:Vazirmatn,sans-serif}
+  .cmd.static::before{content:"$ ";color:var(--muted)}
+  .cmd.static{color:#a8b3c9;white-space:pre-wrap;word-break:break-all}
+  .ghost{opacity:0}
+  .in .ghost{animation:ghost .6s 1.8s forwards}
+  @keyframes ghost{to{opacity:1}}
+  .in .live{animation:livegone .6s 1.8s forwards}
+  @keyframes livegone{to{opacity:0}}
+  .envsplit{display:flex;justify-content:center;align-items:flex-end;font:600 54px/1 var(--mono);direction:ltr;margin-top:34px;gap:0}
+  .envsplit>span{position:relative;display:inline-block}
+  .envsplit small{position:absolute;left:50%;top:120%;transform:translateX(-50%);font:600 18px var(--font);white-space:nowrap}
+  body.lang-fa .envsplit small{font-family:Vazirmatn,sans-serif}
+  .envsplit .fl{color:var(--sky);margin-right:26px}.envsplit .nm{color:var(--amber)}.envsplit .eq{color:var(--muted)}.envsplit .vl{color:var(--green)}
+  .editor{border-radius:16px;overflow:hidden;background:#0b1020;border:1px solid rgba(255,207,107,.35);box-shadow:0 30px 70px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .editor .eh{padding:10px 16px;background:#1a1a12;font:600 14px var(--mono);color:#ffcf6b}
+  .editor .el{padding:8px 20px;font:500 22px/1.5 var(--mono);color:#eef2fb;display:flex;gap:16px}
+  .editor .el b{color:#55607a;font-weight:500;min-width:20px}
+  .editor .el .k{color:var(--amber)}.editor .el .v{color:var(--green)}
+  .editor .el[data-step]{transform:translateX(-30px)}
+  .editor .el[data-step].in{transform:none}
+  .tags text{font-family:"JetBrains Mono",monospace}
+  .btnrow{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px;padding:18px 24px}
+  .sumgrid code{font-size:20px;flex:none;min-width:300px;text-align:left}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .collapse[data-step]{opacity:1;transform:none;filter:none}
+  .collapse[data-step].in .tagline{animation:squash 1.2s var(--ease) forwards}
+  @keyframes squash{to{transform:translate(var(--tx),var(--ty)) scale(.3);opacity:0}}
+  .tagline{transform-box:fill-box;transform-origin:center}
+</style>
+</head>
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
+
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="deadcube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#3a3f4d"/><path d="M0 30L60 0V60L0 90Z" fill="#2a2e38"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#5a6070"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.1)" stroke-width="3"/>
+    </symbol>
+    <symbol id="box3" viewBox="-62 -60 124 114" overflow="visible">
+      <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#2a5bd8;--l:#163a96;--r:#0f2a70"/>
+      <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+      <use href="#slab" x="-62" y="-58" width="124" height="86" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+    </symbol>
+    <symbol id="file" viewBox="0 0 80 100">
+      <path d="M6 6h46l22 22v66H6z" fill="#eef2fb"/><path d="M52 6v22h22" fill="#c9d3e6"/>
+      <path d="M16 46h48M16 60h48M16 74h32" stroke="#ffb54d" stroke-width="5" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="../index.html"><img src="../docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <a class="pill" href="../11-env.html"><span class="en">✔ Hands-on version</span><span class="fa">✔ نسخه‌ی تمرینی</span></a>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
+</header>
+
+<div id="viewport"><div id="stage">
+
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 11 — Environment variables" data-title-fa="درس ۱۱ — متغیرهای محیطی" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 11</span><span class="fa">دوره‌ی Docker · درس ۱۱</span></div>
+    <h1 style="font-size:92px;line-height:1.08;margin:26px 0 26px">
+      <span class="en split">Settings with <span class="hl">environment variables</span></span><span class="fa split">تنظیمات با <span class="hl">متغیرهای محیطی</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en">Many ready-made images need <b>settings</b> before they can start: a password, a user name, a database name… You give them as <b>environment variables</b>, without changing the image.</span><span class="fa">خیلی از ایمیج‌های آماده قبل از شروع به <b>تنظیمات</b> نیاز دارند: یک رمز عبور، یک نام کاربری، یک نام دیتابیس… این تنظیمات را به‌صورت <b>متغیرهای محیطی</b> به آن‌ها می‌دهید، بدون تغییر ایمیج.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:36px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:700px;height:680px;overflow:visible;direction:ltr" viewBox="0 0 700 680">
+    <circle cx="350" cy="340" r="290" fill="none" stroke="rgba(110,155,255,.16)" stroke-dasharray="4 10"/>
+    <g class="bob"><use href="#box3" x="40" y="250" width="160" height="147"/></g>
+    <text x="120" y="440" text-anchor="middle" fill="#93a0bb" font-size="18" font-family="JetBrains Mono,monospace">postgres:alpine</text>
+    <path d="M220 330H400" stroke="#6e9bff" stroke-width="3" class="flow"/><path d="M394 320l12 10-12 10" fill="none" stroke="#6e9bff" stroke-width="3"/>
+    <g transform="translate(520 330)"><use href="#cube" x="-90" y="-98" width="180" height="180"/><circle cx="68" cy="-78" r="9" fill="#3ccf7f" class="pulse"/></g>
+    <text x="520" y="450" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+    <path id="tg1" d="M330 90C450 90 520 150 520 240" fill="none"/>
+    <g class="tags">
+      <g><rect x="-150" y="-18" width="300" height="36" rx="10" fill="#2a2010" stroke="#ffb54d"/><text x="0" y="6" text-anchor="middle" fill="#ffcf6b" font-size="17">POSTGRES_PASSWORD=secret</text>
+        <animateMotion dur="4.5s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;.6;1" calcMode="linear"><mpath href="#tg1"/></animateMotion>
+        <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;.55;.62;1" dur="4.5s" repeatCount="indefinite"/></g>
+      <g><rect x="-110" y="-18" width="220" height="36" rx="10" fill="#2a2010" stroke="#ffb54d"/><text x="0" y="6" text-anchor="middle" fill="#ffcf6b" font-size="17">POSTGRES_USER=ali</text>
+        <animateMotion dur="4.5s" begin="1.5s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;.6;1" calcMode="linear"><mpath href="#tg1"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;.02;.55;.62;1" dur="4.5s" begin="1.5s" repeatCount="indefinite"/></g>
+      <g opacity="0"><rect x="-110" y="-18" width="220" height="36" rx="10" fill="#2a2010" stroke="#ffb54d"/><text x="0" y="6" text-anchor="middle" fill="#ffcf6b" font-size="17">POSTGRES_DB=shop</text>
+        <animateMotion dur="4.5s" begin="3s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;.6;1" calcMode="linear"><mpath href="#tg1"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;.02;.55;.62;1" dur="4.5s" begin="3s" repeatCount="indefinite"/></g>
+    </g>
+    <text x="350" y="600" text-anchor="middle" fill="#93a0bb" font-family="JetBrains Mono,monospace" font-size="18" letter-spacing="3" class="en">SAME IMAGE · YOUR SETTINGS</text>
+    <text x="350" y="600" text-anchor="middle" fill="#93a0bb" font-family="Vazirmatn,sans-serif" font-size="22" class="fa" direction="rtl">همان ایمیج · تنظیمات شما</text>
+  </svg>
+</section>
+
+<!-- ======================= 2 · GOALS ======================= -->
+<section class="slide" data-title-en="What you'll do" data-title-fa="در این درس">
+  <div class="kicker a"><span class="en">Lesson 11 · Environment variables</span><span class="fa">درس ۱۱ · متغیرهای محیطی</span></div>
+  <h2><span class="en split">In this lesson, <span class="hl">five small steps</span></span><span class="fa split">در این درس، <span class="hl">پنج قدم کوچک</span></span></h2>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:18px;margin-top:46px">
+    <div class="card goal a" style="--d:.3">
+      <svg viewBox="0 0 100 100"><use href="#deadcube" x="18" y="24" width="64" height="64"/><text x="80" y="28" fill="#ff6b6b" font-size="24" font-weight="700" text-anchor="middle" font-family="Space Grotesk,sans-serif">✕</text></svg>
+      <div class="n">01</div><h3><span class="en">Run PostgreSQL: it stops</span><span class="fa">اجرای PostgreSQL: متوقف می‌شود</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.4">
+      <svg viewBox="0 0 100 100" fill="none" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"><rect x="18" y="14" width="64" height="72" rx="8"/><path d="M30 34h40M30 50h40M30 66h24" stroke="#ff8a8a"/></svg>
+      <div class="n">02</div><h3><span class="en">Read the logs</span><span class="fa">خواندن لاگ‌ها</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.5">
+      <svg viewBox="0 0 100 100"><rect x="6" y="36" width="88" height="28" rx="8" fill="#2a2010" stroke="#ffb54d" stroke-width="2"/><text x="50" y="56" text-anchor="middle" fill="#ffcf6b" font-size="15" font-family="JetBrains Mono,monospace">-e A=b</text></svg>
+      <div class="n">03</div><h3><span class="en">Fix it with <code>-e</code></span><span class="fa">رفع با <code>-e</code></span></h3>
+    </div>
+    <div class="card goal a" style="--d:.6">
+      <svg viewBox="0 0 100 100"><use href="#file" x="22" y="10" width="56" height="70"/><text x="50" y="96" text-anchor="middle" fill="#ffcf6b" font-size="14" font-family="JetBrains Mono,monospace">db.env</text></svg>
+      <div class="n">04</div><h3><span class="en">Use an env file</span><span class="fa">استفاده از env file</span></h3>
+    </div>
+    <div class="card goal a" style="--d:.7">
+      <svg viewBox="0 0 100 100" fill="none" stroke="#3ccf7f" stroke-width="6" stroke-linecap="round"><rect x="24" y="44" width="52" height="40" rx="8" fill="#0f5a37"/><path d="M34 44V32a16 16 0 0 1 32 0v12"/></svg>
+      <div class="n">05</div><h3><span class="en">Keep secrets safe</span><span class="fa">امن نگه داشتن رمزها</span></h3>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:26px">
+    <div class="card a" style="--d:1"><p><span class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</span><span class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</span></p></div>
+    <div class="card a" style="--d:1.15"><p><span class="en">🖱 Hover over any part of a command to see what it does.</span><span class="fa">🖱 نشانگر ماوس را روی هر بخش از دستور ببرید تا توضیحش را ببینید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 3 · RUN POSTGRES ======================= -->
+<section class="slide" data-title-en="Run PostgreSQL" data-title-fa="اجرای PostgreSQL">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Run <span class="hl">PostgreSQL</span></span><span class="fa split">اجرای <span class="hl">PostgreSQL</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en"><b>PostgreSQL</b> is one of the most used databases in the world. Start it in the background and name it <code>db</code>:</span><span class="fa"><b>PostgreSQL</b> یکی از پراستفاده‌ترین دیتابیس‌های دنیاست. آن را در پس‌زمینه اجرا کنید و نامش را <code>db</code> بگذارید:</span></p>
+  <div style="display:grid;grid-template-columns:860px 1fr;gap:30px;margin-top:22px;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="term sm a" style="--d:.5">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run" data-step="1"><div class="cmd">docker run -d --name db postgres:alpine</div><pre class="out">
+<span class="c"># the first time it downloads the image (about 120 MB)</span></pre></div>
+          <div class="run recall" data-step="2" data-reveal="3" data-task-en="👉 Is it running? List all containers, including stopped ones." data-task-fa="👉 در حال اجراست؟ همه‌ی کانتینرها را فهرست کنید، حتی متوقف‌شده‌ها."><div class="cmd">docker ps -a</div><pre class="out">
+NAMES     STATUS                       <span class="c"># other columns left out</span>
+db        <span class="err">Exited (1) 3 seconds ago</span></pre></div>
+        </div>
+      </div>
+      <div class="card warn" data-step="4"><div class="n">❌ Exited (1)</div><p><span class="en">It stopped right away, and <code>1</code> means <b>an error</b> (<code>0</code> was “OK” in Lesson 2).</span><span class="fa">بلافاصله متوقف شد، و <code>1</code> یعنی <b>خطا</b> (در درس ۲، <code>0</code> یعنی «OK» بود).</span></p></div>
+    </div>
+    <svg viewBox="0 0 500 420" class="a blur" style="--d:.6;width:500px;height:420px;overflow:visible">
+      <g data-step="1" class="pop-in">
+        <g class="live"><g transform="translate(250 200)"><use href="#cube" x="-90" y="-98" width="180" height="180"/><circle cx="68" cy="-78" r="9" fill="#3ccf7f" class="pulse"/></g></g>
+        <g class="ghost"><g transform="translate(250 230)"><g transform="rotate(8)"><use href="#deadcube" x="-90" y="-98" width="180" height="180"/></g></g>
+          <text x="250" y="80" text-anchor="middle" font-size="40">💥</text></g>
+        <text x="250" y="360" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+      </g>
+      <g data-step="3">
+        <rect x="140" y="378" width="220" height="38" rx="10" fill="rgba(255,107,107,.12)" stroke="#ff6b6b"/>
+        <text x="250" y="404" text-anchor="middle" fill="#ff8a8a" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">Exited (1)</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================= 4 · READ THE LOGS ======================= -->
+<section class="slide" data-title-en="Why did it stop? Read the logs" data-title-fa="چرا متوقف شد؟ لاگ‌ها را بخوانید">
+  <div class="kicker a"><span class="en">Step 2</span><span class="fa">قدم ۲</span></div>
+  <h2><span class="en split">Why did it stop? <span class="hl">Read the logs</span></span><span class="fa split">چرا متوقف شد؟ <span class="hl">لاگ‌ها را بخوانید</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">When a container stops with an error, the first thing to do is read what it printed (Lesson 5):</span><span class="fa">وقتی کانتینری با خطا متوقف می‌شود، اولین کار خواندن چیزی است که چاپ کرده (درس ۵):</span></p>
+  <div class="term sm a" style="--d:.5;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Read what db printed." data-task-fa="👉 چیزی را که db چاپ کرده بخوانید."><div class="cmd">docker logs db</div><pre class="out">
+<span class="err">Error: Database is uninitialized and superuser password is not specified.</span>
+       You must specify <span class="hi">POSTGRES_PASSWORD</span> to a non-empty value for the
+       superuser. For example, "<span class="hi">-e POSTGRES_PASSWORD=password</span>" on "docker run".
+...</pre></div>
+      <div class="run recall" data-step="4" data-reveal="5" data-task-en="👉 Delete the failed container." data-task-fa="👉 کانتینر شکست‌خورده را حذف کنید."><div class="cmd">docker rm db</div><pre class="out">
+db</pre></div>
+    </div>
+  </div>
+  <div class="card key" data-step="3" style="margin-top:20px"><div class="n">🔑</div><p><span class="en">PostgreSQL refuses to start <b>without a password</b>, and it tells you exactly what to do: set <code>POSTGRES_PASSWORD</code> with <code>-e</code>.</span><span class="fa">PostgreSQL <b>بدون رمز عبور</b> اجرا نمی‌شود، و دقیقاً می‌گوید چه کار کنید: <code>POSTGRES_PASSWORD</code> را با <code>-e</code> تنظیم کنید.</span></p></div>
+</section>
+
+<!-- ======================= 5 · FIX WITH -e ======================= -->
+<section class="slide" data-title-en="Fix it with -e" data-title-fa="رفع با ‎-e">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Fix it <span class="hl">with -e</span></span><span class="fa split">رفع <span class="hl">با ‎-e</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:20px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1"><div class="cmd">docker run -d --name db -e POSTGRES_PASSWORD=secret postgres:alpine</div><pre class="out">
+35f390d3120d8b7a2c6e1f9d4b0a3c7e5f8d2b6a9c1e4f7b0d3a6c9e2f5b8d1a</pre></div>
+      <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Check it's running." data-task-fa="👉 بررسی کنید که در حال اجراست."><div class="cmd">docker ps</div><pre class="out">
+NAMES     STATUS          <span class="c"># other columns left out</span>
+db        <span class="ok">Up 4 seconds</span></pre></div>
+    </div>
+  </div>
+  <div class="envsplit" data-step="2">
+    <span class="fl">-e<small style="color:var(--sky)"><span class="en">environment variable</span><span class="fa">متغیر محیطی</span></small></span>
+    <span class="nm">POSTGRES_PASSWORD<small style="color:var(--amber)"><span class="en">NAME</span><span class="fa">نام (NAME)</span></small></span><span class="eq">=</span><span class="vl">secret<small style="color:var(--green)"><span class="en">value</span><span class="fa">مقدار (value)</span></small></span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:62px">
+    <div class="stack" style="height:150px">
+    <div class="card sm" data-only="2 3"><p><span class="en"><code>-e</code> means <b>environment variable</b>, written <code>NAME=value</code>. The program inside the container reads it when it starts.</span><span class="fa"><code>-e</code> یعنی <b>متغیر محیطی</b> (environment variable)، به شکل <code>NAME=value</code>. برنامه‌ی داخل کانتینر هنگام شروع آن را می‌خواند.</span></p></div>
+    <div class="card sm tip" data-step="4"><div class="n">✅ Up</div><p><span class="en">The last line of <code>docker logs db</code> now says <code>database system is ready to accept connections</code>.</span><span class="fa">آخرین خط <code>docker logs db</code> حالا می‌گوید <code>database system is ready to accept connections</code>.</span></p></div>
+    </div>
+    <div class="card sm" data-step="5"><div class="n">💡 Docker Hub</div><p><span class="en">Which variables does an image understand? Its page on Docker Hub lists them, e.g. <code>POSTGRES_PASSWORD</code>, <code>POSTGRES_USER</code>, <code>POSTGRES_DB</code>.</span><span class="fa">یک ایمیج چه متغیرهایی را می‌فهمد؟ صفحه‌اش در Docker Hub آن‌ها را فهرست کرده، مثلاً <code>POSTGRES_PASSWORD</code>، <code>POSTGRES_USER</code>، <code>POSTGRES_DB</code>.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 6 · SEE THE VARIABLES ======================= -->
+<section class="slide" data-title-en="See the variables inside" data-title-fa="دیدن متغیرها داخل کانتینر">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">See the variables <span class="hl">inside the container</span></span><span class="fa split">دیدن متغیرها <span class="hl">داخل کانتینر</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">Run one command inside <code>db</code>: <code>env</code> lists all environment variables:</span><span class="fa">یک دستور داخل <code>db</code> اجرا کنید: <code>env</code> همه‌ی متغیرهای محیطی را فهرست می‌کند:</span></p>
+  <div style="display:grid;grid-template-columns:900px 1fr;gap:30px;margin-top:20px;direction:ltr">
+    <div class="term sm a" style="--d:.5;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run" data-step="1"><div class="cmd">docker exec db env</div><pre class="out">
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=35f390d3120d
+<span class="hi">POSTGRES_PASSWORD=secret</span>              <span class="c"># ← yours, from -e</span>
+LANG=en_US.utf8
+PG_VERSION=18.6                       <span class="c"># set by the image itself</span>
+PGDATA=/var/lib/postgresql/18/docker
+...</pre></div>
+        <div class="run recall" data-step="4" data-reveal="5" data-task-en="👉 Delete db in one command." data-task-fa="👉 db را با یک دستور حذف کنید."><div class="cmd">docker rm -f db</div><pre class="out">
+db</pre></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card sm" data-step="2" style="border-color:rgba(255,181,77,.5)"><div class="n" style="color:var(--amber)"><span class="en">YOURS</span><span class="fa">مال شما</span></div><p><span class="en">Your variable is there.</span><span class="fa">متغیر شما آنجاست.</span></p></div>
+      <div class="card sm" data-step="3"><div class="n"><span class="en">SET BY THE IMAGE</span><span class="fa">تنظیم‌شده توسط ایمیج</span></div><p><span class="en">The others were set by the image's authors, e.g. <code>PG_VERSION</code>. <code>PGDATA</code> is where PostgreSQL keeps its data: that's where a volume would go (Lesson 9).</span><span class="fa">بقیه را سازندگان ایمیج تنظیم کرده‌اند، مثلاً <code>PG_VERSION</code>. <code>PGDATA</code> جایی است که PostgreSQL داده‌هایش را نگه می‌دارد: یک volume باید همان‌جا قرار بگیرد (درس ۹).</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 7 · TOO LONG ======================= -->
+<section class="slide" data-title-en="Many settings? Too long" data-title-fa="تنظیمات زیاد؟ خیلی طولانی">
+  <div class="kicker a"><span class="en">Step 5</span><span class="fa">قدم ۵</span></div>
+  <h2><span class="en split">Many settings? <span class="hl">Use an env file</span></span><span class="fa split">تنظیمات زیاد؟ <span class="hl">از env&nbsp;file استفاده کنید</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">Let's also choose our own user name and database name. With <code>-e</code> the command gets long:</span><span class="fa">بیایید نام کاربر و نام دیتابیس را هم خودمان انتخاب کنیم. با <code>-e</code> دستور طولانی می‌شود:</span></p>
+  <div class="term sm a" style="--d:.5;margin-top:20px">
+    <div class="bar"><i></i><i></i><i></i><span><span class="en">just look, don't run</span><span class="fa">فقط نگاه کنید، اجرا نکنید</span></span></div>
+    <div class="body"><div class="cmd static">docker run -d --name db -e POSTGRES_USER=ali -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=shop postgres:alpine</div></div>
+  </div>
+  <svg viewBox="0 0 1420 330" style="width:1420px;height:330px;margin-top:20px;direction:ltr;overflow:visible">
+    <g class="collapse" data-step="1">
+      <g class="tagline" style="--tx:420px;--ty:60px"><rect x="40" y="30" width="330" height="50" rx="12" fill="#2a2010" stroke="#ffb54d"/><text x="205" y="62" text-anchor="middle" fill="#ffcf6b" font-size="20" font-family="JetBrains Mono,monospace">-e POSTGRES_USER=ali</text></g>
+      <g class="tagline" style="--tx:380px;--ty:0px;animation-delay:.15s"><rect x="40" y="110" width="420" height="50" rx="12" fill="#2a2010" stroke="#ffb54d"/><text x="250" y="142" text-anchor="middle" fill="#ffcf6b" font-size="20" font-family="JetBrains Mono,monospace">-e POSTGRES_PASSWORD=secret</text></g>
+      <g class="tagline" style="--tx:420px;--ty:-60px;animation-delay:.3s"><rect x="40" y="190" width="330" height="50" rx="12" fill="#2a2010" stroke="#ffb54d"/><text x="205" y="222" text-anchor="middle" fill="#ffcf6b" font-size="20" font-family="JetBrains Mono,monospace">-e POSTGRES_DB=shop</text></g>
+    </g>
+    <g data-step="1" class="pop-in" style="transition-delay:1s">
+      <use href="#file" x="640" y="40" width="160" height="200"/>
+      <text x="720" y="280" text-anchor="middle" fill="#ffcf6b" font-size="24" font-weight="700" font-family="JetBrains Mono,monospace">db.env</text>
+      <path d="M840 140H950" stroke="#3ccf7f" stroke-width="4" class="flow"/><path d="M942 128l14 12-14 12" fill="none" stroke="#3ccf7f" stroke-width="4"/>
+      <rect x="970" y="112" width="400" height="56" rx="12" fill="#0d1426" stroke="#3ccf7f"/>
+      <text x="1170" y="148" text-anchor="middle" fill="#a9c4ff" font-size="22" font-family="JetBrains Mono,monospace">--env-file db.env</text>
+    </g>
+  </svg>
+  <p class="lead" data-step="2" style="margin-top:6px"><span class="en">Instead, put the settings in a file, one <code>NAME=value</code> per line.</span><span class="fa">به‌جای آن، تنظیمات را در یک فایل بگذارید، در هر خط یک <code>NAME=value</code>.</span></p>
+</section>
+
+<!-- ======================= 8 · WRITE db.env ======================= -->
+<section class="slide" data-title-en="Write db.env" data-title-fa="نوشتن db.env">
+  <div class="kicker a"><span class="en">Step 5 · The file</span><span class="fa">قدم ۵ · فایل</span></div>
+  <h2><span class="en split">Write <span class="hl">db.env</span></span><span class="fa split">نوشتن <span class="hl">db.env</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">Make a folder and create the file <code>db.env</code>:</span><span class="fa">یک پوشه بسازید و فایل <code>db.env</code> را ایجاد کنید:</span></p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:20px;direction:ltr">
+    <div class="term sm a" style="--d:.5;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run" data-step="1"><div class="cmd">mkdir ~/pg-demo</div></div>
+        <div class="run" data-step="1"><div class="cmd">cd ~/pg-demo</div></div>
+        <div class="run" data-step="1"><div class="cmd">nano db.env</div></div>
+      </div>
+    </div>
+    <div class="editor" data-step="2">
+      <div class="eh">GNU nano · db.env</div>
+      <div class="el" data-step="2"><b>1</b><span><span class="k">POSTGRES_USER</span>=<span class="v">ali</span></span></div>
+      <div class="el" data-step="3"><b>2</b><span><span class="k">POSTGRES_PASSWORD</span>=<span class="v">secret</span></span></div>
+      <div class="el" data-step="4"><b>3</b><span><span class="k">POSTGRES_DB</span>=<span class="v">shop</span></span></div>
+      <div style="height:16px"></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:24px">
+    <div class="card sm" data-step="5"><div class="n"><span class="en">SAVE AND EXIT</span><span class="fa">ذخیره و خروج</span></div><p><kbd>Ctrl</kbd>+<kbd>O</kbd>, <kbd>Enter</kbd>, <kbd>Ctrl</kbd>+<kbd>X</kbd></p></div>
+    <div class="card sm key" data-step="5"><div class="n">🔑</div><p><span class="en">No spaces around <code>=</code>, and no quotes.</span><span class="fa">دور <code>=</code> فاصله نگذارید و از کوتیشن استفاده نکنید.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 9 · RUN WITH --env-file ======================= -->
+<section class="slide" data-title-en="Run with --env-file" data-title-fa="اجرا با ‎--env-file">
+  <div class="kicker a"><span class="en">Step 5 · Run it</span><span class="fa">قدم ۵ · اجرا</span></div>
+  <h2><span class="en split">Run with <span class="hl">--env-file</span></span><span class="fa split">اجرا با <span class="hl">‎--env-file</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash · ~/pg-demo</span></div>
+    <div class="body">
+      <div class="run" data-step="1"><div class="cmd">docker run -d --name db --env-file db.env postgres:alpine</div><pre class="out">
+7c1e4a9f2b6d0e3c8a5f1b7d4e0a2c6f9b3d5e8a1c4f7b0d2e6a9c3f5b8d1e4a</pre></div>
+      <div class="run" data-step="3"><div class="cmd">docker exec db psql -U ali -d shop -c "SELECT current_user, current_database();"</div><pre class="out">
+ current_user | current_database
+--------------+------------------
+ <span class="ok">ali</span>          | <span class="ok">shop</span>
+(1 row)</pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px">
+    <div class="card sm" data-step="2"><p><span class="en">Short, and the settings are easy to read and change. Did they work? Ask PostgreSQL who you are and which database you're in (wait a few seconds for it to start first):</span><span class="fa">کوتاه است و تنظیمات راحت خوانده و عوض می‌شوند. کار کرد؟ از PostgreSQL بپرسید شما کی هستید و در کدام دیتابیس هستید (اول چند ثانیه صبر کنید تا اجرا شود):</span></p></div>
+    <div class="card sm tip" data-step="4"><div class="n">✅</div><p><span class="en">User <code>ali</code> and database <code>shop</code>, both from <code>db.env</code>. (<code>psql</code> is PostgreSQL's command-line tool, like <code>redis-cli</code> in Lesson 9.)</span><span class="fa">کاربر <code>ali</code> و دیتابیس <code>shop</code>، هر دو از <code>db.env</code>. (<code>psql</code> ابزار خط فرمان PostgreSQL است، مثل <code>redis-cli</code> در درس ۹.)</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 10 · SECRETS ======================= -->
+<section class="slide" data-title-en="Keep secrets safe" data-title-fa="امن نگه داشتن رمزها">
+  <div class="kicker a"><span class="en">Step 6</span><span class="fa">قدم ۶</span></div>
+  <h2><span class="en split">Keep secrets safe, <span class="hl">and clean up</span></span><span class="fa split">امن نگه داشتن رمزها، <span class="hl">و تمیزکاری</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">Environment variables are <b>not hidden</b>. Anyone who can use Docker on this PC can read them:</span><span class="fa">متغیرهای محیطی <b>پنهان نیستند</b>. هر کسی که روی این کامپیوتر به Docker دسترسی دارد می‌تواند آن‌ها را بخواند:</span></p>
+  <div style="display:grid;grid-template-columns:820px 1fr;gap:30px;margin-top:20px;direction:ltr">
+    <div class="term sm a" style="--d:.5;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run" data-step="1"><div class="cmd">docker inspect db</div><pre class="out">
+            "Env": [
+                "POSTGRES_USER=ali",
+                <span class="err">"POSTGRES_PASSWORD=secret"</span>,       <span class="c"># in plain text!</span>
+                "POSTGRES_DB=shop",
+                ...</pre></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Clean up: delete db in one command." data-task-fa="👉 تمیزکاری: db را با یک دستور حذف کنید."><div class="cmd">docker rm -f db</div><pre class="out">
+db</pre></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card warn" data-step="2"><div class="n">⚠</div><p><span class="en">An env file holds <b>passwords</b>. Never put it in git or share it: add its name to <code>.gitignore</code>. Use real, strong passwords outside of practice.</span><span class="fa">env file <b>رمزهای عبور</b> را در خود دارد. هرگز آن را در git نگذارید یا به اشتراک نگذارید: نامش را به <code>.gitignore</code> اضافه کنید. بیرون از تمرین از رمزهای واقعی و قوی استفاده کنید.</span></p></div>
+      <svg viewBox="0 0 560 150" data-step="2" style="width:560px;height:150px;overflow:visible;transition-delay:.3s">
+        <use href="#file" x="30" y="10" width="80" height="100"/>
+        <text x="70" y="136" text-anchor="middle" fill="#ffcf6b" font-size="17" font-family="JetBrains Mono,monospace">db.env</text>
+        <path d="M130 60H360" stroke="#ff6b6b" stroke-width="4" stroke-dasharray="8 8"/>
+        <text x="245" y="76" text-anchor="middle" fill="#ff6b6b" font-size="44" font-weight="800" font-family="Space Grotesk,sans-serif">✕</text>
+        <rect x="380" y="24" width="150" height="72" rx="14" fill="#2a1410" stroke="#f05033" stroke-width="2"/>
+        <text x="455" y="70" text-anchor="middle" fill="#f05033" font-size="28" font-weight="700" font-family="JetBrains Mono,monospace">git</text>
+        <text x="455" y="128" text-anchor="middle" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">.gitignore: db.env</text>
+      </svg>
+      <div class="card sm" data-step="4"><p><span class="en">You can delete the image too (it's big): <code>docker image rm postgres:alpine</code> (Lesson 1).</span><span class="fa">می‌توانید ایمیج را هم حذف کنید (بزرگ است): <code>docker image rm postgres:alpine</code> (درس ۱).</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 11 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 You configured a <span class="hl">real database!</span></span><span class="fa split">🎉 یک <span class="hl">دیتابیس واقعی</span> را تنظیم کردید!</span></h2>
+  <div class="sumgrid">
+    <div class="card a" style="--d:.4"><code>-e NAME=value</code><p><span class="en">Give the container one setting (environment variable)</span><span class="fa">دادن یک تنظیم (متغیر محیطی) به کانتینر</span></p></div>
+    <div class="card a" style="--d:.55"><code>--env-file FILE</code><p><span class="en">Give it many settings from a file (<code>NAME=value</code> per line)</span><span class="fa">دادن تنظیمات زیاد از یک فایل (هر خط <code>NAME=value</code>)</span></p></div>
+    <div class="card a" style="--d:.7"><code>docker exec NAME env</code><p><span class="en">See the variables inside a container</span><span class="fa">دیدن متغیرهای داخل کانتینر</span></p></div>
+    <div class="card a" style="--d:.85"><code>Exited (1) → docker logs</code><p><span class="en">A container stopped with an error? Read its logs first</span><span class="fa">کانتینر با خطا متوقف شد؟ اول لاگ‌هایش را بخوانید</span></p></div>
+  </div>
+  <p class="a" style="--d:1;margin-top:20px;font-size:17px;color:var(--muted)"><span class="en">📥 <b>Stuck?</b> The finished files of this lesson are in the course folder under <code>examples/11-env/</code>.</span><span class="fa">📥 <b>گیر کرده‌اید؟</b> فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/11-env/</code> هستند.</span></p>
+  <div class="btnrow a" style="--d:1.1">
+    <a class="bigbtn primary" href="../11-env.html"><span class="en">✔ Do it yourself: hands-on lesson with checklists</span><span class="fa">✔ خودتان انجام دهید: درس تمرینی با چک‌لیست</span></a>
+    <a class="bigbtn" href="12-restart.html"><span class="en">Next: Lesson 12 · Restart policies →</span><span class="fa">بعدی: درس ۱۲ · سیاست‌های راه‌اندازی مجدد ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 11</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
+</div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
+
+<script>
+/* ---------- lesson 11 scenes ---------- */
+window.SCENES = {
+  /* confetti */
+  sum(slide, api) {
+    const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+    const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+    const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+    const stop = api.loop(t => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of P) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+        if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+      }
+    });
+    return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+  }
+};
+</script>
+<script src="../tips.js"></script>
+<script src="deck.js"></script>
+</body>
+</html>
