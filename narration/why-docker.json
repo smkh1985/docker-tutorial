@@ -1,0 +1,41 @@
+[
+  [
+    "Why do we need Docker? Before we type a single command, let's follow one web application through its life, and see the problem Docker solves."
+  ],
+  [
+    "The story begins. You're building a web application. It has three parts: a frontend that users see, a backend with the logic, and a database that keeps the data.",
+    "For the frontend, you use React and JavaScript. So you install Node J S, N P M, and React.",
+    "For the backend, you use Python and Fast A P I. So you install Python three point thirteen, and Fast A P I.",
+    "For the database, you use Postgres. You install Postgres eighteen, and set up its config file.",
+    "Then you start coding. App dot J S X for the frontend, and main dot pie for the backend.",
+    "And it runs! On your PC, every tool and every version fits together."
+  ],
+  [
+    "But here's a question. Does your code stay on your machine forever?",
+    "No! Sooner or later, it has to run somewhere else."
+  ],
+  [
+    "Case one. A new teammate joins, to help you build more features. They get a fresh laptop. First, they need your code.",
+    "So you share the code, and they try to run it.",
+    "Errors! Command not found. No module named uvicorn. Without the same tools and dependencies, the app just can't run.",
+    "So every new teammate spends a whole day, just installing things. One day, then another, then another."
+  ],
+  [
+    "Case two. Your users can't use your laptop. So eventually, you deploy the app on a server.",
+    "And you set up the server by hand. The same tools, the same versions, the same config. Again.",
+    "Finally, it works. Users can use it."
+  ],
+  [
+    "So, installing by hand is too slow. Every new teammate needs a day of installing, and every server needs the same setup, again.",
+    "Doing it all manually just doesn't scale.",
+    "We need a way to install everything fast, on any machine."
+  ],
+  [
+    "Here's the solution. Pack each part into a box, with everything it needs inside. That box is called an image.",
+    "Any machine with Docker can run these boxes. There's nothing else to install. Minutes, not days.",
+    "Same boxes, same result, everywhere. A new teammate, or a server: get the boxes, run them, done."
+  ],
+  [
+    "And that's Docker. Docker builds the box, called an image. It ships it anywhere, to a teammate or a server. And it runs it in seconds. A running box is called a container. That's exactly what this course teaches. Let's start with lesson zero, and install Docker!"
+  ]
+]

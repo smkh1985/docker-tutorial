@@ -1,0 +1,67 @@
+[
+  [
+    "Welcome to lesson twenty one! In lesson nineteen you installed a Python library with pip. But programs often also need system tools, installed with Linux's package manager, apt get. Today you'll install one the right way, then make your image safer by not running as root."
+  ],
+  [
+    "Step one. Fig let is a small Linux tool that prints text as big letters. Let's try it in a fresh python three point thirteen slim container.",
+    "Docker run dash dash R M, python three point thirteen slim, fig let Hi. Hmm, an error: executable file not found. Docker searched the image, and fig let just isn't there.",
+    "Not there. Slim images contain only the basics, so you install what your app needs yourself."
+  ],
+  [
+    "Step two. Let's install fig let with apt get. First, we need a project folder.",
+    "Make a folder called fig app in your home folder, then go into it. You've done this before. Pause the video, type it yourself, then continue.",
+    "M K dir tilde slash fig app, then C D tilde slash fig app. We're inside.",
+    "Now create a Docker file with nano. It starts from python three point thirteen slim, has one run line, and a C M D that prints Hello in big letters.",
+    "The run line is the one that installs fig let. It looks long, so let's read it piece by piece."
+  ],
+  [
+    "The run line is really three commands joined by double ampersand. Double ampersand means: and then, but only if the previous one worked.",
+    "First, apt get update. It downloads the list of available packages, just like you did on your PC in lesson zero.",
+    "Second, apt get install dash y fig let. It installs fig let into the image. Dash y answers yes automatically, because nobody can type during a build.",
+    "Third, R M dash R F on the apt lists folder. It deletes that downloaded package list. It's not needed anymore, and it would only make the image bigger."
+  ],
+  [
+    "Let's try it! Build the image fig app, and run it, deleting the container afterwards.",
+    "Build an image called fig app from this folder. Pause the video, type it yourself, then continue.",
+    "Docker build dash t fig app, dot. The image is built, with fig let inside.",
+    "Now run fig app, and delete the container when it stops. Pause and give it a try.",
+    "Docker run dash dash R M fig app. And there it is: Hello, in big letters! Fig let is installed in your image."
+  ],
+  [
+    "Step three. Why squeeze everything into one run line? Each run makes a layer, and a later layer can never make an earlier one smaller. So with separate run lines, the package list stays saved in its own layer, even if you delete it later.",
+    "Here's the version with separate run lines: update, then install. The package list stays saved in a layer of its own.",
+    "And here's the version with one run: update, install, and clean up, all in one layer. Only fig let is left.",
+    "We built both and compared. Separate lines: about two hundred sixteen megabytes. One run: about one hundred seventy eight megabytes. Smaller!",
+    "So install system packages in one run: update, double ampersand, install dash y, double ampersand, clean up. You'll see this pattern in almost every real Docker file."
+  ],
+  [
+    "Step four. Here's a curious question: who are you inside the container?",
+    "Run who am I in a new fig app container, deleting it afterwards. Pause the video, type it yourself, then continue.",
+    "Docker run dash dash R M fig app who am I. The answer is root. Your program runs as root, the all powerful user. You saw root at the prompt in lesson six.",
+    "That's a problem. If someone finds a bug in your app and breaks in, they're root inside the container, which makes it much easier to do damage."
+  ],
+  [
+    "Step five. Let's run as a normal user instead. Add two lines before the C M D: create a normal user called app, then switch to it.",
+    "Run user add dash dash create home app. This creates a Linux user named app, with its own home folder.",
+    "Then user app. From here on, and when the container runs, you are app instead of root.",
+    "And order matters. User comes after apt get, because installing needs root, but running your app doesn't. Root installs, app runs."
+  ],
+  [
+    "Let's rebuild and ask again.",
+    "Rebuild the fig app image. Pause the video, type it yourself, then continue.",
+    "Docker build dash t fig app, dot. The image now has the app user.",
+    "Now ask again who you are. Pause and type the command.",
+    "Docker run dash dash R M fig app who am I. Now it says app! And running fig app normally still prints the banner. A normal user can't install software or change the system. Let's try.",
+    "Docker run dash dash R M fig app, apt get install dash y curl. Permission denied. Are you root? No! And that's exactly what we want.",
+    "So: install as root, then switch with user before the C M D. Your app still does its job, and an attacker gets much less power."
+  ],
+  [
+    "Step six. Time to clean up.",
+    "Delete the fig app image. Pause the video, type it yourself, then continue.",
+    "Docker image R M fig app. The image is deleted.",
+    "Stuck somewhere? The finished files of this lesson are in the course folder, under examples slash twenty one system packages. Compare them with yours, or go into that folder and build the finished version."
+  ],
+  [
+    "Well done! Your images are now smaller and safer. You install system packages with apt get in one run line, cleaned up. Double ampersand runs the next command only if the previous one worked. And user add plus user app run your program as a normal user, not root. Next, lesson twenty two: your own A P I with a database!"
+  ]
+]

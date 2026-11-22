@@ -1,0 +1,63 @@
+[
+  [
+    "Lesson five, logs! With dash d, engine x's log seemed to disappear. But it didn't. Docker keeps everything a container prints. Today you'll read it with docker logs, and even watch your own browser visits appear."
+  ],
+  [
+    "First, let's start engine x.",
+    "Start engine x in the background, named web, reachable at localhost port eighty eighty, like in lesson four. Pause the video, type it yourself, then continue.",
+    "docker run, dash d, dash dash name web, dash p, eighty eighty colon eighty, engine x. We get a long I D, and engine x is running.",
+    "Remember lesson three? Without dash d, engine x's log filled your terminal.",
+    "Now, with dash d, nothing is printed. Docker saves the log for you instead."
+  ],
+  [
+    "So how do we read what Docker saved?",
+    "With docker logs web. It prints the log lines: the configuration is complete, engine x started its worker processes, and so on.",
+    "These are the same lines you saw in lesson three, when the terminal was stuck. With dash d, Docker saved them instead of showing them.",
+    "And notice: docker logs prints everything saved so far, then gives you your prompt back."
+  ],
+  [
+    "Now let's see your own visit in the log.",
+    "Open localhost port eighty eighty in your browser. The browser sends a request to the web container, and the welcome page loads.",
+    "Now read the logs again with docker logs web. At the bottom, there are new lines. The first one is your visit!"
+  ],
+  [
+    "Let's read your visit's line, piece by piece.",
+    "The first part is who asked. That's you, seen from inside the container's network.",
+    "Next, in square brackets, is when it happened, in U T C time.",
+    "Then, what was asked: GET slash, which means the home page.",
+    "Two hundred is the answer. It means OK, the page was sent.",
+    "And the last part tells you which browser asked."
+  ],
+  [
+    "But what is that line with four oh four?",
+    "Your browser also asks every website for a small icon to show on the tab. It's called fav icon dot I C O.",
+    "Engine x's default site doesn't have one, so it answers four oh four, which means Not Found, and writes an error line. It's harmless, and a good first example of an error in a log.",
+    "Is the log too long? Show only the last lines with dash dash tail. For example, docker logs, dash dash tail three, web."
+  ],
+  [
+    "Running docker logs again and again is tiring. So let's follow the log live, with dash f.",
+    "docker logs, dash f, web. The terminal is stuck again, like in lesson three. It's waiting for more. Now reload the browser tab.",
+    "Look! A new line appears for your visit, live.",
+    "Reload again, and another line appears. One line for each visit.",
+    "When you're done watching, press Control C, and your prompt is back."
+  ],
+  [
+    "Now a question. Is the container still running?",
+    "In lesson three, Control C stopped engine x. What about now? List the running containers. Pause the video, type it yourself, then continue.",
+    "docker P S. And yes, web is still up!",
+    "In lesson three, your terminal was attached to the container, so Control C stopped engine x.",
+    "Now, your terminal was only watching the log. So after Control C, the container is still up.",
+    "So remember: Control C stops the watching, not the container. The page still loads in the browser."
+  ],
+  [
+    "Time to clean up.",
+    "Stop and delete web in one command. Pause the video, type it yourself, then continue.",
+    "docker R M, dash f, web. The container is deleted.",
+    "Now check that it's gone. List all containers, including stopped ones. Pause the video, type it yourself, then continue.",
+    "docker P S, dash a. Only the header, so nothing is left.",
+    "And here's something important. The logs are stored with the container. Once you delete it, its logs are gone too."
+  ],
+  [
+    "Well done! You can read a container's logs. docker logs prints everything the container has printed so far. Dash f follows the log live, and Control C stops watching, not the container. And dash dash tail shows only the last lines. Next, in lesson six, we'll go inside a container!"
+  ]
+]

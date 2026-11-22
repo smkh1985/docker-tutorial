@@ -1,0 +1,64 @@
+[
+  [
+    "Welcome to lesson one, images! You'll learn what an image is, list the images on your PC, download one from Docker Hub, and delete it again. Let's go!"
+  ],
+  [
+    "Before we start, an example. Imagine you have a web application. To run, it needs an operating system, Python, Django, Java, N P M, and libraries. So you write a recipe: a text file that lists what you need, layer by layer.",
+    "Layer one: install Linux, for example Ubuntu or Alpine.",
+    "Layer two: install Python.",
+    "Layer three: install Python packages, like Django.",
+    "Layer four: install other tools, like Java and N P M libraries.",
+    "And layer five: copy your web app's code.",
+    "Docker follows the recipe, installs everything, and puts it all in one box. That box is an image. It contains everything your app needs, but it's not running. It's just ready. In Docker, this recipe file is called a Dockerfile, and you'll write one in lesson seventeen."
+  ],
+  [
+    "Step one: image versus container. These two words come up all the time, so let's get them straight.",
+    "An image is a package: a program plus everything it needs to run. It just sits on your disk.",
+    "A container is a running copy made from an image. With docker run, which we'll see in the next lesson, you can start many containers from one image.",
+    "But this lesson is only about images. Containers come next."
+  ],
+  [
+    "Step two: list your images. Let's see every image on your PC.",
+    "Type docker image ls. The output is empty. Only the column names are shown, because you have no images yet.",
+    "So, how do you get an image?",
+    "Way one: create your own. Write a recipe and build an image from it, like the web app example. You'll do this in lesson seventeen.",
+    "Way two, and this is where we start: use a public image. Download a ready made image from a Docker registry, an online library of images. The default one is Docker Hub."
+  ],
+  [
+    "Step three: pull an image from Docker Hub. Pull just means download. Let's pull Alpine, a tiny Linux of only a few megabytes, and then hello world, a tiny test image.",
+    "Docker pull alpine. We gave no tag, so Docker uses the tag latest. An image is made of parts called layers, and each one says pull complete. At the end, Docker prints the full name of the image.",
+    "Now docker pull hello world. Same story: one small layer, pull complete, and it's downloaded."
+  ],
+  [
+    "Step four: check it's there. Let's list our images again.",
+    "You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker image ls. And this time we see both images, alpine and hello world. Let's look at each column.",
+    "Image is the name, written as name colon tag. The tag is usually a version.",
+    "I D is a unique I D. You can use it instead of the name.",
+    "Disk usage is the space it takes on your disk, unpacked. A whole Linux in just thirteen megabytes!",
+    "Content size is the compressed size, roughly what gets downloaded.",
+    "Extra shows a U when a container is using this image. It's empty for now.",
+    "And if your list is long, add a name. Docker image ls alpine shows just that one image."
+  ],
+  [
+    "Let's read the name more closely. Every image has a name and a tag.",
+    "Alpine is the name, and latest is the tag. The tag is usually a version.",
+    "You may see online tutorials use docker images, with different columns. That's just the older name of the same command. Docker twenty nine changed the default columns, but both show the same images."
+  ],
+  [
+    "Here's something interesting. You typed just alpine. So what did Docker really pull?",
+    "First, a tag. You gave none, so Docker added latest. Without a tag, Docker always uses latest.",
+    "Then library. That's where Docker Hub keeps its official images.",
+    "And in front, docker dot io, which is Docker Hub's address. So the full name is docker dot io slash library slash alpine colon latest."
+  ],
+  [
+    "Step five: delete it.",
+    "Docker image R M alpine. First, Docker removes the name, that's untagged. Then it deletes the files. The alpine image is gone.",
+    "Let's make sure. You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker image ls alpine. Only the column names, so alpine is really gone.",
+    "There's a shorter way to write it: docker R M I alpine. But keep hello world! In the next lesson, you'll run it as a container."
+  ],
+  [
+    "Great job, you can manage images! Docker image ls lists them, add a name to show just one. Docker pull downloads an image, with the tag latest if you give none. And docker image R M deletes it. In the next lesson, we'll run our first container. See you there!"
+  ]
+]

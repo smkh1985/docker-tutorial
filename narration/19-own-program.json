@@ -1,0 +1,79 @@
+[
+  [
+    "Welcome to lesson nineteen! Real images run a program. Today you'll package a small Python program of your own, and it will run on any PC with Docker, even with no Python installed."
+  ],
+  [
+    "Step one. Let's write a small program.",
+    "First, make a project folder called hello app in your home folder. You've used this command before. Pause the video, type it yourself, then continue.",
+    "make dir, hello app. The folder is ready.",
+    "Now go into it. You've used this command before. Pause the video, type it yourself, then continue.",
+    "C D, hello app. You're inside your project folder.",
+    "Now create the program with nano: nano, app dot pie.",
+    "The program is just two lines. Import cow say, then call cow say dot cow, with the text, Hello from my own image!",
+    "It uses cow say, a small Python library that draws a talking cow. Moo!",
+    "But cow say is not part of Python, so it must be installed first. That's the job of the Docker file."
+  ],
+  [
+    "Step two. In the same folder, create a Docker file with nano. Let's go through it line by line.",
+    "The FROM line: python, tag three point thirteen slim. Start from the official Python image, a slim, smaller version, with Python three point thirteen already installed.",
+    "Next, a new instruction: work dir, slash app. It creates the folder slash app in the image, and works there from now on, like make dir plus C D.",
+    "Then COPY app dot pie, dot. It copies your program in, like in lesson seventeen. Here, dot means right here, the work dir, slash app.",
+    "Another new one: RUN pip install cow say. RUN runs a command while building. Here, it installs cow say into the image.",
+    "And the last new one, the C M D line: python, app dot pie. It's the command a container runs when it starts. You saw engine x's C M D line in docker history, back in lesson sixteen."
+  ],
+  [
+    "RUN and C M D both run commands. So what's the difference? It's all about when.",
+    "RUN happens during docker build, just once. After pip install cow say, cow say is inside the image.",
+    "The C M D line happens during docker run, every time. Each new container runs python app dot pie.",
+    "So remember: RUN happens once, when you build the image. C M D happens every time a container starts."
+  ],
+  [
+    "Step three. Let's build hello app.",
+    "Build the image and call it hello app, like in lesson seventeen. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker build, dash t, hello app, dot. This time there are four steps, one for each line, and pip install runs at build time.",
+    "FROM, work dir, COPY, and RUN, one after another. And the result is your image: hello app, latest."
+  ],
+  [
+    "Now let's run it. Moo time!",
+    "Run hello app in a new container, and delete the container when it's done, like in lesson seven. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker run, dash dash R M, hello app. And there's the cow, saying, Hello from my own image!",
+    "The container ran your C M D line: python app dot pie.",
+    "Python and cow say were already inside the image. You don't need Python on your PC at all."
+  ],
+  [
+    "Step four. Let's change the program and rebuild.",
+    "Open app dot pie with nano, and change the text to, Version two of my app.",
+    "Now build the image again, the same way as in step three. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker build, dash t, hello app, dot. Work dir is cached. COPY runs, because your code changed. But wait, RUN pip install runs again?",
+    "You only changed one line of your code. So why did Docker install cow say again? Hmm."
+  ],
+  [
+    "Here's why. One line makes one layer.",
+    "Each line of the Docker file makes one layer. Docker reuses a layer, marked cached, if nothing it depends on changed. FROM and work dir were cached.",
+    "But app dot pie changed, so the COPY layer changed.",
+    "And once one layer changes, every layer after it is rebuilt. So the RUN layer was redone, even though cow say didn't change at all."
+  ],
+  [
+    "Step five. Let's fix the order. Open the Docker file, and move the COPY line below RUN pip install.",
+    "Watch: COPY app dot pie moves down, and RUN pip install moves up.",
+    "Now build once to apply the new order. Pip install runs one last time, because its position changed. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker build, dash t, hello app, dot. The new order is in place.",
+    "Order matters! Put what changes rarely first, like installing libraries, and what changes often last, like your code."
+  ],
+  [
+    "Let's try it. Change app dot pie again, to, Version three of my app, and build again.",
+    "Build the image again. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker build, dash t, hello app, dot. Look: RUN pip install is cached, reused! Only your code was copied.",
+    "The build took twelve point four seconds before, and now only five point six. With big projects, that's minutes saved on every build.",
+    "Now run it, same as in step three. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker run, dash dash R M, hello app. And the cow says, Version three of my app!"
+  ],
+  [
+    "Step six. Clean up. Thanks to dash dash R M, there are no containers to delete.",
+    "Delete the hello app image, if you like. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker image R M, hello app. The image is deleted."
+  ],
+  [
+    "Amazing work! You packaged your own program! Work dir creates a folder in the image and works there. RUN runs a command at build time, like installing libraries. The C M D line is the command a container runs when it starts. And cached layers are reused, so put rarely changing steps first. Next, in lesson twenty, you'll copy a whole project. See you there!"
+  ]
+]

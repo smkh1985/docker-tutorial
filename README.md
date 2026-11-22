@@ -34,6 +34,14 @@ A bilingual (English / فارسی) Docker course made of animated slides. Every 
 | 22 | Your own API + database |
 | 23 | Frontend + backend + database |
 
+## Voiceover
+
+Every step has an English voiceover made with [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M). Click **🔇 Voice off** in the top bar (or press **V**) to turn it on: each step is narrated and the slides move on by themselves.
+
+- The narration text is in `narration/<lesson>.json`: one array per slide, one line per step.
+- `python3 tools/steps.py <lesson>` shows what appears on each step; add `--check` to verify a narration file has the right number of steps.
+- `python tools/narrate.py [lesson ...] [--voice af_heart] [--speed 1.0]` (run with a Python that has `kokoro` installed) writes the clips to `audio/<lesson>/`. Only lines whose text changed are recorded again.
+
 ## Example files
 
 The `examples/` folder has the finished files for every lesson where you write files (Dockerfiles, `compose.yaml`, app code). If you get stuck, compare them with yours, or run them directly, e.g.:

@@ -1,0 +1,76 @@
+[
+  [
+    "Lesson six! A container is like a small Linux machine. Today you'll open a shell inside the running engine x, look around, change its welcome page, and see your change in the browser."
+  ],
+  [
+    "First, start engine x.",
+    "Start engine x in the background, named web, reachable at localhost port eighty eighty. Pause the video, type it yourself, then continue.",
+    "docker run, dash d, dash dash name web, dash p, eighty eighty colon eighty, engine x. Engine x is running.",
+    "Open localhost port eighty eighty and keep the tab open. You should see, Welcome to engine x."
+  ],
+  [
+    "Now, let's go inside.",
+    "Type docker exec, dash i t, web, bash. And look, the prompt changed.",
+    "Exec means execute. It runs a command inside a container that is already running.",
+    "Dash i t means interactive plus terminal, so you can type into it. You need it for a shell.",
+    "And bash is the command to run. It's a shell.",
+    "Your prompt changed. You are now inside the container, as root. The name after the at sign is the container's I D."
+  ],
+  [
+    "Let's look around. Engine x serves its web pages from the folder slash user slash share slash engine x slash H T M L.",
+    "List it with L S. There are two files: fifty x dot H T M L, and index dot H T M L.",
+    "Now print the home page with cat. It's H T M L, with the title, Welcome to engine x.",
+    "That's exactly the page you see in the browser."
+  ],
+  [
+    "Now let's change the page.",
+    "Type echo, then the text, Hello from my container, inside an h one tag, then a greater than sign, and the path to index dot H T M L.",
+    "Echo prints the text, and the greater than sign writes it into the file instead of the screen, replacing what was there.",
+    "Now reload the browser tab. Hello from my container! That's your page!",
+    "Note the single quotes around the text. With double quotes, the exclamation mark confuses the shell, and you get, event not found. Single quotes pass the text exactly as written."
+  ],
+  [
+    "Here's a question. Why not just open the file in nano?",
+    "Let's try. nano, and the file path. Oh. bash says, nano, command not found.",
+    "The engine x image has no nano, and no v i. Images are kept small, so they only contain what the app needs."
+  ],
+  [
+    "Now let's come back out.",
+    "Type exit. And your normal prompt is back.",
+    "Is the container still running? List the running containers. Pause the video, type it yourself, then continue.",
+    "docker P S. Yes, web is still up.",
+    "Exit closed only the shell that exec started, not the container. The browser still shows your page. It's like Control C on docker logs dash f, in lesson five."
+  ],
+  [
+    "Now, a question. If you stop and start the container again, is your change still there?",
+    "Stop the container. Pause the video, type it yourself, then continue.",
+    "docker stop web. The container is stopped, but its index file still has your Hello page.",
+    "Reload the browser. Engine x isn't running, so there's no page. But the container still exists, only stopped. Remember docker P S dash a, from lesson three.",
+    "So let's start the same container again, with docker start web.",
+    "Reload, and there it is! Your change is still there. Stopping a container doesn't delete it, so its files are kept.",
+    "Docker start restarts an existing container, with the same name, port, and files. Docker run always creates a new one."
+  ],
+  [
+    "But what happens if you delete the container, and run it again? Where does your change go?",
+    "Stop and delete web in one command. Pause the video, type it yourself, then continue.",
+    "docker R M, dash f, web. The container is deleted.",
+    "Now create a new one, exactly like in step one. Pause the video, type it yourself, then continue.",
+    "docker run, dash d, dash dash name web, dash p, eighty eighty colon eighty, engine x. A new container is running.",
+    "Reload the browser. Welcome to engine x. Oh no, your page is gone!"
+  ],
+  [
+    "Why is it gone? Because you changed the container, not the image. The engine x image always says, Welcome to engine x.",
+    "Your change, Hello from my container, lived in the old container.",
+    "Then docker R M deleted that container, and your change with it.",
+    "Docker run made a new container, a fresh copy of the image. Every new container starts from the image, which never changed.",
+    "So, docker stop, then docker start, keeps your change, because it's the same container. But docker R M, then docker run, loses it, because it's a new container from the image."
+  ],
+  [
+    "So, changes made inside a container live only as long as the container. Lesson eight shows how to keep your changes. For now, let's clean up.",
+    "Stop and delete web in one command. Pause the video, type it yourself, then continue.",
+    "docker R M, dash f, web. All clean."
+  ],
+  [
+    "Awesome! You went inside a container! docker exec, dash i t, name, bash, opens a shell inside a running container. Exit leaves the shell, and the container keeps running. docker start starts a stopped container again, with your changes. But changes are lost when the container is deleted. Next, in lesson seven, we'll run a command in a new container!"
+  ]
+]

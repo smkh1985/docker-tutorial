@@ -1,0 +1,61 @@
+[
+  [
+    "Welcome to lesson eighteen: tags, and keeping versions! Real projects keep versions, so if version two has a bug, you can go back to version one. You do that with tags."
+  ],
+  [
+    "Before we start, why do we need versions?",
+    "In lesson seventeen, you built with dash t, my site. Every rebuild replaced the previous one, and you only had my site, latest.",
+    "In this lesson, you'll use name colon tag, like my site, tag v one, and my site, tag v two. Then if version two has a bug, version one is still there.",
+    "A tag is the part after the colon in name colon tag. You first saw it in lesson one."
+  ],
+  [
+    "Step one. Let's build version one.",
+    "First, go to your my site folder from lesson seventeen. You've used this command before. Pause the video, type it yourself, then continue.",
+    "C D, my site. You're in the project folder.",
+    "Now replace the page's text with a heading that says, Version one. You've used this command before. Pause the video, type it yourself, then continue.",
+    "echo, the Version one heading in single quotes, into index dot H T M L.",
+    "Now build it, this time with a tag after the name: docker build, dash t, my site colon v one, dot. Docker finishes with, naming to my site, v one.",
+    "Look closely. My site is the name, and v one is the tag, joined by a colon.",
+    "And a tag can be anything you like: v one, one point oh, or even a date."
+  ],
+  [
+    "Step two. Now let's build version two.",
+    "Change the page to a heading that says, Version two. You've used this command before. Pause the video, type it yourself, then continue.",
+    "echo, the Version two heading, into index dot H T M L. The page file is updated.",
+    "Now build it with the tag v two. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker build, dash t, my site colon v two, dot. And look: my site v one and my site v two are both kept!"
+  ],
+  [
+    "Step three. Let's list the versions.",
+    "List only the my site images. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker image L S, my site. You see latest from lesson seventeen, then v one, and v two.",
+    "Three images with the same name, and different tags. Nothing was replaced. Every version is kept."
+  ],
+  [
+    "Step four. Let's run both versions side by side.",
+    "docker run, dash d, dash dash name web one, dash p, eighty eighty colon eighty, my site, v one. Localhost port eighty eighty shows Version one.",
+    "Now run version two, named web two. Port eighty eighty is taken, so use eighty eighty one on your PC. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker run, dash d, dash dash name web two, dash p, eighty eighty one colon eighty, my site, v two. Localhost port eighty eighty one shows Version two.",
+    "Two versions, running at the same time. If version two had a bug, version one is right there. Just run my site, v one, again. That's called a rollback."
+  ],
+  [
+    "Step five. Here's a surprise about latest. Look at the list from step three again.",
+    "V two is your newest build. But latest has a different I D. It's still the old image from lesson seventeen!",
+    "So latest does not mean newest. It's only the tag Docker uses when you don't give one, and it doesn't move by itself."
+  ],
+  [
+    "So how do you move latest? Yourself, with docker tag. It gives an existing image another name.",
+    "docker tag, my site v two, my site latest. Watch the latest label move from the old image over to v two.",
+    "Let's check. List the my site images again. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker image L S, my site. Now latest and v two have the same I D. It's one image with two names, and no copy was made.",
+    "The old latest lost its only name, so docker image L S no longer shows it. But it still uses disk space. If you like, delete it with docker image R M and its I D from step three. Use your own I D."
+  ],
+  [
+    "Step six. Time to clean up.",
+    "Stop and delete web one and web two, with one command. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker R M, dash f, web one, web two. Both containers are gone."
+  ],
+  [
+    "Great job! You can now version your images. docker build with name colon tag builds a version. docker run with name colon tag runs a specific version. docker tag gives an existing image another name, with the same I D. And remember, latest is just the default tag, not the newest. Next, in lesson nineteen, you'll package your own program. See you there!"
+  ]
+]

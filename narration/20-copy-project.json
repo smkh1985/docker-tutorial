@@ -1,0 +1,88 @@
+[
+  [
+    "Welcome to lesson twenty! Today we copy a whole project into an image with one line: copy dot dot. It's super convenient, but also a little dangerous, because it copies everything, secrets included. Let's see why, and how to fix it."
+  ],
+  [
+    "Step one. We'll build a small website project, and give it a secret, just like real projects have.",
+    "First, make a project folder called site app in your home folder. You've done this before. Pause the video, type it yourself, then continue.",
+    "The command is M K dir, tilde slash site app. Our project folder is ready.",
+    "Now go into it. Pause, type the command, then continue.",
+    "It's C D, tilde slash site app. We're inside the project.",
+    "Next, create index dot H T M L with a heading that says My site. You did this in lesson six. Pause and try it.",
+    "Echo writes the heading, and the greater than sign sends it into index dot H T M L. Our first page exists.",
+    "Now a second page, about dot H T M L, with the heading About us. Pause and type it yourself.",
+    "Same trick: echo the heading into about dot H T M L. Two pages now.",
+    "And here's the secret. Real projects often keep an env file next to the code, like in lesson eleven. Create D B dot env with nano, holding a database user, a password, and a database name."
+  ],
+  [
+    "Step two. Create a Docker file with nano. It starts from python three point thirteen slim, sets the work dir to slash app, and has two new lines.",
+    "First, copy dot dot. The first dot means everything in this folder on your PC. The second dot means the work dir inside the image. So the whole project goes into the image.",
+    "Next, expose eight thousand. It documents that the app listens on port eight thousand. But it's only a label, not a cable. It does not publish the port; you still need dash p.",
+    "And the C M D runs Python's built in web server. It serves every file of the current folder on port eight thousand."
+  ],
+  [
+    "Step three. Time to build the image and run it.",
+    "Build an image called site app from this folder. Pause the video, type it yourself, then continue.",
+    "The command is docker build dash t site app, dot. The image is built.",
+    "Now run it in the background, named site, with port eighty eighty on your PC going to port eight thousand in the container. Pause and give it a try.",
+    "It's docker run dash d, dash dash name site, dash p eighty eighty colon eight thousand, site app. The container is running, and the port is connected.",
+    "Open localhost port eighty eighty in your browser, and there it is: My site!"
+  ],
+  [
+    "Here's a question. If expose doesn't publish the port, what does it actually do?",
+    "It's a note for people and tools. Run the image without dash p, and docker P S still shows eight thousand slash T C P in the ports column. It's listed, just not published.",
+    "With dash p eighty eighty colon eight thousand, you see an arrow from eighty eighty to eight thousand. Only dash p really connects a port on your PC, like in lesson four.",
+    "That's why engine x showed port eighty slash T C P back in lesson three. Its Docker file has expose eighty, which you saw in docker history in lesson sixteen."
+  ],
+  [
+    "Step four. Copy dot dot copied the whole folder. But what exactly ended up inside the image?",
+    "List all the files in the image's slash app folder, using L S dash a in a new container that deletes itself afterwards. Pause the video, type it yourself, then continue.",
+    "The command is docker run dash dash R M, site app, L S dash a. And look: the Docker file, both pages, and D B dot env. Your secret is inside the image!",
+    "It gets worse. The web server serves every file in the folder. Open localhost port eighty eighty slash D B dot env, and the database user and password are right there.",
+    "Oh no. Anyone who can open your site can read your database password. And anyone who gets your image can read it too, even if they never run it."
+  ],
+  [
+    "Step five, the fix. A file named dot docker ignore lists files that docker build must never see, so copy can't copy them. Create it with nano. Notice the name starts with a dot.",
+    "First line: D B dot env. Our secret stays out.",
+    "Then add Docker file and dot docker ignore, one name per line. They're only needed for building, so they don't belong in the image either.",
+    "Now when you build, those files stay behind on your PC. Only index and about go into the image."
+  ],
+  [
+    "Let's rebuild and check that the secret is really gone.",
+    "First, rebuild the image. Pause the video, type it yourself, then continue.",
+    "Docker build dash t site app, dot. The image is rebuilt, this time with dot docker ignore.",
+    "Now delete the old site container in one command. Pause and try it.",
+    "Docker R M dash f site. It stops and removes the container in one go.",
+    "Run it again, just like in step three. Pause and type it.",
+    "Docker run dash d, dash dash name site, dash p eighty eighty colon eight thousand, site app. It's running again.",
+    "Now check what's inside, like in step four. Pause and type the command.",
+    "Docker run dash dash R M site app L S dash a. Only about and index are there. No secret, and no Docker file.",
+    "Reload localhost port eighty eighty slash D B dot env. Error four oh four, file not found. Phew, the password is safe!",
+    "So remember: whenever you use copy dot dot, add a dot docker ignore. Put secrets, the dot git folder, caches, and anything the app doesn't need in it. It's like git ignore, but for images."
+  ],
+  [
+    "Step six. In lesson eleven you set environment variables with dash e when running a container. The E N V instruction sets one inside the image, as a default.",
+    "Add this line right after work dir slash app: E N V, site name equals My site.",
+    "Now rebuild the image. You know this one. Pause the video, type it yourself, then continue.",
+    "Docker build dash t site app, dot. The new default is baked in.",
+    "Let's print it. Docker run dash dash R M site app, print env site name. It says My site, the default from E N V.",
+    "Now add dash e site name equals Test site. This time it prints Test site. Dash e replaced the default."
+  ],
+  [
+    "So how do these two fit together? The image site app carries the line E N V site name equals My site.",
+    "Every container from this image gets site name equals My site. That's the default.",
+    "But with dash e, one container can get Test site instead. The change is only for that container.",
+    "So E N V gives a default that's always there, and dash e can still change it. You saw image defaults like this in lesson eleven: Postgres's version and data folder variables came from E N V lines in its Docker file.",
+    "One warning: never put passwords in E N V. They'd be baked into the image for anyone to read. Pass them at run time instead, with dash e or dash dash env file."
+  ],
+  [
+    "Step seven. Let's clean up.",
+    "Delete the site container in one command. Pause the video, type it yourself, then continue.",
+    "Docker R M dash f site. The container is gone.",
+    "Now delete the site app image. Pause and try it.",
+    "Docker image R M site app. The image is gone too. All clean!"
+  ],
+  [
+    "Great job! Your images now keep secrets out. Copy dot dot copies the whole folder into the work dir. Dot docker ignore lists the files the build must never see. Expose documents the app's port without publishing it. And E N V sets a default variable that dash e can override, but never with passwords. Next up, lesson twenty one: system packages and a safer image. See you there!"
+  ]
+]

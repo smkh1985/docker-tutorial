@@ -1,0 +1,60 @@
+[
+  [
+    "Lesson four! In lesson three, engine x was running, but you never saw a web page. Today you'll find out why, and fix it with dash p, so you can open the container right in your browser."
+  ],
+  [
+    "Let's start by trying it without dash p.",
+    "Start engine x in the background, with the name web, exactly like at the end of lesson three. You've used this command before. Pause the video, type it yourself, then continue.",
+    "Here it is: docker run, dash d, dash dash name web, engine x. Docker prints a long I D, and no error. So engine x is running.",
+    "Now open localhost port eighty eighty in your browser. Oh no. This site can't be reached. Localhost refused to connect.",
+    "Why? A container has its own private network. Engine x listens on port eighty inside the container, but nothing connects your PC to it. Even localhost port eighty fails."
+  ],
+  [
+    "Before we try again, let's stop and delete the web container. There are two ways to do it.",
+    "Way one uses two commands. First, stop the web container. You've done this before. Pause the video, type it yourself, then continue.",
+    "docker stop web. Docker prints the name, and the container is stopped.",
+    "Now delete it. Pause the video, type it yourself, then continue.",
+    "docker rm web. The container is deleted.",
+    "Way two is a shortcut: docker R M, dash f, web. Dash f means force. It stops the container if it's running, then deletes it, all in one command.",
+    "Use one way or the other, not both. Once it's deleted, there's nothing left to delete."
+  ],
+  [
+    "Now the right way. Same command, plus dash p, eighty eighty colon eighty. Dash p means publish. It connects a port on your PC to a port inside the container.",
+    "Here's the full command: docker run, dash d, dash dash name web, dash p, eighty eighty colon eighty, engine x. We get a long container I D, and no error.",
+    "Let's split dash p apart. Eighty eighty is the port on your PC, and you choose it. Eighty is the port inside the container, where engine x listens. That one is fixed.",
+    "Now there's a line from port eighty eighty on your PC, to port eighty in the container. Remember, the order is always your PC first, then the container."
+  ],
+  [
+    "But what if you get an error that says, port is already allocated?",
+    "You run the same command, and Docker complains. Bind for port eighty eighty failed, port is already allocated. That's a little disappointing.",
+    "The rule is: one port, one program. Something else on your PC, maybe another container, already uses port eighty eighty. Only one program can use a host port at a time.",
+    "The fix is easy. Delete the new container with docker R M web, and pick another host port, like dash p, eighty eighty one colon eighty. Then open localhost port eighty eighty one."
+  ],
+  [
+    "Let's check the port from the terminal.",
+    "List the running containers, then look at the PORTS column. You know this command. Pause the video, type it yourself, then continue.",
+    "It's docker P S. Our web container is up, and the PORTS column has something new.",
+    "In lesson three, this column said only eighty slash T C P. Now it shows the connection: port eighty eighty on your PC, arrow, port eighty in the container.",
+    "And the part with the square brackets is the same thing, for I P version six."
+  ],
+  [
+    "Now the exciting part. Open localhost port eighty eighty again, or just reload the tab.",
+    "Welcome to engine x! The page loads. Your browser sends a request to port eighty eighty, and the page comes back.",
+    "This page comes from engine x, running inside the container. You did it!",
+    "You can also check it from the terminal. curl, localhost port eighty eighty, prints the page's H T M L. There's the title, Welcome to engine x."
+  ],
+  [
+    "Time to clean up.",
+    "Stop the container, then reload the browser tab. Pause the video, type it yourself, then continue.",
+    "docker stop web. And after you reload, the page is gone again. This site can't be reached.",
+    "Now delete it. Pause the video, type it yourself, then continue.",
+    "docker rm web. The container is deleted.",
+    "Check that it's gone from all containers, including stopped ones. Pause the video, type it yourself, then continue.",
+    "docker P S, dash a. Only the header row, so there are no containers left.",
+    "We only removed the container. Now check the image, and list only the engine x image. Pause the video, type it yourself, then continue.",
+    "docker image L S, engine x. The image is still there. Keep it, because we need it in the next lessons."
+  ],
+  [
+    "Great job! You opened a container in your browser. Dash p, host colon container, connects a port on your PC to a port in the container. docker R M, dash f, stops and deletes a container in one go. And docker P S shows the published port. Next, in lesson five, we'll read the container's logs. See you there!"
+  ]
+]

@@ -1,0 +1,59 @@
+[
+  [
+    "Lesson seven! Every image has a default program. But you can tell docker run to run your own command instead. It's great for trying a Linux distro, or running a quick tool, without installing anything."
+  ],
+  [
+    "Before we start, remember: every image has a default program.",
+    "Engine x starts a web server.",
+    "Hello world prints a message.",
+    "But you can tell docker run to run your own command instead. Let's try it with alpine."
+  ],
+  [
+    "Let's ask a tiny Alpine Linux container which Linux it is.",
+    "Type docker run, dash dash R M, alpine, cat, slash E T C slash O S dash release. It prints: Alpine Linux, version three point twenty four point two.",
+    "So what happened? First, Docker created a new container from alpine.",
+    "It ran cat slash E T C slash O S dash release in it.",
+    "It printed the result.",
+    "And then the container stopped, because the command was done.",
+    "Finally, dash dash R M, from lesson two, deleted it right away."
+  ],
+  [
+    "Let's read that command. Everything after the image name is the command to run.",
+    "First come the options, like dash dash R M.",
+    "Then the image name, alpine.",
+    "And everything after it is your command: cat slash E T C slash O S dash release.",
+    "Let's try another one. docker run, dash dash R M, alpine, echo, Hello from a new container. And it prints exactly that."
+  ],
+  [
+    "But why do we use dash dash R M? Let's see what happens without it.",
+    "Run docker run, dash dash name once, alpine, echo hi. It prints hi, and the command is finished.",
+    "The command finished, but now list all containers, including stopped ones. Pause the video, type it yourself, then continue.",
+    "docker P S, dash a. There it is: once, exited. A leftover container.",
+    "Every one-off command would leave one of these behind. A leftover after every run.",
+    "Delete the leftover container, once. Pause the video, type it yourself, then continue.",
+    "docker R M once. Now it's clean.",
+    "So, for one-off commands, always add dash dash R M."
+  ],
+  [
+    "Want to look around Ubuntu without installing it? Run bash in a new Ubuntu container, with dash i t so you can type, like exec dash i t in lesson six.",
+    "docker run, dash i t, dash dash R M, ubuntu, bash. Now you're root, inside a fresh Ubuntu.",
+    "Run cat slash E T C slash O S dash release. It says Ubuntu twenty six oh four point one L T S.",
+    "Now type exit. The container stopped, and dash dash R M deleted it.",
+    "The shell was the container's program. So leaving it stopped the container, and dash dash R M deleted it. Check it yourself: docker P S dash a has no Ubuntu container."
+  ],
+  [
+    "Here's a question. What if I forget dash i t?",
+    "Run docker run, dash dash R M, ubuntu, bash, without dash i t. Hmm. It comes back immediately. No prompt, and no error.",
+    "Bash had no keyboard to read from, so it had nothing to do, and exited. Interactive programs need dash i t."
+  ],
+  [
+    "So, run dash i t, or exec dash i t? Both give you a shell, but in very different containers.",
+    "Which container? Exec uses an existing, running one, like in lesson six. Run makes a brand new one, from an image.",
+    "After exit? With exec, the container keeps running. With run, the container stops, and dash dash R M deletes it.",
+    "So use exec to look inside, or fix a running app. Use run to try an image, or run a quick tool.",
+    "And if you like, you can delete the images you pulled, like in lesson one, with docker image R M, alpine, ubuntu."
+  ],
+  [
+    "Fantastic! You can run any command in a container. docker run, dash dash R M, image, command, runs one command in a new container, then deletes it. docker run, dash i t, dash dash R M, image, bash, gives you a shell in a new container. And docker exec, dash i t, gives you a shell in an existing one. Next, in lesson eight, we'll keep your data with volumes. See you there!"
+  ]
+]

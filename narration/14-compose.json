@@ -1,0 +1,56 @@
+[
+  [
+    "Welcome to lesson fourteen, Docker Compose! With Compose, you write all your container settings in a file once, and then start everything with one short command."
+  ],
+  [
+    "Why do we need Compose? Your commands keep getting longer. Remember this one from lesson ten? A docker run with a name, a port, a volume, and an image.",
+    "It's hard to remember.",
+    "It's easy to mistype.",
+    "And it's hard to share with a teammate.",
+    "Docker Compose fixes all of this. You write it in a file once, then start everything with one short command."
+  ],
+  [
+    "A Compose project lives in its own folder. Let's make one.",
+    "Make dir dash p creates a folder called compose demo in your home folder, with an html folder inside it.",
+    "Then C D into compose demo. That's where we'll work from now on.",
+    "Now create a small web page, index dot H T M L, inside the html folder, with the heading Hello from Compose. You've done this before. Pause the video, type it yourself, then continue.",
+    "It's echo, the heading in quotes, then the greater than sign and html slash index dot H T M L. Our page is ready."
+  ],
+  [
+    "Now let's write the Compose file.",
+    "Open a new file called compose dot yammel with nano.",
+    "Type in these lines. Mind the spaces! Yammel uses indentation, just like Python. The little dots on screen only show you where the spaces go.",
+    "When you're done, save with Control O and Enter, then exit with Control X."
+  ],
+  [
+    "Let's read the file. Every line matches a part of the old docker run command.",
+    "Services is the list of containers in this project.",
+    "Web is one service, called web. That's like dash dash name web.",
+    "Image engine x is the image to run, just like engine x at the end of the command.",
+    "Ports, eighty eighty colon eighty, publishes a port, exactly like dash p from lesson four.",
+    "Volumes shares a folder, like dash v from lessons eight and ten. Dot slash html means the html folder next to this file.",
+    "And where's dash d? It's not in the file. It goes on the command, in the next step."
+  ],
+  [
+    "Time to start it. In the same folder as compose dot yammel, run docker compose up dash d. Dash d means run in the background, just like in lesson three.",
+    "Compose prints two lines, both with a check mark.",
+    "First, it created a network for the project, called compose demo default, named after the folder. Just like the networks from lesson thirteen, but made for you.",
+    "Second, it created and started the container, compose demo web one. That's the folder name, the service name, and a number."
+  ],
+  [
+    "Let's check it.",
+    "Docker compose P S lists this project's containers. It's like docker P S, but only for this project. Our web container is Up, with port eighty eighty published.",
+    "Open localhost port eighty eighty in your browser. Hello from Compose! Our page is live.",
+    "It's a normal container. Everything you learned still works on it, for example docker logs compose demo web one."
+  ],
+  [
+    "Now let's stop it with docker compose down.",
+    "Compose removed the container, and then the network. And your html folder is still here.",
+    "Let's double check: list all containers, even stopped ones. Pause the video, type it yourself, then continue.",
+    "It's docker P S dash a. Compose demo web one is gone.",
+    "One command stopped and deleted the container and the network, and your html folder is untouched. With Compose, the whole setup lives in compose dot yammel. Up dash d to start, down to remove. Run it again any time: same result, nothing to remember."
+  ],
+  [
+    "Congratulations, you used Docker Compose! Compose dot yammel holds your containers' settings. Docker compose up dash d creates and starts everything in the background. Docker compose P S lists this project's containers. And docker compose down stops and deletes the containers and the network. If you get stuck, the finished files are in the course folder, under examples. Next, in lesson fifteen, we'll run an app and its database together with Compose. See you there!"
+  ]
+]

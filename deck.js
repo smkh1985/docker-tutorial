@@ -28,7 +28,7 @@ function setLang(l) {
   document.body.classList.remove('lang-en', 'lang-fa'); document.body.classList.add('lang-' + l);
   document.documentElement.lang = l; document.documentElement.dir = l === 'fa' ? 'rtl' : 'ltr';
   if (langBtn) langBtn.textContent = l === 'fa' ? 'English' : 'فارسی';
-  save(LANG_KEY, l); buildOverview(); updateChrome();
+  save(LANG_KEY, l); buildOverview(); updateChrome(); if (typeof narrate === 'function' && cur >= 0) narrate();
   if (cur >= 0) {
     const s = slides[cur]; s.classList.remove('active'); void s.offsetWidth; s.classList.add('active');
     endScene(); const name = s.dataset.scene;
@@ -110,7 +110,7 @@ $$('.run').forEach(run => {
   }
 });
 function resetRun(run) {
-  run._token = (run._token || 0) + 1; run.classList.remove('revealed', 'typed');
+  run._token = (run._token || 0) + 1; run._busy = false; run.classList.remove('revealed', 'typed');
   $('.cmd', run).textContent = ''; $$('.ol', run).forEach(l => l.classList.remove('show'));
 }
 function showOut(run, instant, tok) {
@@ -122,7 +122,7 @@ function typeRun(run, instant) {
   resetRun(run); const tok = run._token, cmd = $('.cmd', run), text = run._cmd;
   if (run.classList.contains('recall') && !run._revealNow) { tokenize(cmd, text); return; } // blurred, waiting
   if (instant) { tokenize(cmd, text); run.classList.add('typed', 'revealed'); showOut(run, true, tok); return; }
-  let i = 0; const caret = '<span class="caret"></span>';
+  run._busy = true; let i = 0; const caret = '<span class="caret"></span>';
   const tick = () => {
     if (run._token !== tok) return;
     if (i <= text.length) { cmd.innerHTML = ''; cmd.append(text.slice(0, i)); cmd.insertAdjacentHTML('beforeend', caret); i++; setTimeout(tick, 28 + Math.random() * 40); }
@@ -157,7 +157,7 @@ function applyStep(instant, skipRuns) {
     if (!on && r.classList.contains('revealed')) { r._revealNow = false; typeRun(r, true); }
   });
   if (scene && scene.step) scene.step(step, instant);
-  updateChrome();
+  updateChrome(); narrate();
 }
 
 /* ---------- navigation ---------- */
@@ -244,6 +244,42 @@ addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; i
   }
   requestAnimationFrame(frame);
 })(0);
+
+/* ---------- voiceover: Kokoro clips made by tools/narrate.py (English only) ----------
+   audio/<deck>/index.js sets window.NARRATION[slide][step] = clip seconds (0 = silent step).
+   When the voice is on, each step plays its clip, then the deck advances by itself. */
+const DECK = decodeURIComponent(location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
+const VOICE_KEY = 'docker-course-voice';
+const voice = new Audio(); voice.preload = 'auto';
+let voiceOn = load(VOICE_KEY, '0') === '1', voiceTimer = null, voiceDone = true;
+const voiceBtn = document.createElement('button'); voiceBtn.className = 'pill'; voiceBtn.id = 'voiceBtn'; voiceBtn.hidden = true;
+voiceBtn.title = 'Voiceover: plays each step and moves on by itself (V)';
+($('#ovBtn') || langBtn)?.before(voiceBtn);
+function updVoice() { voiceBtn.textContent = voiceOn ? '🔊 Voice on' : '🔇 Voice off'; voiceBtn.classList.toggle('on', voiceOn); }
+function setVoice(on) { voiceOn = on; save(VOICE_KEY, on ? '1' : '0'); updVoice(); narrate(); }
+voiceBtn.onclick = () => setVoice(!voiceOn);
+function narrate() {
+  clearTimeout(voiceTimer); voice.onended = null; voice.pause(); voiceDone = true;
+  if (!voiceOn || !window.NARRATION || isFa() || cur < 0) return;
+  const d = (window.NARRATION[cur] || [])[step] || 0;
+  voiceDone = false;
+  if (d) {
+    voice.src = `audio/${DECK}/s${String(cur + 1).padStart(2, '0')}-${step}.mp3`;
+    voice.onended = () => { voiceDone = true; tryAdvance(); };
+    voice.play().catch(() => { voiceOn = false; updVoice(); }); // autoplay blocked until the viewer clicks
+  } else voiceTimer = setTimeout(() => { voiceDone = true; tryAdvance(); }, 1500);
+}
+function tryAdvance() {
+  if (!voiceOn || !voiceDone || isFa()) return;
+  if ($$('.run', slides[cur]).some(r => r._busy)) return; // wait for the terminal to finish typing
+  if (cur === slides.length - 1 && step >= maxStep(slides[cur])) return;
+  clearTimeout(voiceTimer); voiceTimer = setTimeout(next, 700);
+}
+document.addEventListener('run-done', e => { e.target._busy = false; tryAdvance(); });
+addEventListener('keydown', e => { if ((e.key === 'v' || e.key === 'V') && !e.metaKey && !e.ctrlKey && !e.altKey && !voiceBtn.hidden) setVoice(!voiceOn); });
+const narrScript = document.createElement('script'); narrScript.src = `audio/${DECK}/index.js`;
+narrScript.onload = () => { if (window.NARRATION) { voiceBtn.hidden = false; updVoice(); narrate(); } };
+document.head.appendChild(narrScript);
 
 /* ---------- start ---------- */
 const urlLang = new URLSearchParams(location.search).get('lang');

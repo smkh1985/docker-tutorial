@@ -1,0 +1,54 @@
+[
+  [
+    "Welcome to lesson twelve, restart policies! Programs crash, and computers reboot. By default, a stopped container just stays stopped. Today we'll teach Docker to bring it back by itself."
+  ],
+  [
+    "First, we need a program that crashes. Let's fake one on purpose.",
+    "We run a container called crashy in the background. Docker answers with a long I D, so it started.",
+    "It uses the tiny alpine image, and then the command to run. Sh dash c runs a little shell script inside the container, like we saw in lesson seven.",
+    "Inside the quotes are three commands, separated by semicolons. Sh dash c runs them one after another.",
+    "So the container prints started, waits three seconds, and then exits with code one. Exit one means an error. Crash!"
+  ],
+  [
+    "Let's check on it. What happened to crashy after it crashed?",
+    "You've used this command before: list all containers, even stopped ones. Pause the video, type it yourself, then continue.",
+    "It's docker P S dash a. Crashy shows Exited, with code one. It crashed, and it stays crashed. Nobody starts it again.",
+    "Next, show the container's output. Pause the video, type it yourself, then continue.",
+    "It's docker logs crashy. We see started only once. So it really ran just one time.",
+    "Now delete the container, so we can reuse its name. Pause the video, type it yourself, then continue.",
+    "It's docker R M crashy. Gone, and the name is free again."
+  ],
+  [
+    "Now let's add a restart policy and see what changes.",
+    "Same command as before, but with dash dash restart unless stopped, right after the name.",
+    "Watch what happens. It starts, crashes, and Docker starts it again. And again. And again. Each wait is a little longer.",
+    "Let's look at the logs. You know this command. Pause the video, type it yourself, then continue.",
+    "It's docker logs crashy, and now we see started many times. Every time it crashed, Docker started it again. Each restart waits a bit longer than the last one, so a broken app doesn't restart thousands of times.",
+    "Now list the running containers. Pause the video, type it yourself, then continue.",
+    "It's docker P S. Crashy is Up, because Docker just brought it back once more."
+  ],
+  [
+    "Here's a question. What if you stop it yourself? Does it come back?",
+    "Stop the crashy container. Pause the video, type it yourself, then continue.",
+    "It's docker stop crashy. You stopped it on purpose, so no restart.",
+    "Let's wait a moment and check all containers. Pause the video, type it yourself, then continue.",
+    "It's docker P S dash a. Crashy is still Exited, even seconds later.",
+    "It stays stopped. That's the unless stopped part. Docker restarts it after crashes, but it respects your docker stop.",
+    "Time to clean up. Delete the container. Pause the video, type it yourself, then continue.",
+    "It's docker R M crashy. All clean."
+  ],
+  [
+    "So which restart policy should you use? Let's compare them for two cases: after a crash, and after your PC reboots.",
+    "No is the default. No restart after a crash, and no restart after a reboot.",
+    "Unless stopped restarts after a crash, and after a reboot too, unless you had stopped it yourself.",
+    "Always restarts after a crash, and after a reboot, even if you had stopped it.",
+    "We can't reboot your PC in a lesson. But after a reboot, Docker starts again and brings back every container whose policy says so."
+  ],
+  [
+    "So here's the usual choice. For anything that should always be running, like a database or a web server, use dash dash restart unless stopped.",
+    "For example, the database from lesson eleven. Just look, don't run it. The same command, with dash dash restart unless stopped added. Now if your PC reboots, the database comes back by itself."
+  ],
+  [
+    "Great job! Your containers can now come back by themselves. A stopped container stays stopped by default. Dash dash restart unless stopped restarts it after crashes and reboots, but not after your docker stop. And sh dash c lets you run several commands in a new container. Next, in lesson thirteen, we'll connect containers together with networks. See you there!"
+  ]
+]

@@ -1,0 +1,78 @@
+[
+  [
+    "Welcome to lesson seventeen, your first Docker file! This time, you write down the steps, and Docker builds the image from them. Anyone can read it, and build exactly the same image again."
+  ],
+  [
+    "Before we start, let's see why we need a recipe file.",
+    "In lesson sixteen, you made an image by hand, with commit. Nobody could see what was inside, or repeat it.",
+    "In this lesson, you write the steps down in a Docker file. Anyone can read it, and build exactly the same image again.",
+    "Here's the flow. You write the Docker file. docker build turns it into your image, called my site. Then docker run starts a container from it.",
+    "Remember the recipe from lesson one? In Docker, that recipe file is called a Docker file. Today, you write one."
+  ],
+  [
+    "Step one. Let's write a Docker file. We'll use the my site folder from lesson ten.",
+    "First, go into the folder: C D, my site.",
+    "Then open a new file with nano. The name must be exactly Docker file.",
+    "The nano editor opens, with an empty file.",
+    "The first line: FROM engine x.",
+    "The second line: COPY index dot H T M L into engine x's H T M L folder, where it looks for its home page.",
+    "Save with Control O, press Enter, and exit with Control X. Now your folder has a new Docker file, right next to index dot H T M L.",
+    "Run L S to check. You should see Docker file and index dot H T M L. No index dot H T M L? Then you skipped lesson ten, so create it with the echo command shown here."
+  ],
+  [
+    "So, what do these two lines actually do?",
+    "The FROM line says: start from the engine x image. Everything engine x has, your image has too.",
+    "And COPY copies index dot H T M L from this folder into the image, exactly where engine x looks for its home page. Together, they make your image."
+  ],
+  [
+    "Step two. Here's the command that builds your image: docker build, dash t, my site, dot.",
+    "Dash t my site is the tag, the name of your new image. There's no tag after the name, so it becomes my site, latest.",
+    "And the dot means this folder. Docker reads the Docker file here, and can COPY files from here. Don't forget the dot!"
+  ],
+  [
+    "Let's build it, and watch Docker follow your lines.",
+    "docker build, dash t, my site, dot. Docker prints its progress, step by step.",
+    "One of two is the FROM line. Docker gets the engine x image.",
+    "Two of two is the COPY line. One of two and two of two are simply the two lines of your Docker file, run in order.",
+    "And the build finishes with, naming to my site, latest. Your image is ready!",
+    "Now list only the my site image, like you did with hello world in lesson one. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker image L S, my site. There's your own image, my site, latest, right next to the ones you pulled from Docker Hub."
+  ],
+  [
+    "Step four. Let's run it, and this time without dash v.",
+    "Run my site in the background, named web, on localhost port eighty eighty. No dash v! You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker run, dash d, dash dash name web, dash p, eighty eighty colon eighty, my site. And the browser shows, Changed on my PC!",
+    "Your page appears, even with no dash v, and no link to your folder. That's because it's inside the image."
+  ],
+  [
+    "Step five. In lesson ten, editing the file changed the page right away. Will it work the same now? Let's try.",
+    "Replace the text in index dot H T M L with a heading that says, Version two. You've used this command before. Pause the video, type it yourself, then continue.",
+    "echo, the Version two heading in single quotes, into index dot H T M L. The file on your PC now says Version two.",
+    "Now refresh the browser. Oh no. It still says, Changed on my PC. No change!",
+    "Here's why. COPY made a copy of the file when you built the image. The image keeps that copy, and doesn't look at your folder anymore."
+  ],
+  [
+    "So, should you use dash v, or COPY? Let's compare.",
+    "Where does the page live? With dash v, it's on your PC, shared with the container. With COPY, it's a copy inside the image.",
+    "When you edit the file: with dash v, the change shows up right away. With COPY, you need a rebuild.",
+    "So dash v is good for working on your files. And COPY is good for a finished version to share or deploy."
+  ],
+  [
+    "Step six. Let's update the image the right way, by rebuilding it. You already did the first part: you edited the file.",
+    "Now build the image again, so it gets a fresh copy of index dot H T M L. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker build, dash t, my site, dot. The image now has Version two inside.",
+    "But the container still uses the old image. Delete web in one command. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker R M, dash f, web. The old container is gone.",
+    "Now run your image again, like in step four. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker run, dash d, dash dash name web, dash p, eighty eighty colon eighty, my site.",
+    "Refresh, and there it is: Version two! So, to update an image: edit, build, then replace the container."
+  ],
+  [
+    "Step seven. Let's clean up.",
+    "Delete the web container in one command. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker R M, dash f, web. The container is gone. But keep the my site image and the my site folder. We'll use them in the next lesson."
+  ],
+  [
+    "Fantastic! You built your own image! The FROM line picks the image to start from. COPY copies a file from your folder into the image. docker build, dash t, a name, and a dot, builds an image from the Docker file in this folder. And to update: edit, build, replace the container. Next up, lesson eighteen: tags, and keeping versions. See you there!"
+  ]
+]

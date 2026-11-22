@@ -1,0 +1,87 @@
+[
+  [
+    "Welcome to lesson nine, named volumes! Give dash v just a name, and Docker creates and manages the storage for you. And this time, you'll use it with a real database: Redis."
+  ],
+  [
+    "Before we start: dash v can take a path, or a name.",
+    "In lesson eight, you gave dash v a folder on your PC, like my data. When it starts with a path, it's a folder on your PC. That's a bind mount.",
+    "The second way: give it just a name, like redis data. Just a name means storage managed by Docker. That's a named volume, and it's what this lesson is about.",
+    "Named volumes are what you normally use for databases. So this time, you'll use a real one: Redis."
+  ],
+  [
+    "Steps one and two. Redis is a small, very fast, and very popular database. Let's start it in the background and name it cache.",
+    "Docker run, dash d, dash dash name cache, redis colon alpine. The first time, Docker downloads the image. The tag alpine means a small version of the image, built on Alpine Linux.",
+    "Now, imagine every page visit on your website adds one to a counter in the database. Let's run that command three times.",
+    "Docker exec cache, redis C L I, incr visits. Redis C L I is Redis's command line tool, inside the image. Incr means increment: it adds one to visits and prints it. It starts from zero, so we get one.",
+    "Run it again, and the counter says two.",
+    "And once more: three. Our database has counted three visits."
+  ],
+  [
+    "Step three. Let's recreate the container. Does the counter remember?",
+    "Stop cache cleanly, then delete it. That's two commands, from lesson three. Pause the video, type them yourself, then continue.",
+    "Docker stop cache, then docker R M cache. The container is gone.",
+    "Now start a new cache, exactly like in step one. Pause, type it, then continue.",
+    "Docker run, dash d, dash dash name cache, redis colon alpine. A new container is running.",
+    "Now count one more visit. You just did this. Pause the video, type it, then continue.",
+    "Docker exec cache, redis C L I, incr visits. And it prints one. Oh no. The database forgot all your visits, because containers are ephemeral, just like in lesson eight."
+  ],
+  [
+    "Step four. To keep the data, the volume must go on the folder where Redis saves it. So where is that? Let's ask Redis. The cache from step three is still running.",
+    "Docker exec cache, redis C L I, config get dir. Redis answers: slash data. That's where it saves.",
+    "Redis saves its data in slash data, in a file called dump dot R D B. The official Redis image sets this up, and its page on Docker Hub says so.",
+    "Every database keeps its data in its own folder. Postgres, for example, uses slash var slash lib slash Postgres. Check the image's page on Docker Hub, because a volume on the wrong folder saves nothing."
+  ],
+  [
+    "Now let's put a named volume on slash data.",
+    "First, stop and delete cache, cleanly. Pause the video, type it yourself, then continue.",
+    "Docker stop cache, and docker R M cache.",
+    "Now the new part: docker run, dash d, dash dash name cache, dash v, redis data colon slash data, redis colon alpine.",
+    "Look before the colon: there's a name, redis data, not a path. No make dir needed. If the volume doesn't exist yet, Docker creates it.",
+    "And slash data already exists in the image. The volume doesn't go inside it, there's no slash data slash data. It takes the place of slash data.",
+    "Now count three times again. Pause the video, type it yourself, then continue.",
+    "Docker exec cache, redis C L I, incr visits, three times. One, two, three. The counter is back at three, and this time it lives in the volume."
+  ],
+  [
+    "Step five. Let's see your volume.",
+    "Docker volume L S. Named volumes have their own list, like images and containers. And there's redis data. You may see other volumes too, created by other projects on your PC.",
+    "Is lesson eight's my data folder in this list? No. It lists only volumes that Docker manages. A bind mount is just a folder on your PC.",
+    "For details, run docker volume inspect redis data. The mountpoint shows where it really lives: under slash var slash lib slash docker slash volumes, owned by root. It's the same folder the container sees as slash data.",
+    "It lives in Docker's own storage folder. You don't open it yourself. You use it through containers, and Docker takes care of it."
+  ],
+  [
+    "Step six. Let's recreate the container again. Does it remember now?",
+    "Stop and delete cache, cleanly. Pause the video, type it yourself, then continue.",
+    "Docker stop cache, and docker R M cache. When you ran docker stop, Redis saved its data to slash data, which is the volume. So the volume outlived the container.",
+    "Now start a new cache exactly like in step four, with the same volume, and count once. Pause, type it, then continue.",
+    "Docker run with dash v redis data colon slash data, then incr visits. And it prints four! The counter remembered.",
+    "Compare: without a volume, in step three, incr printed one. With the redis data volume, it printed four.",
+    "Let's peek inside: docker exec cache, L S dash L, slash data. There's dump dot R D B, the database file Redis wrote when you stopped the old container."
+  ],
+  [
+    "Careful now. Redis keeps data in memory, and saves it to disk when it stops. A volume only keeps what is written to disk.",
+    "With docker stop, Redis saves its memory to dump dot R D B. The value is five, the new container sees five, and nothing is lost.",
+    "But with docker R M dash f, Redis is killed before it can save. The new container only has three, the value from the last clean stop.",
+    "We tried it: we counted to five, ran R M dash f, and the new container had three. The last visits were lost, even with a volume. And before the first docker stop, slash data is still empty.",
+    "Redis also saves by itself from time to time, but you can't count on the latest changes being saved. So always use docker stop first."
+  ],
+  [
+    "Step seven. Let's delete the volume.",
+    "Docker volume R M, redis data. And we get an error: volume is in use.",
+    "Docker refuses, because cache is still using it. This protects you from deleting a database under a running app.",
+    "So stop and delete cache first. Pause the video, type it yourself, then continue.",
+    "Docker stop cache, and docker R M cache. Now nothing is using the volume.",
+    "Now delete the volume, then list the volumes to check. Pause, type it, then continue.",
+    "Docker volume R M redis data, then docker volume L S. The list is empty. And be careful: docker volume R M deletes the data for good. There's no undo, so double check the name."
+  ],
+  [
+    "Let's compare a bind mount, from lesson eight, with a named volume, from this lesson.",
+    "A bind mount is written with a path, like home folder slash my data colon slash data. A named volume is written with just a name, like redis data colon slash data.",
+    "With a bind mount, the data lives in a folder you choose on your PC. With a named volume, it lives in Docker's own storage.",
+    "You manage a bind mount yourself, with make dir, L S, and editors. Docker manages a named volume, with the docker volume commands.",
+    "So a bind mount is best for files you want to see and edit. A named volume is best for databases and app data.",
+    "You can keep the redis colon alpine image, or delete it with docker image R M, redis colon alpine, from lesson one."
+  ],
+  [
+    "Great job, your database remembers! Dash v with a name uses a named volume, created automatically if missing. Docker volume L S lists volumes, inspect shows details, and volume R M deletes a volume and its data for good. And stop databases cleanly with docker stop, so they can save. Next up, lesson ten: edit live. See you there!"
+  ]
+]

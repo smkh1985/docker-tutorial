@@ -1,0 +1,70 @@
+[
+  [
+    "Welcome to lesson twenty three, the final lesson of the course! In lesson twenty two you used your A P I with curl. But real users want a web page. So today you'll add a third service, a frontend made with Streamlit, a Python library for quick web apps, to the same project."
+  ],
+  [
+    "Here's the big picture. Each part runs in its own container, all in the shop A P I Compose project.",
+    "From lesson twenty two, we already have the A P I, made with Fast A P I, and the database, Postgres, with its data in P G data.",
+    "New: a frontend service, made with Streamlit. It calls the A P I at H T T P colon slash slash A P I port eight thousand.",
+    "And your browser opens localhost port eighty five oh one. That port is the only open door into the project."
+  ],
+  [
+    "Step one. Go to your project from lesson twenty two, and make a frontend folder inside it.",
+    "You know these commands well. Pause the video, type them yourself, then continue.",
+    "C D tilde slash shop A P I, then M K dir frontend. The new folder sits next to your A P I files.",
+    "The frontend gets its own folder because it gets its own image."
+  ],
+  [
+    "Step two, the frontend code. Create frontend slash requirements dot text, then frontend slash app dot pie.",
+    "There are two libraries. Streamlit makes the web page, and requests calls your A P I.",
+    "Where is the A P I? The app reads its address from the environment variable A P I U R L, like in lesson eleven.",
+    "A text box and an add button send a post request to your A P I, to add a product.",
+    "And below, the list shows the result of get slash products."
+  ],
+  [
+    "Step three. Create the frontend's Docker file. It's the same pattern as the A P I's, from lessons nineteen and twenty two.",
+    "Dash dash server dot address zero dot zero dot zero dot zero makes Streamlit listen on all addresses of the container, just like uvicorn's dash dash host.",
+    "Dash dash server dot headless true means: just run the server. Don't try to open a browser or ask questions inside the container.",
+    "Expose eighty five oh one, because Streamlit uses port eighty five oh one. Then create frontend slash dot docker ignore, so the build files stay out of this image, as you learned in lesson twenty."
+  ],
+  [
+    "Now, watch out! Remember the A P I's copy dot dot?",
+    "It copies all of the shop A P I folder, and now that includes the frontend folder too! The frontend's files would end up in the A P I image.",
+    "So open the A P I's dot docker ignore, and add one more line: frontend.",
+    "Now the frontend folder stays out, and the A P I image doesn't get the frontend's files."
+  ],
+  [
+    "Step four. Open compose dot yammel. Add the frontend service at the top, and remove the ports lines from the A P I.",
+    "Build dot slash frontend builds this service's image from the Docker file in the frontend folder.",
+    "Ports eighty five oh one to eighty five oh one. Your browser reaches the frontend on localhost port eighty five oh one.",
+    "A P I U R L is H T T P colon slash slash A P I port eight thousand. The frontend finds the A P I by its service name, as in lesson thirteen, on its own port eight thousand.",
+    "And the A P I has no ports now. Only the frontend needs it, and that happens inside the network. Your browser doesn't need to reach the A P I directly, the same idea as the database in lesson thirteen."
+  ],
+  [
+    "Step five. Let's start everything!",
+    "Start the project in the background. Pause the video, type it yourself, then continue.",
+    "Docker compose up dash d. Compose builds your frontend image and your A P I image, creates the network and the volume, and starts all three containers.",
+    "Now list the project's containers. Pause and type it.",
+    "Docker compose P S. All three services are up. Only the frontend has a published port. The A P I has none; it's private.",
+    "Let's check the frontend's logs, like in lesson five. Docker compose logs frontend. It says you can now view your Streamlit app in your browser. It's ready!"
+  ],
+  [
+    "Step six. Open localhost port eighty five oh one in your browser. Type coffee in the new product box, and click add. Then let's follow coffee on its trip.",
+    "And coffee appears under products! It traveled from the browser to the frontend, then to the A P I, then into the database, and all the way back. Go ahead and add a few more."
+  ],
+  [
+    "Step seven. Let's try to reach the A P I directly from your PC, like in lesson twenty two.",
+    "You've used this curl command before. Pause the video, type it yourself, then continue.",
+    "Curl localhost port eight thousand slash products. Failed to connect. From your PC, the A P I is unreachable, because it has no ports. Yet the web page still works, because the frontend talks to the A P I inside the project's network.",
+    "And that's the lesson: open only what users need. Here, just the frontend. The A P I and the database stay inside, where outsiders can't reach them. That's safer, and it's how real apps are deployed."
+  ],
+  [
+    "Step eight. One last clean up. Let's remove everything, including the data.",
+    "You did this in lesson fifteen. Pause the video, type it yourself, then continue.",
+    "Docker compose down dash v. The containers, the network, and the volume are gone.",
+    "Your built images stay; delete them if you like, with docker image R M. And if you got stuck, the finished files are in examples slash twenty three frontend."
+  ],
+  [
+    "Congratulations, you finished the Docker course! You built a complete web app: a Streamlit frontend, a Fast A P I backend, and a Postgres database, each in its own container, and all started with one command, docker compose up dash d. That's exactly how real projects use Docker. From installing Docker in lesson zero to this, you've come a long way. I'm really proud of you. Thank you for learning with me, and happy building!"
+  ]
+]

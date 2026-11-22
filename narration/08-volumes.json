@@ -1,0 +1,73 @@
+[
+  [
+    "Welcome to lesson eight! Containers are temporary: delete one, and everything inside it is gone. Today you'll first lose a pretend database, and then save it with a volume."
+  ],
+  [
+    "Before we start, a quick reminder about how containers behave.",
+    "Containers are ephemeral, which means temporary. When you delete a container, everything inside it is deleted too. You saw this in lesson six.",
+    "One docker R M, and the files are gone.",
+    "But some files must survive. A database, your program's outputs, uploaded files, build artifacts. We can't just lose those."
+  ],
+  [
+    "Step one. Let's save a pretend database inside a container, and see what happens to it.",
+    "Start engine x in the background and name it app. No port needed this time. You've used this command before. Pause the video, type it yourself, then continue.",
+    "It's docker run, dash d, dash dash name app, engine x. Docker prints a long I D, and the container is running.",
+    "Now open a shell inside app. You know this one too. Pause, type it, then continue.",
+    "It's docker exec, dash i t, app, bash. The prompt changes: you're now root, inside the container.",
+    "Pretend the file slash data slash D B dot text is your app's database. First, make dir slash data creates the folder.",
+    "Then echo saves a record into the file: Ali, balance one hundred.",
+    "Cat reads it back. There's Ali, with a balance of one hundred. Our database works.",
+    "Finally, exit leaves the shell, and you're back on your PC."
+  ],
+  [
+    "Step two. What happens if we delete the container? Is the database still there?",
+    "Stop and delete app in one command. You've done this before. Pause the video, type it yourself, then continue.",
+    "It's docker R M, dash f, app. The old container, and everything in it, fades away.",
+    "Now start a new one, exactly like in step one. Pause, type it, then continue.",
+    "Docker run, dash d, dash dash name app, engine x. A brand new, empty container appears.",
+    "Let's look for the file with just one command: docker exec app cat slash data slash D B dot text. Without dash i t, docker exec runs it, prints the result, and you stay on your PC. And the answer is: no such file or directory.",
+    "The database is gone. It lived inside the old container, and was deleted with it. Imagine this was your real users' data! Delete this container too, with docker R M dash f app."
+  ],
+  [
+    "Step three, the fix. Keep slash data outside the container, in a folder on your PC. That's what dash v does.",
+    "First, make the folder on your PC: make dir, my data, in your home folder.",
+    "Then start app again, plus dash v, home folder slash my data, colon slash data.",
+    "Dash v means volume. It works like dash p, but for folders. Your PC comes first: the my data folder.",
+    "And after the colon, the container side: slash data inside the container.",
+    "So it's the same folder, seen from both sides. Your PC sees my data, and the container sees slash data.",
+    "And here's the key: it's not a copy. The container reads and writes your PC's folder directly. Sharing a folder from your PC like this is called a bind mount."
+  ],
+  [
+    "Step four. Let's save the database again, this time with the volume in place.",
+    "First, go inside app and open a shell. Pause the video, type it yourself, then continue.",
+    "Docker exec, dash i t, app, bash. You're inside the new container.",
+    "Save the same record into slash data slash D B dot text. Slash data already exists now, so there's no need for make dir.",
+    "And exit to leave the container.",
+    "Now look on your PC, outside any container: cat, my data slash D B dot text. Ali, balance one hundred! The container wrote the database into your PC's folder.",
+    "Can't edit that file on your PC? Inside the container you were root, so the file belongs to root on your PC too. Your normal user can read it, but changing it gives permission denied. Use sudo if you really need to edit it."
+  ],
+  [
+    "Step five. The big test: delete the container again. Does the database survive this time?",
+    "Delete app in one command. Pause the video, type it yourself, then continue.",
+    "Docker R M, dash f, app. The container is gone, but look: the my data folder is still here.",
+    "Now start a new one exactly like in step three, with the same dash v. Pause, type it, then continue.",
+    "Docker run, dash d, dash dash name app, dash v, home folder slash my data, colon slash data, engine x. The new app is connected to the same folder.",
+    "Let's read the file from inside: docker exec app cat slash data slash D B dot text. Ali, balance one hundred!",
+    "The database survived! The new container found it, because it was never inside the container. It's on your PC."
+  ],
+  [
+    "Let's compare the two experiments: without dash v in step two, and with dash v in step five.",
+    "Without dash v, D B dot text lives inside the container. With dash v, it lives on your PC.",
+    "So after docker R M, without a volume it's gone. With a volume, it's kept.",
+    "Containers are temporary, volumes are not. Put anything you want to keep, like databases, outputs and artifacts, in a volume."
+  ],
+  [
+    "Step six. Time to clean up.",
+    "Stop and delete app in one command. You know it well by now. Pause the video, type it yourself, then continue.",
+    "Docker R M, dash f, app. Deleting the container doesn't touch my data. D B dot text is still on your PC.",
+    "Here's a question for next time. Can Docker manage the storage folder for you, instead of a folder on your PC? Yes! That's called a named volume, and it's the next lesson."
+  ],
+  [
+    "Well done, your data now survives! Remember: containers are ephemeral, so deleting one deletes its files. Dash v, PC folder colon container folder, keeps a container folder on your PC. And docker exec runs one command inside a container. Next up, lesson nine: named volumes. See you there!"
+  ]
+]

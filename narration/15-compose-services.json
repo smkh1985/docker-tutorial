@@ -1,0 +1,64 @@
+[
+  [
+    "Welcome to lesson fifteen! Today, Compose runs an app and its database. Two services, a network, and a volume, all written once in a compose dot yammel, and started with one command."
+  ],
+  [
+    "First, a new project folder and an env file.",
+    "Make a folder called compose D B in your home folder. Pause the video, type it yourself, then continue.",
+    "It's make dir, home folder slash compose D B.",
+    "Now go into that folder. Pause the video, type it yourself, then continue.",
+    "It's C D, home folder slash compose D B. We're inside the project now.",
+    "Create a file called D B dot env with nano, with the same three settings as in lesson eleven: the user ali, the password secret, and a database called shop."
+  ],
+  [
+    "Now create compose dot yammel with nano, in the same folder. Mind the spaces! Let's read it line by line.",
+    "There are two services, D B and adminer. That's like dash dash name D B and dash dash name adminer.",
+    "Env file, D B dot env, is the same as dash dash env file from lesson eleven.",
+    "This line puts a named volume, P G data, on Postgres's data folder. Just like dash v in lesson nine.",
+    "Ports, eighty eighty colon eighty eighty, is like dash p. Only Adminer gets it, for your browser.",
+    "And at the bottom, with no indentation, volumes and P G data. This declares the named volume. Compose requires it.",
+    "No network? That's right. Compose creates one for the project and puts every service on it, just like in lesson fourteen."
+  ],
+  [
+    "Time to start everything.",
+    "Start the project in the background. You learned this last lesson. Pause the video, type it yourself, then continue.",
+    "It's docker compose up dash d. Compose creates the network, the P G data volume, and the two containers, Adminer and D B.",
+    "One command, four things: a network, a volume, and two containers."
+  ],
+  [
+    "Let's check that both are up.",
+    "List this project's containers. Pause the video, type it yourself, then continue.",
+    "It's docker compose P S. Both containers are Up.",
+    "Look at the D B line. It shows only five four three two slash T C P. That's Postgres's port, but it's not published to your PC, just like in lesson thirteen.",
+    "Adminer is published on port eighty eighty, for your browser."
+  ],
+  [
+    "Now open localhost port eighty eighty and log in, with the settings from D B dot env. For Server, type D B, the service name from compose dot yammel. The user is ali, the password is secret, and the database is shop.",
+    "We're in! Logged in as ali, inside the shop database.",
+    "Adminer found D B by its service name, with no docker network create, and no dash dash network. The shop database is empty for now."
+  ],
+  [
+    "Let's save some data. We'll create a table called products and add one product, using P S Q L from lesson eleven, inside the D B service.",
+    "Docker compose exec D B runs P S Q L in the database container. It creates the table, and inserts coffee. Postgres answers create table, and insert zero one.",
+    "Docker compose exec is like docker exec, but you use the service name, D B. Reload Adminer, and the products table is there, with coffee in it."
+  ],
+  [
+    "Now the big question. If we run down, then up again, is the data still there?",
+    "Stop and delete the project's containers and network, like in lesson fourteen. Pause the video, type it yourself, then continue.",
+    "It's docker compose down. The containers and the network are gone, but not the volume.",
+    "Let's check the list of volumes. Pause the video, type it yourself, then continue.",
+    "It's docker volume L S. Compose D B P G data is still there, with our coffee inside.",
+    "Now start the project again, in the background. Pause the video, type it yourself, then continue.",
+    "It's docker compose up dash d. Brand-new containers, connected to the same volume.",
+    "Let's ask the database for all the products, with a select inside P S Q L. And there it is: coffee, one row.",
+    "What a relief! Brand-new containers, but coffee is still there. Compose reused the same volume."
+  ],
+  [
+    "Sometimes you want to remove everything, including the data. For that, add dash v to down, to delete the project's volumes too.",
+    "Docker compose down dash v removed the containers, the network, and this time the volume too. The database is gone.",
+    "Be careful! Down dash v deletes the project's databases for good. Use plain down for everyday stopping, and down dash v only when you really want a fresh start."
+  ],
+  [
+    "Amazing work! You ran an app and its database with Compose. Several services live in one compose dot yammel, and they reach each other by service name. Env file works like dash dash env file. The top level volumes section declares named volumes. Docker compose exec runs a command in a service's container. Down removes the containers and the network, but keeps the volumes. And down dash v deletes the volumes too. If you get stuck, the finished files are in the course folder, under examples. Next, in lesson sixteen, we'll save a container as an image. See you there!"
+  ]
+]

@@ -1,0 +1,80 @@
+[
+  [
+    "Welcome to lesson zero! Today we install Docker. You only do this once: check your system, install a few prerequisites, add Docker's official repository, install Docker Engine, and test it."
+  ],
+  [
+    "Before we start, here's a surprise. Docker is not one program, it's a few programs working together. And one apt install gives you all of them.",
+    "First, docker C E. This is the Docker daemon, called docker D. It's a background service that builds images and runs containers.",
+    "Next, docker C E C L I. That's the docker command you type. It does no real work itself, it only sends requests to the daemon.",
+    "Then containerd. This is the low level runtime that actually starts and stops containers.",
+    "The build x plugin is the modern image builder behind docker build.",
+    "And the compose plugin gives you docker compose, to run several containers together from one yammel file.",
+    "One warning before we begin. You need sudo rights, an internet connection, a sixty four bit CPU, at least two gigabytes of RAM, and ten gigabytes of free disk."
+  ],
+  [
+    "Step one: check your system. Run these commands one by one and compare with the expected values. Your numbers will be different, and that's fine.",
+    "U name dash m prints your CPU type. If it says x eighty six underscore sixty four, or a arch sixty four, your CPU is sixty four bit. Check!",
+    "Cat slash etc slash O S release shows your Linux distribution. Here it's Ubuntu twenty four point oh four, codename noble. You need Ubuntu twenty two point oh four or newer, or follow the Debian notes.",
+    "N proc counts your CPU cores. This machine has eight.",
+    "Free dash h shows your memory. Look at the available column. You want at least two gigabytes, and here we have eleven.",
+    "And D F dash h slash shows your disk. Look at the Avail column. You need at least ten gigabytes free, and we have plenty."
+  ],
+  [
+    "Step two point one: remove old versions. Ubuntu ships its own unofficial Docker packages, and they conflict with the official ones. So let's remove them if they're there.",
+    "This sudo apt remove command looks scary, but it's safe to run even if none of those packages are installed.",
+    "Curious how it works? The part inside dollar parentheses runs first. It checks that list and prints only the names that are actually installed on your PC. Only those names are passed to apt remove, so apt never complains about a package you don't have.",
+    "And if you once installed Docker as a snap, remove that too, with sudo snap remove docker."
+  ],
+  [
+    "Step two point two: install the prerequisites.",
+    "First, sudo apt update refreshes the list of available packages.",
+    "Then we install two small packages: ca certificates and curl. The dash y just answers yes for you.",
+    "Why these two? Ca certificates lets your system trust H T T P S websites, and curl downloads files. We need both to fetch Docker's signing key.",
+    "To check, run curl dash dash version. If it prints a version, you're good."
+  ],
+  [
+    "Step three point one: Docker's signing key. We'll tell apt where to download Docker from, and give it Docker's key, so it can check that the packages are genuine.",
+    "First, we create a folder for keys, slash etc slash apt slash keyrings.",
+    "Next, curl downloads Docker's key from download dot docker dot com, and saves it into that folder as docker dot A S C.",
+    "Finally, chmod a plus r lets everyone read the key. Now apt can use it to check every Docker package."
+  ],
+  [
+    "Step three point two: add the repository. This one is a block of text, so paste the whole block at once.",
+    "It writes a small config file for apt called docker dot sources. It says where Docker's packages live, and which key signs them.",
+    "Now run sudo apt update again. In the output, look for a line with download dot docker dot com, and no errors.",
+    "Wondering about that odd Suites line? It reads your system info and inserts your Ubuntu codename, like noble for twenty four point oh four. On Linux Mint, it picks the Ubuntu codename Mint is based on.",
+    "Let's check the file with cat. The Suites line should show a real codename, not an empty value. Here it says noble. Perfect."
+  ],
+  [
+    "Step four, the big moment: install Docker Engine.",
+    "One apt install command brings all five parts we met earlier: the daemon, the C L I, containerd, build x, and compose.",
+    "Is the daemon running? Systemctl is active docker says active. Yes, it's running right now.",
+    "And systemctl is enabled docker says enabled. That means Docker starts automatically on every boot.",
+    "If you don't see active or enabled, start and enable it with sudo systemctl enable dash dash now, followed by docker dot service and containerd dot service.",
+    "Want to see the version? Sudo docker version shows two parts: Client, which is the C L I, and Server, which is the daemon. If Server is missing, the daemon isn't running."
+  ],
+  [
+    "Step five: run Docker without sudo. The docker command talks to the daemon through a special file called docker dot sock. But only root, and the docker group, can use it. So a normal user gets permission denied.",
+    "The fix: sudo usermod dash a G docker adds you to the docker group.",
+    "Then run newgrp docker, or log out and log back in. Now the door to the daemon is open.",
+    "Let's check with groups. Docker should be in the list.",
+    "One note: newgrp only affects the current terminal. If another terminal still says permission denied, log out and log back in, or reboot.",
+    "Now the real test: docker run dash dash R M hello world. And there it is: Hello from Docker! No sudo needed. Docker is installed! What actually happened here is the topic of the next lessons.",
+    "But be careful. The docker group is as powerful as root. Anyone in it can start a container that reads any file on the machine. That's fine on your own laptop, but on a shared server, only add people you trust."
+  ],
+  [
+    "Not on Ubuntu? On Debian, follow the same steps, but in step three replace linux slash ubuntu with linux slash debian in both U R Ls. On mac O S, install Docker Desktop, open it once, and wait until the whale icon says running. On Windows, Docker Desktop needs W S L two. Install it from PowerShell as Administrator, reboot, then install Docker Desktop. Either way, test it with docker run dash dash R M hello world."
+  ],
+  [
+    "Something went wrong? Don't worry, here are the most common problems and their fixes.",
+    "Permission denied on docker dot sock? You're not in the docker group in this terminal yet. Redo step five, then log out and log back in.",
+    "Cannot connect to the Docker daemon? The daemon isn't running. Start it with sudo systemctl start docker, and check its logs with sudo journalctl dash u docker.",
+    "Apt update says four oh four not found, or no Release file? The distro or codename in docker dot sources is wrong. Check it with cat. On Debian, use linux slash debian.",
+    "Conflicting values set for option Signed By? An older Docker repo file is still there. List the folder with L S, and remove the old docker dot list with sudo R M.",
+    "Too many requests, pull rate limit? Docker Hub limits anonymous downloads. Create a free account and run docker login, or wait a few hours.",
+    "And if you want to start over completely, apt purge removes all the Docker packages, and R M dash r f deletes Docker's data folders. Careful: this deletes all your images, containers and volumes."
+  ],
+  [
+    "Congratulations, Docker is ready! You checked your CPU, memory and disk, added Docker's key and repository, installed Docker Engine, made sure the daemon is running, and set it up to work without sudo. And hello world proved it all works. In the next lesson, we'll meet images. See you there!"
+  ]
+]

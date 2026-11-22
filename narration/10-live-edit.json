@@ -1,0 +1,62 @@
+[
+  [
+    "Welcome to lesson ten, edit live! Dash v has a second superpower: edit files on your PC, and the container sees the change right away. You'll use it to work on a web page."
+  ],
+  [
+    "Step one. Let's make a page on your PC. These commands run on your PC, not in a container.",
+    "Make dir, my site, creates a folder called my site in your home folder.",
+    "Then echo writes a small page, a heading that says Hello from my PC, into index dot H T M L inside that folder. Just like in lesson six.",
+    "Now check what's in the file. You've used this command before. Pause the video, type it yourself, then continue.",
+    "It's cat, home folder slash my site slash index dot H T M L. And there's our heading: Hello from my PC."
+  ],
+  [
+    "Step two. Let's mount this folder into a container with dash v.",
+    "Start engine x named web on localhost port eighty eighty, as before, plus dash v. Share my site as engine x's page folder. Pause the video, type it yourself, then continue.",
+    "It's docker run, dash d, dash dash name web, dash p, eighty eighty colon eighty, dash v, home folder slash my site, colon slash user slash share slash engine x slash H T M L, and engine x. As in lesson eight, your PC comes first. Then the folder inside the container where engine x looks for pages, which you saw in lesson six.",
+    "So the same folder is seen from both sides. It's not a copy: the container sees the same folder as your PC."
+  ],
+  [
+    "Step three. Open localhost port eighty eighty in your browser.",
+    "And there it is: Hello from my PC! Engine x is serving the file from your PC. No welcome to engine x page this time.",
+    "Getting four oh three forbidden instead? You probably mistyped the folder on your PC. Docker doesn't complain: it silently creates a new, empty folder with that name, owned by root. Engine x finds no page there, and answers four oh three.",
+    "The fix: delete the container with docker R M dash f web, remove the wrong empty folder with sudo R M dir, and run again with the right name."
+  ],
+  [
+    "Here's a question. Where did the engine x welcome page go? The image has its own index dot H T M L, and a fifty x dot H T M L, in that folder.",
+    "Your folder is placed on top of the container's folder, and hides what the image had there. Let's look inside.",
+    "Docker exec web, L S, slash user slash share slash engine x slash H T M L. It lists just one file: index dot H T M L.",
+    "Only your file. Fifty x dot H T M L is hidden. But the image itself didn't change: without dash v, you'd get the welcome page again."
+  ],
+  [
+    "Step four. Now the fun part: edit the page on your PC.",
+    "On your PC, with no exec and no container, replace the text in index dot H T M L with Changed on my PC. You know how to write a file with echo. Pause the video, type it yourself, then continue.",
+    "It's echo, a heading that says Changed on my PC, into home folder slash my site slash index dot H T M L. Now reload the browser, and the new heading shows up right away. No restart, no exec.",
+    "And you don't have to use echo. You can also edit the file in any editor on your PC, like VS Code or gedit."
+  ],
+  [
+    "Step five. Engine x only needs to read your page, but right now the container could also change or delete your files. Let's add colon R O, for read only, at the end of dash v, so it can't.",
+    "First, delete web in one command. Pause the video, type it yourself, then continue.",
+    "Docker R M, dash f, web. Gone.",
+    "Now run it again, the same as before, but with colon R O at the very end of the dash v part.",
+    "The page still works. Colon R O only limits the container: it can read the folder, but not change it."
+  ],
+  [
+    "Let's test it. We'll go inside web, and try to overwrite the page with a heading that says Hacked, like in lesson six.",
+    "Open a shell inside web. Pause the video, type it yourself, then continue.",
+    "Docker exec, dash i t, web, bash. You're now inside the container.",
+    "Now overwrite index dot H T M L with the Hacked heading. Pause, type it, then continue.",
+    "Echo the Hacked heading into slash user slash share slash engine x slash H T M L slash index dot H T M L. And bash answers: read only file system. Refused! The container can only read the folder.",
+    "But you can still edit the page on your PC, and the browser shows the change as before.",
+    "Now leave the shell. Pause the video, type it yourself, then continue.",
+    "It's exit. So remember: if a container only needs to read a folder, mount it with colon R O. Then a bug, or an attacker inside the container, can't damage your files."
+  ],
+  [
+    "Step six. Time to clean up.",
+    "Delete web in one command. Pause the video, type it yourself, then continue.",
+    "Docker R M, dash f, web. The container is gone.",
+    "But deleting the container doesn't touch my site. Your folder is still here. Keep it, because we'll use it again in lesson seventeen."
+  ],
+  [
+    "Wonderful, your page now lives on your PC! Dash v shares a folder from your PC with the container. Edit on your PC, and the container sees it right away. Add colon R O to mount it read only. And docker R M deletes the container, never your folder. Next up, lesson eleven: settings with environment variables. See you there!"
+  ]
+]

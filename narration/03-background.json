@@ -1,0 +1,67 @@
+[
+  [
+    "Welcome to lesson three! Hello world printed a message and exited right away. But most real containers, like web servers, keep running. First you'll see what that does to your terminal, and then we'll fix it with dash d. Let's go!"
+  ],
+  [
+    "First, let's meet engine x. Engine x is a web server: a program that runs a loop that never ends. It waits for a request, finds the page, and sends it back. Let's follow one visit, step by step.",
+    "One: listen. Engine x waits. A browser sends a request: give me index dot html.",
+    "Two: find. Engine x looks in its folder of pages, and finds index dot html.",
+    "Three: send back. Engine x sends the page back to the browser that asked, and the page appears.",
+    "And then? It goes back to waiting, again and again, forever. Unlike hello world in lesson two, engine x never finishes by itself. It runs until you stop it."
+  ],
+  [
+    "Step one: run engine x in the foreground. As in lesson two, we name the container with dash dash name. This time, we call it web.",
+    "Docker run dash dash name web engine x. The image isn't on your PC, so Docker downloads it first. Then engine x starts and prints its log. But look at the end. There's no prompt. The terminal is stuck here.",
+    "Your terminal is attached to the container. It shows engine x's log, and engine x will run until you stop it. You can't type other commands here.",
+    "And notice: we never ran docker pull. Docker run downloaded the image by itself, because it wasn't on your PC. You don't always need docker pull first."
+  ],
+  [
+    "Step two: check it from a second terminal. Leave the first terminal as it is. Open a new terminal window or tab. In most Linux terminals, that's Control Shift T.",
+    "In the new terminal, run docker P S. There's our container, web, made from engine x.",
+    "This time, docker P S without dash a is enough, because the container is running. The status says Up.",
+    "And ports says eighty slash T C P. Engine x listens on port eighty inside the container. Opening it in your browser comes in a later lesson."
+  ],
+  [
+    "Step three: stop it with Control C. The first terminal is still stuck. Go back to that terminal, and press Control C.",
+    "Engine x receives the signal, prints that it's exiting, and stops. And the prompt is back! What a relief.",
+    "Now let's run the same check as in step two. You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker P S. This time, the list is empty.",
+    "Only the header line. Web is gone from the list, because docker P S shows only running containers, and web isn't running anymore."
+  ],
+  [
+    "But is it really gone? No. It wasn't deleted, only stopped. Let's use the switch that shows all containers, including stopped ones. You learned it in lesson two.",
+    "You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker P S dash a. And there it is: web, with status exited. Stopped, but still there. Docker P S hides it, and docker P S dash a shows it.",
+    "Now delete the web container, so the name web is free for the next step. Pause the video, type it yourself, then continue.",
+    "It was docker R M web. And the container is gone."
+  ],
+  [
+    "Step four: now run it in the background, with dash d. It's the same command, plus dash d, which means detached.",
+    "Docker run dash d dash dash name web engine x. Docker prints a long I D, the new container's full I D, and the prompt comes back right away. The container keeps running in the background, and our terminal is free!",
+    "Is it really running? You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker P S. Web is there, and its status is Up.",
+    "So here's the difference. Without dash d, the container runs in the foreground: your terminal is busy showing the log, and you stop it with Control C. With dash d, it runs in the background: the terminal is free right away, and you stop it with docker stop web."
+  ],
+  [
+    "Step five: stop it with a command. A container lives in three stages: running, stopped, and deleted. Docker stop moves it from running to stopped.",
+    "Stop the web container with a command. The terminal isn't stuck, so Control C does nothing here. Pause the video, type it yourself, then continue.",
+    "It was docker stop web. Docker prints the name, and the container moves to stopped.",
+    "Is it still running? You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker P S. No web in the list. It's not running.",
+    "But does it still exist? Pause the video, type the command yourself, then continue.",
+    "It was docker P S dash a. And there's web, with status exited.",
+    "There it is: stopped, but still there."
+  ],
+  [
+    "Now let's delete it, and keep the image. Docker R M moves the container from stopped to deleted.",
+    "Delete the web container. You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker R M web. One warning: you can't docker R M a running container. Stop it first, or use docker R M dash f web, which forces it: it stops and deletes in one go.",
+    "Let's check it's gone. Pause the video, type the command yourself, then continue.",
+    "It was docker P S dash a. Web is gone for good, even from dash a.",
+    "We only removed the container. What about the image? Pause the video, type the command yourself, then continue.",
+    "It was docker image ls engine x. The image is still there. Keep it, because we need it in the next lessons."
+  ],
+  [
+    "Well done, you ran a container in the background! Docker run with dash dash name runs it in the foreground, and Control C stops it. Add dash d to run it in the background. Docker P S lists running containers. Docker stop stops a container, but it still exists. And docker R M deletes it. In the next lesson, we'll open engine x in the browser. See you there!"
+  ]
+]

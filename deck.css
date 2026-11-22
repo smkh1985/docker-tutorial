@@ -162,3 +162,5 @@ body.lang-fa #tip{direction:rtl;font-family:Vazirmatn,sans-serif}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 body.lang-fa .card .n{letter-spacing:0;font-family:var(--font);font-size:15px}
 code,.mono,.cmd,.out{font-variant-ligatures:none}
+#voiceBtn.on{border-color:var(--green);background:rgba(60,207,127,.18)}
+.lang-fa #voiceBtn{display:none}

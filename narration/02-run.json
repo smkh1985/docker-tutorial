@@ -1,0 +1,66 @@
+[
+  [
+    "Welcome to lesson two! In lesson one you learned what an image is. Now it's time to run one. We'll run the hello world image to make a container, look at it, and delete it."
+  ],
+  [
+    "Step one: run it.",
+    "Type docker run hello world. And there's the message: Hello from Docker! Your installation is working.",
+    "Docker run did two things. It created a new container from the image, and then it started it.",
+    "Then it stopped. The program inside printed its message and finished, so the container stopped too.",
+    "Did it download the image again? No. The message text about Docker Hub is always the same. The image was already on your PC from lesson one, so there was no unable to find image locally line at the top."
+  ],
+  [
+    "Step two: see the container. The container stopped, but it still exists. Let's list all containers, including stopped ones.",
+    "Docker P S dash a. There's our container, in one row. Let's walk through the columns.",
+    "Container I D is the container's own unique I D.",
+    "Image is the image it was made from, hello world.",
+    "Status says exited, zero. That means it finished, and zero means no error. A running container would show Up instead.",
+    "Names is a random name Docker made up. Yours will be different.",
+    "And why dash a? Without it, docker P S shows only running containers, so hello world wouldn't be there. You may see other containers too. The newest is at the top."
+  ],
+  [
+    "Step three: run it again. Repeat steps one and two, and watch what happens.",
+    "You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker run hello world. Same message, but this made a brand new container.",
+    "Now list all containers. You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker P S dash a. Now there are two rows, each with its own I D and its own random name.",
+    "Two containers, two I Ds, two names, all made from one image. Each run makes a new container."
+  ],
+  [
+    "Step four: the image is now in use. Let's look at the hello world image again.",
+    "You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker image ls hello world. Look at the end of the row. There's a U now.",
+    "Remember the extra column from lesson one? U means containers are using this image, even stopped ones.",
+    "And Docker won't let you delete an image while a container still needs it."
+  ],
+  [
+    "Step five: delete the containers. Use docker R M with the container names, or I Ds, from docker P S dash a. You can give several at once.",
+    "Docker R M, followed by both names. Docker prints each name as it deletes it. Both containers are gone.",
+    "Let's check. You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker P S dash a. Only the column names. No containers left.",
+    "Is the image still in use? You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker image ls hello world. The image is still there, but the U is gone. Nothing is using it now.",
+    "Remember: docker R M deletes a container, and docker image R M deletes an image. Don't mix them up.",
+    "Here's a shortcut. Docker run dash dash R M deletes the container automatically when it exits. You already used it in lesson zero."
+  ],
+  [
+    "Step six: pick your own name. Copying names like tender visvesvaraya was annoying, and they change every time. So let's give the container a name ourselves, with dash dash name.",
+    "Docker run dash dash name hello, then the image, hello world. Same message as before.",
+    "Now list all containers. You've used this command before. Pause the video, type it yourself, then continue.",
+    "It was docker P S dash a. And look at the names column.",
+    "It says hello. Now you know the name in advance, so later commands are easy to type, and the same for everyone.",
+    "Now delete it, using its new name. Pause the video, type it yourself, then continue.",
+    "It was docker R M hello. Much easier than a random name!",
+    "But what if you use the same name twice? Names must be unique. If hello still exists, even stopped, Docker refuses with a conflict error. The fix is simple: docker R M hello first."
+  ],
+  [
+    "Step seven: delete all stopped containers at once, with prune.",
+    "Docker container prune. It warns you that this will remove all stopped containers, and asks if you're sure.",
+    "Type y and Enter to delete. It then lists the deleted container I Ds and the disk space it freed. Anything else, or just Enter, cancels.",
+    "But careful! All really means all. Every stopped container on your PC, not only the ones from this course. Always run docker P S dash a first and check the list. Want to keep something? Answer N, and delete by name with docker R M.",
+    "There are other prune commands too. Docker image prune removes images with no name. Docker volume prune removes unused volumes, and it can delete databases, so be careful. And docker system prune does several of these at once. They all ask first, and they all work on your whole PC."
+  ],
+  [
+    "You ran your first containers! Docker run creates a container from an image and starts it. Docker P S dash a lists all containers. Dash dash name gives it your own name. Docker R M deletes a container, and docker container prune deletes all stopped ones. In the next lesson, we'll run a container in the background. See you there!"
+  ]
+]

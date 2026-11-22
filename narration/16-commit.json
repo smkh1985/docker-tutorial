@@ -1,0 +1,64 @@
+[
+  [
+    "Welcome to lesson sixteen! In lesson six, your change to engine x's page was lost when you deleted the container. What if you could freeze the changed container into a brand new image? That's exactly what docker commit does."
+  ],
+  [
+    "Step one. Let's start an engine x container, just like before.",
+    "Start engine x in the background, named web, reachable at localhost port eighty eighty. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker run, dash d, dash dash name web, dash p, eighty eighty colon eighty, engine x. And there it is in the browser: Welcome to engine x."
+  ],
+  [
+    "Step two. Now let's make your own page, on your PC.",
+    "First, make a folder called commit demo in your home folder. You've used this command before. Pause the video, type it yourself, then continue.",
+    "make dir, commit demo. The new folder appears on your PC.",
+    "Now go into it. You've used this command before. Pause the video, type it yourself, then continue.",
+    "C D, commit demo. You are now inside that folder.",
+    "Next, create index dot H T M L with a heading that says, Saved with commit. Remember the single quotes from lesson six. You've used this command before. Pause the video, type it yourself, then continue.",
+    "echo, the heading in single quotes, then a greater than sign into index dot H T M L. Your page file is ready."
+  ],
+  [
+    "Now, how do we get this file into the running container? With docker cp.",
+    "docker cp, index dot H T M L, then web colon, and the path where engine x keeps its home page.",
+    "docker cp takes a FROM and a TO, just like the normal copy command. Writing web colon in front of a path means, inside the container named web.",
+    "Refresh the browser, and there it is: Saved with commit!",
+    "Can you copy out of a container too? Yes! Just swap the order. For example, this copies engine x's config file from the container into your current folder."
+  ],
+  [
+    "Step three. Now the magic moment: let's save this container as an image.",
+    "docker commit, web, my web, tag handmade. Docker prints a long I D. That's your new image.",
+    "docker commit takes everything inside the container right now, including your page, and saves it as a new image called my web, tag handmade.",
+    "Let's check it's really there. List your my web images. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker image L S, my web. There it is: my web, tag handmade, using about two hundred forty megabytes on disk."
+  ],
+  [
+    "Step four. The real test: does a brand new container from this image still have your page?",
+    "First, delete web in one command. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker R M, dash f, web. The old container is gone.",
+    "Now start a new web, just like in step one, but from my web, tag handmade, instead of engine x. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker run, dash d, dash dash name web, dash p, eighty eighty colon eighty, my web, tag handmade. And the browser shows, Saved with commit!",
+    "A brand new container, and your page is there. In lesson six it was lost. Now it's saved inside the image."
+  ],
+  [
+    "Step five. But there's a catch. What's actually inside your image? An image is built in layers, one per step, and docker history lists them, newest first.",
+    "docker history, my web, tag handmade. Each row is one layer.",
+    "Engine x's own layers show the exact steps its authors wrote, like EXPOSE, and the C M D line.",
+    "But look at your layer at the top. It only says engine x, dash g, daemon off, which is just the program that was running. It says nothing about what you changed. Hmm."
+  ],
+  [
+    "So, commit has some real problems.",
+    "First, nobody can see what you changed or how. Not even you, a month later.",
+    "Second, to make version two, you'd have to repeat every manual step by hand.",
+    "And third, anything else you did in the container, like test files or mistakes, gets saved too.",
+    "Commit is fine for a quick experiment. But for real images, the steps should be written down, so anyone can read them and build the same image again. That's what a Docker file is, and it's the next lesson."
+  ],
+  [
+    "Step six. Let's clean up.",
+    "Delete the web container. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker R M, dash f, web. The container is gone.",
+    "Now delete your handmade image. You've used this command before. Pause the video, type it yourself, then continue.",
+    "docker image R M, my web, tag handmade. And the image is gone too. All clean!"
+  ],
+  [
+    "Wonderful! You made your first image by hand. You learned docker cp, to copy files between your PC and a container. docker commit, to save a container as a new image. And docker history, to see an image's layers. The catch is that a commit doesn't record what you did, but a Docker file does. See you in lesson seventeen, where you write your first Docker file!"
+  ]
+]

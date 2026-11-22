@@ -1,0 +1,66 @@
+[
+  [
+    "Welcome to lesson eleven! Many ready-made images need settings before they can start: a password, a user name, a database name. You give them as environment variables, without changing the image."
+  ],
+  [
+    "Step one. Postgres is one of the most used databases in the world. Let's start it in the background, and name it D B.",
+    "Docker run, dash d, dash dash name D B, Postgres colon alpine. The first time, it downloads the image, about a hundred and twenty megabytes.",
+    "Is it running? List all containers, including stopped ones. You've used this command before. Pause the video, type it yourself, then continue.",
+    "It's docker P S, dash a. And the status of D B says: exited, one, a few seconds ago. Hmm.",
+    "It stopped right away. And exit code one means an error. Remember, zero meant OK, back in lesson two."
+  ],
+  [
+    "Step two. Why did it stop? When a container stops with an error, the first thing to do is read what it printed, like in lesson five.",
+    "Read what D B printed. Pause the video, type it yourself, then continue.",
+    "It's docker logs D B. And the error says: the database is uninitialized, and the superuser password is not specified. It even shows an example: dash e, Postgres password equals password, on docker run.",
+    "So Postgres refuses to start without a password, and it tells you exactly what to do: set Postgres password with dash e.",
+    "First, delete the failed container. Pause the video, type it yourself, then continue.",
+    "It's docker R M D B. Now we can try again."
+  ],
+  [
+    "Step three. Let's fix it with dash e.",
+    "Docker run, dash d, dash dash name D B, dash e, Postgres password equals secret, Postgres colon alpine. Docker prints a long I D.",
+    "Dash e means environment variable. It's written as name equals value: here the name is Postgres password, and the value is secret. The program inside the container reads it when it starts.",
+    "Now check it's running. Pause the video, type it yourself, then continue.",
+    "It's docker P S. And this time the status says up! The last line of docker logs D B now says: database system is ready to accept connections. What a relief.",
+    "But which variables does an image understand? Its page on Docker Hub lists them. For Postgres, that's Postgres password, Postgres user, and Postgres D B."
+  ],
+  [
+    "Step four. Let's see the variables inside the container. Run one command inside D B: env lists all environment variables.",
+    "Docker exec D B env. It prints a list of name equals value lines.",
+    "And there's yours: Postgres password equals secret, straight from dash e.",
+    "The others were set by the image's authors, like P G version. And P G data is where Postgres keeps its data. That's where a volume would go, as in lesson nine.",
+    "Now delete D B in one command. Pause the video, type it yourself, then continue.",
+    "It's docker R M, dash f, D B."
+  ],
+  [
+    "Step five. Let's also choose our own user name, and database name. With dash e, the command gets long. Just look at it, don't run it.",
+    "Three dash e flags: Postgres user equals ali, Postgres password equals secret, and Postgres D B equals shop. That's a lot to type every time. Instead, they can go in a file called D B dot env, passed with dash dash env file.",
+    "So instead, put the settings in a file, with one name equals value per line."
+  ],
+  [
+    "Let's write that file. First, make a folder and create D B dot env.",
+    "Make dir, P G demo, in your home folder. Then C D into it, and open nano D B dot env.",
+    "Nano opens the empty file. Line one: Postgres user equals ali.",
+    "Line two: Postgres password equals secret.",
+    "Line three: Postgres D B equals shop.",
+    "To save and exit, press Control O, then Enter, then Control X. And remember: no spaces around the equals sign, and no quotes."
+  ],
+  [
+    "Now let's run with dash dash env file.",
+    "Docker run, dash d, dash dash name D B, dash dash env file, D B dot env, Postgres colon alpine.",
+    "Short, and the settings are easy to read and change. But did they work? Let's ask Postgres who you are, and which database you're in. Wait a few seconds for it to start first.",
+    "Docker exec D B, P S Q L, dash capital U ali, dash d shop, and a small query asking for the current user and the current database. The answer: ali, and shop.",
+    "User ali and database shop, both from D B dot env. P S Q L is Postgres's command line tool, like redis C L I in lesson nine."
+  ],
+  [
+    "Step six. Keep secrets safe, and clean up. Environment variables are not hidden. Anyone who can use Docker on this PC can read them.",
+    "Docker inspect D B. Look at the env section: Postgres password equals secret, in plain text!",
+    "An env file holds passwords. Never put it in git or share it: add its name to dot git ignore. And use real, strong passwords outside of practice.",
+    "Now clean up: delete D B in one command. Pause the video, type it yourself, then continue.",
+    "It's docker R M, dash f, D B. You can delete the image too, since it's big: docker image R M, Postgres colon alpine, from lesson one."
+  ],
+  [
+    "Congratulations, you configured a real database! Dash e, name equals value, gives the container one setting. Dash dash env file gives it many settings from a file. Docker exec, name, env shows the variables inside. And if a container exits with an error, read its logs first. If you get stuck, the finished files are in the course folder, under examples, eleven env. Next up, lesson twelve: restart policies. See you there!"
+  ]
+]

@@ -1,0 +1,76 @@
+[
+  [
+    "Welcome to lesson thirteen, networks! Real apps are made of several containers, like an app and its database. The app has to reach the database, and ideally, by its name."
+  ],
+  [
+    "Let's start a database and an app that wants to talk to it.",
+    "First, the database. Run Postgres in the background, named D B, with the password secret. You've done this before. Pause the video, type it yourself, then continue.",
+    "It's docker run dash d, dash dash name D B, dash e Postgres password equals secret, and the Postgres alpine image. Our database is running.",
+    "Now the app. Adminer is a small web app for looking inside databases. It listens on port eighty eighty inside its container, so we publish it with dash p, eighty eighty colon eighty eighty. Your browser can now reach it.",
+    "But can Adminer find the database just by its name, D B?"
+  ],
+  [
+    "Let's try. Open localhost port eighty eighty, and fill in the login form. For Server, type D B, the container's name. The username is postgres, and the password is secret.",
+    "Oh no. An error: could not translate host name D B to address.",
+    "Adminer doesn't know who D B is. By default, containers run on Docker's default network, called bridge, and there, names don't work."
+  ],
+  [
+    "So let's try another way. Every container gets its own I P address on Docker's network.",
+    "Run docker inspect D B. It prints a long output. Look for the Networks part.",
+    "Here's the line we want: I P Address. On the bridge network, D B got one seventy two dot seventeen dot zero dot five. Yours will likely be different.",
+    "Now log in with the same form, but put that I P in the Server field. Use your own I P.",
+    "It works! Containers on the default network can reach each other, just not by name."
+  ],
+  [
+    "But here's a catch. Containers get recreated all the time, for updates, crashes and restarts. What happens to the I P?",
+    "First, delete D B in one command, even though it's running. Pause the video, type it yourself, then continue.",
+    "It's docker R M dash f D B. The database is gone, and its address is free.",
+    "Meanwhile, another container starts. Run engine x in the background, named other. Pause the video, type it yourself, then continue.",
+    "It's docker run dash d, dash dash name other, engine x. And look, other takes the free address.",
+    "Now start D B again, exactly like in step one. Pause the video, type it yourself, then continue.",
+    "It's the same docker run command for Postgres. D B is back, but in a different spot.",
+    "Now look at D B's I P address again. Pause the video, type it yourself, then continue.",
+    "It's docker inspect D B. A new address, ending in dot seven. Other took D B's old address, and D B got a new one."
+  ],
+  [
+    "So let's log in again with the old I P. Another error: connection refused.",
+    "The old I P now points to other, which is not a database. Your app would break every time the I P changes.",
+    "Let's remove other. It's running. Pause the video, type it yourself, then continue.",
+    "It's docker R M dash f other. Gone.",
+    "So, never rely on a container's I P address. You want a name that always points to the right container."
+  ],
+  [
+    "Here's the fix: create your own network.",
+    "Run docker network create my net. Docker prints the new network's long I D.",
+    "Now we have a network of our own, called my net.",
+    "Let's list the networks with docker network L S. There's bridge, the default network we used before, two built in ones called host and none, and our my net.",
+    "Networks have their own list, just like images, containers and volumes. You may see more, created by other projects on your PC."
+  ],
+  [
+    "Now let's put both containers on our network.",
+    "First, delete both containers with one command. Pause the video, type it yourself, then continue.",
+    "It's docker R M dash f D B adminer. Both are gone from the default bridge network.",
+    "Start D B again, but this time add dash dash network my net. Now the database lives on my net.",
+    "And start Adminer the same way, with dash dash network my net, and still dash p eighty eighty colon eighty eighty. Both containers are on the same network now."
+  ],
+  [
+    "Reload localhost port eighty eighty, and log in with exactly the same form as before, with D B as the server.",
+    "You're in! On your own network, Docker lets containers find each other by their names. You're now looking inside the Postgres database through Adminer."
+  ],
+  [
+    "Now notice something important. The D B container has no dash p.",
+    "Dash p, from lesson four, is only for reaching a container from your PC. Your browser needs Adminer, so Adminer has dash p.",
+    "But Adminer reaches D B directly, over my net.",
+    "So the database isn't exposed to your PC at all, which is also safer."
+  ],
+  [
+    "Time to clean up.",
+    "First, delete both containers with one command. Pause the video, type it yourself, then continue.",
+    "It's docker R M dash f D B adminer. The containers are gone, but the network is still there.",
+    "Now delete the network with docker network R M my net. All clean!",
+    "Just like a volume in lesson nine, a network can't be deleted while containers still use it. You'd get an error saying it has active endpoints. That's why the containers go first."
+  ],
+  [
+    "Well done! Your app can talk to its database. Docker network create makes a network, dash dash network starts a container on it, docker network L S lists networks, and docker network R M deletes one. And remember: on the same network, the container's name is its address. Next, in lesson fourteen, we'll meet Docker Compose. See you there!"
+  ]
+]

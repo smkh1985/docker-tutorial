@@ -1,0 +1,86 @@
+[
+  [
+    "Welcome to lesson twenty two! It's time to put it all together. You'll build a small shop A P I in Python with Fast A P I, package it with a Docker file, and run it with Compose next to a Postgres database. And your data will survive in a volume."
+  ],
+  [
+    "Here's the big picture of what you'll build: one Compose project called shop A P I.",
+    "The A P I service is your own image: a small shop A P I written in Python with Fast A P I.",
+    "The D B service is a Postgres database. The A P I reaches it as D B port fifty four thirty two, by its service name.",
+    "The data lives in a named volume called P G data, so it survives.",
+    "And you talk to the A P I with curl or a browser, on localhost port eight thousand."
+  ],
+  [
+    "Step one. Make a project folder called shop A P I in your home folder, and go into it.",
+    "You've done this many times. Pause the video, type both commands yourself, then continue.",
+    "M K dir tilde slash shop A P I, then C D tilde slash shop A P I. We're in the project.",
+    "Now create D B dot env with the database settings: a user, a password, and a database name. It's the same idea as in lesson eleven."
+  ],
+  [
+    "Step two, the A P I code. First, list the Python libraries in requirements dot text, then write the program, main dot pie. Don't worry, you don't need to know Python well.",
+    "There are three libraries. Fast A P I builds the A P I, uvicorn is the web server that runs it, and psycho P G talks to Postgres.",
+    "Where is the database? The program reads its address from the environment variable database U R L, just like in lesson eleven.",
+    "At start, it creates a table called products, if it doesn't exist yet.",
+    "And there are two endpoints. Get slash products lists the products, and post slash products with a name adds one."
+  ],
+  [
+    "Step three, the Docker file. It uses the patterns from lessons nineteen and twenty, with three things to notice.",
+    "One: requirements dot text is copied and installed before the rest of the project. So changing your code won't reinstall the libraries, thanks to caching from lesson nineteen.",
+    "Two: dash dash host zero dot zero dot zero dot zero makes uvicorn listen on all network addresses of the container. By default, it would only accept connections from inside the container, and dash p couldn't reach it.",
+    "Three: copy dot dot would also copy D B dot env, the password file. Remember lesson twenty? On the next slide, we keep it out."
+  ],
+  [
+    "Copy dot dot copies everything in the folder, including D B dot env, the password file.",
+    "Watch: every file flies into the image, and D B dot env is inside it. Not good!",
+    "So create a dot docker ignore file, listing D B dot env, the Docker file, dot docker ignore itself, and compose dot yammel.",
+    "Now only your code goes into the image: main dot pie and requirements dot text. The password stays on your PC."
+  ],
+  [
+    "Step four, compose dot yammel. Now one file describes both services. Let's read it part by part.",
+    "New: build dot. Instead of an image name, Compose builds the image from the Docker file in this folder, like docker build dot from lesson seventeen.",
+    "Also new: environment. It sets environment variables, just like dash e from lesson eleven.",
+    "Here's the database address. Postgres colon slash slash, then the user ali, the password secret, the host D B, port fifty four thirty two, and the database shop. The host is D B, the service name, as in lesson fifteen.",
+    "Restart unless stopped is a restart policy from lesson twelve. You'll see why it matters in step six.",
+    "And D B is the same database as in lesson fifteen, with an env file and a named volume. Your folder now has five files: compose dot yammel, D B dot env, the Docker file, main dot pie, and requirements dot text."
+  ],
+  [
+    "Step five. Let's start everything!",
+    "Start the project in the background. Pause the video, type it yourself, then continue.",
+    "Docker compose up dash d. First Compose builds your image, then it creates the network and the volume, and starts the D B and A P I containers.",
+    "Now list the project's containers. Pause and type the command.",
+    "Docker compose P S. Both services are up, and the A P I has port eight thousand published.",
+    "But wait. The A P I has been up for only three seconds, and the database for nine. Why?"
+  ],
+  [
+    "Step six. Why did the A P I restart? Let's read its logs, like docker logs from lesson five, but by service name.",
+    "Docker compose logs A P I. There's an error: connection refused on port fifty four thirty two. And then, later, Uvicorn running.",
+    "Here's what happened. Both containers started at almost the same time. The A P I tried to connect while Postgres was still starting, got connection refused, and crashed.",
+    "Then restart unless stopped started it again, and this time the database was ready. Uvicorn running. What a relief!",
+    "This happens a lot in real projects: an app starts faster than its database. A restart policy is the simplest fix."
+  ],
+  [
+    "Step seven. Let's use your A P I! The products table is empty for now.",
+    "Curl localhost port eight thousand slash products asks for the products. We get empty brackets, an empty list.",
+    "Now add a product. Curl dash X post, with name equals coffee. Dash X post sends a post request instead of the default get. The A P I answers: added coffee.",
+    "And one more: tea. Now the table has two products.",
+    "Ask for the products again. You've just used this command. Pause the video, type it yourself, then continue.",
+    "Curl localhost port eight thousand slash products. Now the list has coffee and tea!",
+    "Fast A P I also gives you a web page to try the A P I, at localhost port eight thousand slash docs. Click an endpoint, then try it out."
+  ],
+  [
+    "Step eight. If we remove the containers and start again, is the data still there?",
+    "Remove the containers and network, then start the project again. You know both commands. Pause the video, type them yourself, then continue.",
+    "Docker compose down, then docker compose up dash d. Down removed the containers and the network, but the volume stayed. Then up created new containers.",
+    "Now ask for the products again. Pause and type it.",
+    "Curl localhost port eight thousand slash products. Coffee and tea are still there! New containers, same data, because it lives in the P G data volume.",
+    "One tip: if you change main dot pie, run docker compose up dash d dash dash build. It rebuilds your image first, then replaces the A P I container."
+  ],
+  [
+    "Step nine. Let's clean up, and remove everything, including the data.",
+    "You did this in lesson fifteen. Pause the video, type it yourself, then continue.",
+    "Docker compose down dash v. The containers, the network, and the volume are all gone. Only your built image stays.",
+    "You can delete it if you like, with docker image R M shop A P I dash A P I. And if you got stuck, the finished files are in examples slash twenty two A P I D B."
+  ],
+  [
+    "Fantastic work! You built your own A P I with a database. You made your own image with a Docker file and dot docker ignore. You passed settings with environment and env file. Your data survived in a named volume. The A P I found the database by name, and came back after a crash with a restart policy. And one command started it all. Next, lesson twenty three: frontend, backend, and database!"
+  ]
+]
