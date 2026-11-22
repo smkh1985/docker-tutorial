@@ -1,239 +1,442 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 16 · Save a container as an image</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 16 · Save a container as an image (motion)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="course.css">
-</head>
-<body class="lang-en" data-lesson="16">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- shared lesson bits ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  svg [data-step].pop-in,svg [data-only].pop-in{transform-box:fill-box;transform-origin:center}
+  [data-until]{transition:opacity .6s,filter .6s}
+  [data-until].gone{opacity:0!important;filter:blur(8px)}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:280px}
+  .goal svg{width:96px;height:96px}
+  .goal h3{font-size:25px}
+  .term.sm .body{font-size:17px}
+  .term.xs .body{font-size:15px;padding:16px 20px 18px}
+  .btnrow{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px;padding:20px 24px}
+  .sumgrid code{font-size:20px;flex:none;min-width:360px;text-align:left}
+  .sumgrid p{font-size:18px}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .browser{border-radius:14px;overflow:hidden;background:#f3f5fa;color:#1b2333;box-shadow:0 26px 60px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .browser .bar{display:flex;align-items:center;gap:7px;padding:9px 14px;background:#dde3ee}
+  .browser .bar i{width:11px;height:11px;border-radius:50%;background:#c3cad8}
+  .browser .bar .url{flex:1;margin-left:8px;background:#fff;border-radius:8px;padding:4px 12px;font:500 14px var(--mono);color:#556}
+  .browser .page{padding:14px 20px 16px;font-family:Tahoma,Verdana,sans-serif}
+  .browser .page h1{font:700 26px Tahoma,Verdana,sans-serif;letter-spacing:0;color:#1b2333;margin-bottom:6px}
+  .browser .page p{font:14px/1.5 Tahoma,Verdana,sans-serif;color:#34405a}
+  .browser.err .page p{color:#a3202c;background:#fde8ea;border-left:4px solid #e04050;padding:7px 10px;border-radius:6px}
+  .browser .page .crumb{color:#2f62b8}
+  .lead.sm{font-size:21px}
+  .vs{display:block;margin-top:8px}
+  code{font-variant-ligatures:none} /* JetBrains Mono's -- ligature breaks inside RTL text */
+  /* ---- lesson 16 ---- */
 
-<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
-<header class="topbar">
-  <div class="topbar-inner">
-    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
-      <span class="title-text" id="brandTitle"></span>
-    </a>
-    <div class="progress-wrap">
-      <div class="progress"><div id="bar"></div></div>
-      <span class="progress-label" id="plabel">0 / 0</span>
-    </div>
-    <span id="navSlot"></span>
-    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
-    <button class="btn" id="themeBtn" title="Theme">◐</button>
-    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
-  </div>
+  .yaml .yb{padding:16px 22px 18px;font:500 20px/1.7 var(--mono);color:#dfe6f5}
+  .yl{white-space:pre;border-radius:6px;padding:0 8px;margin:0 -8px;transition:background .35s,box-shadow .35s}
+  .yl .k{color:#7fb0ff}.yl .v{color:#ffcf6b}.yl .s{color:#7fd8a6}.yl .d{color:#93a0bb}
+  .yl.hot{background:rgba(110,155,255,.2);box-shadow:0 0 0 2px rgba(110,155,255,.7)}
+  .typein .yl{opacity:0;transform:translateX(-12px);transition:opacity .4s,transform .4s var(--ease),background .35s,box-shadow .35s}
+  .typein.in .yl{opacity:1;transform:none;transition-delay:calc(var(--i) * .3s),calc(var(--i) * .3s),0s,0s}
+  .drun{font:500 19px/1.4 var(--mono);direction:ltr;text-align:left;white-space:nowrap;padding:16px 22px;border-radius:14px;background:#05080f;border:1px solid rgba(110,155,255,.22);color:#dfe6f5}
+  .drun::before{content:"$ ";color:var(--green)}
+  .drun .sg{border-radius:6px;padding:1px 4px;transition:background .35s,box-shadow .35s,color .35s}
+  .drun .sg.hot{background:rgba(255,181,77,.22);box-shadow:0 0 0 2px #ffb54d;color:#fff}
+  .drun.big{font-size:22px;padding:22px 26px}
+  .pains{display:flex;gap:18px;margin-top:26px;flex-wrap:wrap}
+  .pain{font:700 26px var(--display);padding:14px 24px;border-radius:16px;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.45);color:#ffb3b3}
+  .pain[data-step]{transform:scale(.6) rotate(-6deg)}
+  .pain[data-step].in{transform:rotate(-2deg);transition:transform .5s var(--back),opacity .3s,filter .3s}
+  .tree{font:500 22px/1.5 var(--mono);direction:ltr;text-align:left;display:flex;flex-direction:column;gap:12px}
+  .tree .row{display:flex;gap:12px;align-items:center}
+  .tree .row.i1{margin-left:44px}.tree .row.i2{margin-left:88px}
+  .tree .ic{font-size:28px}
+  .tree .here{font:700 15px var(--font);color:var(--green);border:1px solid var(--green);border-radius:999px;padding:2px 10px;margin-left:8px}
+  body.lang-fa .tree .here{font-family:Vazirmatn,sans-serif}
+  .mapcap{position:relative;min-height:250px}
+  .mapcap>.card{position:absolute;inset:0 0 auto 0}
+  .mapcap .pair{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:14px;direction:ltr}
+  .mapcap .pair code{font-size:21px}
+  .mapcap .arr{color:var(--muted);font:700 22px var(--font)}
+  .mapcap p{font-size:22px}
+  .namebrk{display:flex;gap:4px;font:600 30px var(--mono);direction:ltr;justify-content:center;margin:6px 0 4px}
+  .namebrk span{padding:2px 6px;border-radius:8px}
+  .nbl{display:grid;grid-template-columns:repeat(3,auto);justify-content:center;gap:4px 30px;text-align:center;font-size:16px;color:var(--muted)}
+
+  .mk{border-radius:4px;transition:background .35s,box-shadow .35s}.mk.hot{background:rgba(255,181,77,.22);box-shadow:0 0 0 2px #ffb54d;color:#fff}
+  .sumgrid code.tx{font-family:var(--font);font-weight:700;direction:inherit;text-align:start;color:var(--amber)}
+  .probs{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:30px}
+  .probs .card{border-color:rgba(255,107,107,.4)}
+  .probs .ic{font-size:44px;margin-bottom:10px}
+  .probs p{font-size:20px}
+
+</style>
+</head>
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
+
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="cubec" viewBox="-62 -32 124 124" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V90L-60 60Z"/><path class="r-slab" d="M0 30L60 0V60L0 90Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="monitor" viewBox="0 0 200 170"><rect x="4" y="4" width="192" height="122" rx="14" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M80 126l-8 30h56l-8-30" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M56 158h88" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="index.html"><img src="docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
 </header>
 
-<div class="layout">
+<div id="viewport"><div id="stage">
 
-<!-- ================= TABLE OF CONTENTS ================= -->
-<nav class="toc">
-  <ol>
-    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Start nginx</span><span class="fa">۱ · اجرای nginx</span></a></li>
-    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Copy your page in</span><span class="fa">۲ · کپی صفحه به داخل</span></a></li>
-    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Commit</span><span class="fa">۳ · commit</span></a></li>
-    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Run your image</span><span class="fa">۴ · اجرای ایمیج</span></a></li>
-    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · The catch</span><span class="fa">۵ · مشکل کجاست</span></a></li>
-    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Clean up</span><span class="fa">۶ · تمیزکاری</span></a></li>
-  </ol>
-</nav>
-
-<main>
-
-<!-- ================= HERO ================= -->
-<section class="hero">
-  <h1>
-    <span class="en">Lesson 16 — Save a container as an image</span>
-    <span class="fa">درس ۱۶ — ذخیره‌ی کانتینر به‌صورت ایمیج</span>
-  </h1>
-  <p class="en">In Lesson 6, your change to nginx's page was lost when you deleted the container. What if you could <b>freeze</b> the changed container into a <b>new image</b>, and start as many copies as you like? That's <code>docker commit</code>.</p>
-  <p class="fa">در درس ۶، تغییری که در صفحه‌ی nginx دادید با حذف کانتینر از بین رفت. چه می‌شد اگر می‌توانستید کانتینر تغییرکرده را به یک <b>ایمیج جدید</b> <b>منجمد</b> کنید و هر چند نسخه که خواستید از آن اجرا کنید؟ این کار <code>docker commit</code> است.</p>
-  <div class="flow">
-    <div class="box ctr"><b><span class="en">Changed container</span><span class="fa">کانتینر تغییرکرده</span></b><small><code>web</code></small></div>
-    <div class="arrow"><small><code>docker commit</code></small></div>
-    <div class="box img"><b><span class="en">New image</span><span class="fa">ایمیج جدید</span></b><small><code>my-web:handmade</code></small></div>
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 16 — Save a container as an image" data-title-fa="درس ۱۶ — ذخیره‌ی کانتینر به‌صورت ایمیج" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 16</span><span class="fa">دوره‌ی Docker · درس ۱۶</span></div>
+    <h1 style="font-size:84px;line-height:1.1;margin:26px 0 26px">
+      <span class="en split">Save a container <span class="hl">as an image</span></span><span class="fa split">ذخیره‌ی کانتینر <span class="hl">به‌صورت ایمیج</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en">In Lesson 6, your change to nginx's page was lost when you deleted the container. What if you could <b>freeze</b> the changed container into a <b>new image</b>? That's <code>docker commit</code>.</span><span class="fa">در درس ۶، تغییری که در صفحه‌ی nginx دادید با حذف کانتینر از بین رفت. چه می‌شد اگر می‌توانستید کانتینر تغییرکرده را به یک <b>ایمیج جدید</b> <b>منجمد</b> کنید؟ این کار <code>docker commit</code> است.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:36px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
   </div>
-  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
-  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+  <svg class="a blur" style="--d:.3;width:700px;height:600px;overflow:visible;direction:ltr" viewBox="0 0 700 600">
+    <circle cx="350" cy="300" r="280" fill="none" stroke="rgba(110,155,255,.14)" stroke-dasharray="4 10"/>
+    <g class="bob"><use href="#cube" x="50" y="210" width="170" height="170"/>
+      <rect x="110" y="170" width="54" height="66" rx="6" fill="#f3f5fa"/><path d="M120 188h34M120 200h26M120 212h30" stroke="#2f62b8" stroke-width="4" stroke-linecap="round"/></g>
+    <text x="135" y="430" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">web</text>
+    <text x="135" y="458" text-anchor="middle" fill="#93a0bb" font-size="17" font-family="Inter,sans-serif" class="en">changed container</text>
+    <text x="135" y="458" text-anchor="middle" fill="#93a0bb" font-size="19" font-family="Vazirmatn,sans-serif" class="fa">کانتینر تغییرکرده</text>
+    <path id="t16p" d="M240 300 H430" stroke="#6e9bff" stroke-width="3" class="flow" fill="none"/>
+    <path d="M422 290l12 10-12 10" stroke="#6e9bff" stroke-width="3" fill="none"/>
+    <rect x="262" y="250" width="150" height="34" rx="9" fill="#0d1426" stroke="rgba(110,155,255,.5)"/>
+    <text x="337" y="273" text-anchor="middle" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">docker commit</text>
+    <g><use href="#slab" x="-34" y="-20" width="68" height="47" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/><animateMotion dur="2s" repeatCount="indefinite"><mpath href="#t16p"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.15;.8;1" dur="2s" repeatCount="indefinite"/></g>
+    <circle cx="560" cy="290" r="110" fill="#fff" opacity="0"><animate attributeName="opacity" values="0;0;.25;0" keyTimes="0;.88;.92;1" dur="2s" repeatCount="indefinite"/></circle>
+    <g transform="translate(560 300) scale(1.6)">
+      <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#2a5bd8;--l:#163a96;--r:#0f2a70"/>
+      <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+      <use href="#slab" x="-62" y="-58" width="124" height="86" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/>
+    </g>
+    <text x="560" y="430" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">my-web:handmade</text>
+    <text x="560" y="458" text-anchor="middle" fill="#93a0bb" font-size="17" font-family="Inter,sans-serif" class="en">new image</text>
+    <text x="560" y="458" text-anchor="middle" fill="#93a0bb" font-size="19" font-family="Vazirmatn,sans-serif" class="fa">ایمیج جدید</text>
+  </svg>
 </section>
 
-<!-- ================= 1 START ================= -->
-<section class="card step" id="s1">
-  <h2><span class="num">1</span>
-    <span class="en">Start nginx</span><span class="fa">اجرای nginx</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Start nginx in the background, named <code>web</code>, reachable at <code>localhost:8080</code>:</p>
-  <p class="fa">nginx را در پس‌زمینه، با نام <code>web</code> و در دسترس روی <code>localhost:8080</code> اجرا کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 nginx</code></pre></div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>localhost:8080</code> shows “Welcome to nginx!”</span><span class="fa"><code>localhost:8080</code> صفحه‌ی «Welcome to nginx!» را نشان می‌دهد</span></span></label>
+<!-- ======================= 3 · START NGINX ======================= -->
+<section class="slide" data-title-en="Start nginx" data-title-fa="اجرای nginx">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Start <span class="hl">nginx</span></span><span class="fa split">اجرای <span class="hl">nginx</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:24px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Start nginx in the background, named web, reachable at localhost:8080." data-task-fa="👉 nginx را در پس‌زمینه، با نام web و در دسترس روی localhost:8080 اجرا کنید." style="margin-bottom:0"><div class="cmd">docker run -d --name web -p 8080:80 nginx</div></div>
+    </div>
   </div>
-</section>
-
-<!-- ================= 2 CP ================= -->
-<section class="card step" id="s2">
-  <h2><span class="num">2</span>
-    <span class="en">Copy your page in with <code>docker cp</code></span><span class="fa">کپی صفحه به داخل با <code>docker cp</code></span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Make a folder <code>commit-demo</code> in your home folder and go into it:</p>
-  <p class="fa">یک پوشه به نام <code>commit-demo</code> در پوشه‌ی خانه‌تان بسازید و واردش شوید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>mkdir ~/commit-demo
-cd ~/commit-demo</code></pre></div>
-  <p class="en">Create <code>index.html</code> with the text <code>&lt;h1&gt;Saved with commit!&lt;/h1&gt;</code> (remember the single quotes from Lesson 6):</p>
-  <p class="fa"><code>index.html</code> را با متن <code>&lt;h1&gt;Saved with commit!&lt;/h1&gt;</code> بسازید (کوتیشن تکی درس ۶ یادتان باشد):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>echo '&lt;h1&gt;Saved with commit!&lt;/h1&gt;' &gt; index.html</code></pre></div>
-  <p class="en">Now copy the file <b>from your PC into the container</b>:</p>
-  <p class="fa">حالا فایل را <b>از کامپیوترتان به داخل کانتینر</b> کپی کنید:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker cp index.html web:/usr/share/nginx/html/index.html</code></pre></div>
-  <p class="en"><code>docker cp FROM TO</code> works like the normal <code>cp</code>. <code>web:</code> in front of a path means “inside the container <code>web</code>”. Reload the browser:</p>
-  <p class="fa"><code>docker cp FROM TO</code> مثل <code>cp</code> معمولی کار می‌کند. <code>web:</code> قبل از یک مسیر یعنی «داخل کانتینر <code>web</code>». مرورگر را reload کنید:</p>
-  <div class="browser">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Saved with commit!</h1></div>
-  </div>
-  <details class="q">
-    <summary><span class="en">❓ Can I copy out of a container too?</span><span class="fa">❓ می‌توانم از کانتینر به بیرون هم کپی کنم؟</span></summary>
-    <p class="en">Yes, just swap the order: <code>docker cp web:/etc/nginx/nginx.conf .</code> copies nginx's config file to the current folder on your PC.</p>
-    <p class="fa">بله، فقط ترتیب را عوض کنید: <code>docker cp web:/etc/nginx/nginx.conf .</code> فایل تنظیمات nginx را به پوشه‌ی فعلی روی کامپیوتر شما کپی می‌کند.</p>
-  </details>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The browser shows “Saved with commit!”</span><span class="fa">مرورگر «Saved with commit!» را نشان می‌دهد</span></span></label>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:30px;align-items:center">
+    <svg viewBox="0 0 640 300" data-step="2" style="width:640px;height:300px;overflow:visible;direction:ltr">
+      <use href="#monitor" x="20" y="60" width="200" height="170"/>
+      <text x="120" y="128" text-anchor="middle" fill="#a9c4ff" font-size="17" font-family="JetBrains Mono,monospace">localhost:8080</text>
+      <path id="p16a" d="M235 125 H430" stroke="#6e9bff" stroke-width="3" class="flow" fill="none"/>
+      <rect x="275" y="88" width="120" height="32" rx="9" fill="#0d1426" stroke="#ffb54d"/>
+      <text x="335" y="110" text-anchor="middle" fill="#ffb54d" font-size="15" font-family="JetBrains Mono,monospace">-p 8080:80</text>
+      <circle r="6" fill="#3ccf7f"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#p16a"/></animateMotion></circle>
+      <use href="#cube" x="450" y="60" width="140" height="140"/>
+      <text x="520" y="250" text-anchor="middle" fill="#eef2fb" font-size="24" font-weight="700" font-family="JetBrains Mono,monospace">web</text>
+    </svg>
+    <div class="browser" data-step="2">
+      <div class="bar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+      <div class="page" style="padding:24px 24px 30px"><h1 style="font-size:32px">Welcome to nginx!</h1></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 3 COMMIT ================= -->
-<section class="card step" id="s3">
-  <h2><span class="num">3</span>
-    <span class="en">Commit: save the container as an image</span><span class="fa">commit: ذخیره‌ی کانتینر به‌صورت ایمیج</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker commit web my-web:handmade</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>sha256:29c20f0b1052ab139b6aa90b8092cb60cf14d17d50ce2f74355a82d89c1a8fc4   <span class="c"># the new image's ID</span></code></pre></div>
-  <p class="en"><code>docker commit CONTAINER NAME:TAG</code> takes everything inside the container <b>right now</b>, including your page, and saves it as a new image. List it (Lesson 1):</p>
-  <p class="fa"><code>docker commit CONTAINER NAME:TAG</code> هر چیزی را که <b>همین الان</b> داخل کانتینر است، از جمله صفحه‌ی شما، به‌صورت یک ایمیج جدید ذخیره می‌کند. فهرستش کنید (درس ۱):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image ls my-web</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>IMAGE             ID             DISK USAGE   CONTENT SIZE   EXTRA
-my-web:handmade   29c20f0b1052        240MB         63.9MB</code></pre></div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I see <code>my-web:handmade</code> in my images</span><span class="fa"><code>my-web:handmade</code> را در ایمیج‌هایم می‌بینم</span></span></label>
+<!-- ======================= 4 · MAKE YOUR PAGE ======================= -->
+<section class="slide" data-title-en="Make your page" data-title-fa="ساختن صفحه">
+  <div class="kicker a"><span class="en">Step 2 · On your PC</span><span class="fa">قدم ۲ · روی کامپیوتر شما</span></div>
+  <h2><span class="en split">Make <span class="hl">your page</span></span><span class="fa split">ساختن <span class="hl">صفحه‌ی خودتان</span></span></h2>
+  <div style="display:grid;grid-template-columns:900px 1fr;gap:34px;margin-top:26px">
+    <div class="term sm a" style="--d:.4;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Make a folder commit-demo in your home folder." data-task-fa="👉 یک پوشه به نام commit-demo در پوشه‌ی خانه‌تان بسازید."><div class="cmd">mkdir ~/commit-demo</div></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Go into it." data-task-fa="👉 واردش شوید."><div class="cmd">cd ~/commit-demo</div></div>
+        <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 Create index.html with the text &lt;h1&gt;Saved with commit!&lt;/h1&gt; (remember the single quotes from Lesson 6)." data-task-fa="👉 index.html را با متن &lt;h1&gt;Saved with commit!&lt;/h1&gt; بسازید (کوتیشن تکی درس ۶ یادتان باشد)." style="margin-bottom:0"><div class="cmd">echo '&lt;h1&gt;Saved with commit!&lt;/h1&gt;' &gt; index.html</div></div>
+      </div>
+    </div>
+    <div class="card a" style="--d:.6;align-self:start">
+      <div class="n"><span class="en">YOUR PC</span><span class="fa">کامپیوتر شما</span></div>
+      <div class="tree" style="margin-top:8px">
+        <div class="row" data-step="2"><span class="ic">📁</span>commit-demo/<span class="here" data-step="4"><span class="en">you are here</span><span class="fa">اینجا هستید</span></span></div>
+        <div class="row i1" data-step="6"><span class="ic">📄</span>index.html</div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 4 RUN ================= -->
-<section class="card step" id="s4">
-  <h2><span class="num">4</span>
-    <span class="en">Run a new container from your image</span><span class="fa">اجرای کانتینر جدید از ایمیج شما</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Delete <code>web</code> in one command:</p>
-  <p class="fa"><code>web</code> را با یک دستور حذف کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web</code></pre></div>
-  <p class="en">Start a new <code>web</code> like in step 1, but from <code>my-web:handmade</code> instead of <code>nginx</code>:</p>
-  <p class="fa">یک <code>web</code> جدید مثل قدم ۱ اجرا کنید، ولی به‌جای <code>nginx</code> از <code>my-web:handmade</code>:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 my-web:handmade</code></pre></div>
-  <div class="browser">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Saved with commit!</h1></div>
+<!-- ======================= 5 · DOCKER CP ======================= -->
+<section class="slide" data-title-en="Copy your page in: docker cp" data-title-fa="کپی صفحه به داخل: docker cp">
+  <div class="kicker a"><span class="en">Step 2 · Into the container</span><span class="fa">قدم ۲ · به داخل کانتینر</span></div>
+  <h2><span class="en split">Copy your page in with <span class="hl">docker cp</span></span><span class="fa split">کپی صفحه به داخل با <span class="hl">docker&nbsp;cp</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1" style="margin-bottom:0"><div class="cmd">docker cp index.html web:/usr/share/nginx/html/index.html</div></div>
+    </div>
   </div>
-  <p class="en">✅ A <b>brand-new</b> container, and your page is there. In Lesson 6 it was lost; now it's saved <b>in the image</b>.</p>
-  <p class="fa">✅ یک کانتینر <b>کاملاً جدید</b>، و صفحه‌ی شما آنجاست. در درس ۶ از بین رفت؛ حالا <b>در ایمیج</b> ذخیره شده.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s4-1"><span><span class="en">The new container shows “Saved with commit!”</span><span class="fa">کانتینر جدید «Saved with commit!» را نشان می‌دهد</span></span></label>
+  <div style="display:grid;grid-template-columns:760px 1fr;gap:30px;margin-top:18px">
+    <svg viewBox="0 0 760 300" style="width:760px;height:300px;overflow:visible;direction:ltr">
+      <rect x="10" y="40" width="250" height="210" rx="18" fill="rgba(110,155,255,.05)" stroke="rgba(110,155,255,.35)" stroke-dasharray="6 6"/>
+      <text x="30" y="72" fill="#93a0bb" font-size="16" font-weight="700" font-family="Inter,sans-serif" class="en">YOUR PC · ~/commit-demo</text>
+      <text x="240" y="72" text-anchor="end" fill="#93a0bb" font-size="15" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">کامپیوتر شما · ~/commit-demo</text>
+      <rect x="95" y="105" width="70" height="88" rx="8" fill="#f3f5fa"/><path d="M108 128h44M108 144h34M108 160h40" stroke="#2f62b8" stroke-width="5" stroke-linecap="round"/>
+      <text x="130" y="222" text-anchor="middle" fill="#eef2fb" font-size="16" font-family="JetBrains Mono,monospace">index.html</text>
+      <use href="#cube" x="540" y="60" width="160" height="160"/>
+      <text x="620" y="270" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">web</text>
+      <g data-step="2">
+        <path d="M180 150 C 300 40, 440 40, 560 120" stroke="#3ccf7f" stroke-width="3" class="flow" fill="none"/>
+        <g><rect x="-22" y="-28" width="44" height="56" rx="6" fill="#f3f5fa"/><path d="M-12 -14h24M-12 -2h18M-12 10h22" stroke="#2f62b8" stroke-width="4" stroke-linecap="round"/>
+          <animateMotion dur="2.2s" repeatCount="indefinite" path="M180 150 C 300 40, 440 40, 590 125"/>
+          <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.8;1" dur="2.2s" repeatCount="indefinite"/></g>
+        <rect x="250" y="250" width="80" height="30" rx="8" fill="#0b2a1a" stroke="#3ccf7f"/><text x="290" y="271" text-anchor="middle" fill="#3ccf7f" font-size="15" font-weight="700" font-family="JetBrains Mono,monospace">FROM</text>
+        <rect x="430" y="250" width="60" height="30" rx="8" fill="#0b2a1a" stroke="#3ccf7f"/><text x="460" y="271" text-anchor="middle" fill="#3ccf7f" font-size="15" font-weight="700" font-family="JetBrains Mono,monospace">TO</text>
+        <path d="M335 265 H425" stroke="#3ccf7f" stroke-width="2"/><path d="M418 259l8 6-8 6" stroke="#3ccf7f" stroke-width="2" fill="none"/>
+      </g>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card" data-step="2"><p style="font-size:18px"><span class="en"><code>docker cp FROM TO</code> works like the normal <code>cp</code>. <code>web:</code> in front of a path means “inside the container <code>web</code>”.</span><span class="fa"><code>docker cp FROM TO</code> مثل <code>cp</code> معمولی کار می‌کند. <code>web:</code> قبل از یک مسیر یعنی «داخل کانتینر <code>web</code>».</span></p></div>
+      <div class="browser" data-step="3">
+        <div class="bar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+        <div class="page"><h1>Saved with commit!</h1></div>
+      </div>
+    </div>
+  </div>
+  <div class="card tip" data-step="4" style="margin-top:14px;padding:16px 24px"><p style="font-size:18px"><span class="en">❓ Copy out of a container too? Yes, just swap the order: <code>docker cp web:/etc/nginx/nginx.conf .</code> copies nginx's config file to the current folder on your PC.</span><span class="fa">❓ از کانتینر به بیرون هم؟ بله، فقط ترتیب را عوض کنید: <code>docker cp web:/etc/nginx/nginx.conf .</code> فایل تنظیمات nginx را به پوشه‌ی فعلی روی کامپیوتر شما کپی می‌کند.</span></p></div>
+</section>
+
+<!-- ======================= 6 · COMMIT ======================= -->
+<section class="slide" data-title-en="Commit" data-title-fa="commit">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Commit: save the container <span class="hl">as an image</span></span><span class="fa split">commit: ذخیره‌ی کانتینر <span class="hl">به‌صورت ایمیج</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1"><div class="cmd">docker commit web my-web:handmade</div><pre class="out">
+sha256:29c20f0b1052ab139b6aa90b8092cb60cf14d17d50ce2f74355a82d89c1a8fc4   <span class="c"># the new image's ID</span></pre></div>
+      <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 List your my-web images (Lesson 1)." data-task-fa="👉 ایمیج‌های my-web را فهرست کنید (درس ۱)." style="margin-bottom:0"><div class="cmd">docker image ls my-web</div><pre class="out">
+IMAGE             ID             DISK USAGE   CONTENT SIZE   EXTRA
+my-web:handmade   29c20f0b1052        240MB         63.9MB</pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:620px 1fr;gap:30px;margin-top:16px;align-items:center">
+    <svg viewBox="0 0 620 230" style="width:620px;height:230px;overflow:visible;direction:ltr">
+      <use href="#cube" x="40" y="50" width="130" height="130"/>
+      <rect x="83" y="22" width="44" height="54" rx="5" fill="#f3f5fa"/><path d="M91 36h28M91 47h20M91 58h24" stroke="#2f62b8" stroke-width="3.5" stroke-linecap="round"/>
+      <text x="105" y="216" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">web</text>
+      <g data-step="2">
+        <path d="M200 120 H360" stroke="#6e9bff" stroke-width="3" class="flow"/><path d="M352 110l12 10-12 10" stroke="#6e9bff" stroke-width="3" fill="none"/>
+        <text x="280" y="102" text-anchor="middle" font-size="30">📸</text>
+      </g>
+      <g data-step="2" class="pop-in" style="transition-delay:.4s"><g transform="translate(480 120) scale(1.1)">
+        <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#2a5bd8;--l:#163a96;--r:#0f2a70"/>
+        <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+        <use href="#slab" x="-62" y="-58" width="124" height="86" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/>
+      </g></g>
+      <g data-step="2" style="transition-delay:.4s"><text x="480" y="216" text-anchor="middle" fill="#eef2fb" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">my-web:handmade</text></g>
+    </svg>
+    <div class="card key" data-step="2"><p style="font-size:19px"><span class="en"><code>docker commit CONTAINER NAME:TAG</code> takes everything inside the container <b>right now</b>, including your page, and saves it as a new image.</span><span class="fa"><code>docker commit CONTAINER NAME:TAG</code> هر چیزی را که <b>همین الان</b> داخل کانتینر است، از جمله صفحه‌ی شما، به‌صورت یک ایمیج جدید ذخیره می‌کند.</span></p></div>
   </div>
 </section>
 
-<!-- ================= 5 THE CATCH ================= -->
-<section class="card step" id="s5">
-  <h2><span class="num">5</span>
-    <span class="en">The catch: what's inside?</span><span class="fa">مشکل کجاست: داخلش چیست؟</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">An image is built in <b>layers</b>, one per step. <code>docker history</code> lists them, newest first:</p>
-  <p class="fa">یک ایمیج از <b>لایه‌ها</b> ساخته می‌شود، یکی برای هر مرحله. <code>docker history</code> آن‌ها را فهرست می‌کند، جدیدترین اول:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker history my-web:handmade</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>IMAGE          CREATED         CREATED BY                         SIZE
-29c20f0b1052   5 seconds ago   nginx -g daemon off;               81.9kB    <span class="c"># ← your commit</span>
-f9ea18bfa4fa   4 days ago      CMD ["nginx" "-g" "daemon off;"]   0B        <span class="c"># ← nginx's own steps</span>
-&lt;missing&gt;      4 days ago      STOPSIGNAL SIGQUIT                 0B
-&lt;missing&gt;      4 days ago      EXPOSE map[80/tcp:{}]              0B
-...</code></pre></div>
-  <p class="en">nginx's layers show the exact steps its authors wrote (<code>EXPOSE</code>, <code>CMD</code>…). <b>Your</b> layer only says <code>nginx -g daemon off;</code>, which is just the program that was running. It says <b>nothing</b> about what you changed.</p>
-  <p class="fa">لایه‌های nginx دقیقاً مراحلی را که سازندگانش نوشته‌اند نشان می‌دهند (<code>EXPOSE</code>، <code>CMD</code> و …). لایه‌ی <b>شما</b> فقط می‌گوید <code>nginx -g daemon off;</code>، یعنی همان برنامه‌ای که در حال اجرا بود. <b>هیچ چیزی</b> درباره‌ی تغییری که دادید نمی‌گوید.</p>
-  <div class="note warn">
-    <p class="en">⚠ <b>Problems with <code>commit</code>:</b></p>
-    <p class="fa">⚠ <b>مشکلات <code>commit</code>:</b></p>
-    <ul>
-      <li><span class="en">Nobody can see <b>what</b> you changed or <b>how</b>, not even you a month later.</span><span class="fa">هیچ‌کس نمی‌تواند ببیند <b>چه چیزی</b> را و <b>چطور</b> تغییر دادید، حتی خودتان یک ماه بعد.</span></li>
-      <li><span class="en">To make version 2, you'd have to repeat every manual step by hand.</span><span class="fa">برای ساختن نسخه‌ی ۲ باید همه‌ی مراحل دستی را دوباره با دست انجام دهید.</span></li>
-      <li><span class="en">Anything else you did in the container (test files, mistakes) is saved too.</span><span class="fa">هر کار دیگری که در کانتینر کردید (فایل‌های آزمایشی، اشتباه‌ها) هم ذخیره می‌شود.</span></li>
-    </ul>
+<!-- ======================= 7 · RUN YOUR IMAGE ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Run your image" data-title-fa="اجرای ایمیج شما">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">Run a new container <span class="hl">from your image</span></span><span class="fa split">اجرای کانتینر جدید <span class="hl">از ایمیج شما</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Delete web in one command." data-task-fa="👉 web را با یک دستور حذف کنید."><div class="cmd">docker rm -f web</div></div>
+      <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Start a new web like in step 1, but from my-web:handmade instead of nginx." data-task-fa="👉 یک web جدید مثل قدم ۱ اجرا کنید، ولی به‌جای nginx از my-web:handmade." style="margin-bottom:0"><div class="cmd">docker run -d --name web -p 8080:80 my-web:handmade</div></div>
+    </div>
   </div>
-  <div class="note key">
-    <p class="en">🔑 <code>commit</code> is fine for a quick experiment. For real images, the steps should be <b>written down</b>, so anyone can read them and build the same image again. That's what a <b>Dockerfile</b> is: the next lesson.</p>
-    <p class="fa">🔑 <code>commit</code> برای یک آزمایش سریع خوب است. برای ایمیج‌های واقعی، مراحل باید <b>نوشته شوند</b> تا هر کسی بتواند آن‌ها را بخواند و همان ایمیج را دوباره بسازد. <b>Dockerfile</b> همین است: موضوع درس بعد.</p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s5-1"><span><span class="en">I see that my commit layer doesn't say what I changed</span><span class="fa">می‌بینم که لایه‌ی commit من نمی‌گوید چه چیزی را تغییر دادم</span></span></label>
-  </div>
-</section>
-
-<!-- ================= 6 CLEAN UP ================= -->
-<section class="card step" id="s6">
-  <h2><span class="num">6</span>
-    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Delete <code>web</code>, then delete your handmade image (Lesson 1):</p>
-  <p class="fa"><code>web</code> را حذف کنید، بعد ایمیج دست‌ساز خودتان را حذف کنید (درس ۱):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web
-docker image rm my-web:handmade</code></pre></div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s6-1"><span><span class="en"><code>web</code> and <code>my-web:handmade</code> are deleted</span><span class="fa"><code>web</code> و <code>my-web:handmade</code> حذف شدند</span></span></label>
+  <div style="display:grid;grid-template-columns:660px 1fr;gap:30px;margin-top:20px;align-items:center">
+    <svg viewBox="0 0 660 260" style="width:660px;height:260px;overflow:visible;direction:ltr">
+      <g transform="translate(120 130) scale(1.1)">
+        <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#2a5bd8;--l:#163a96;--r:#0f2a70"/>
+        <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+        <use href="#slab" x="-62" y="-58" width="124" height="86" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/>
+      </g>
+      <text x="120" y="245" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">my-web:handmade</text>
+      <g data-until="2">
+        <use href="#cube" x="440" y="70" width="130" height="130"/>
+        <text x="505" y="245" text-anchor="middle" fill="#93a0bb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">web (old)</text>
+      </g>
+      <g data-step="4">
+        <path d="M230 130 H420" stroke="#3ccf7f" stroke-width="3" class="flow"/><path d="M412 120l12 10-12 10" stroke="#3ccf7f" stroke-width="3" fill="none"/>
+        <text x="325" y="114" text-anchor="middle" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">docker run</text>
+      </g>
+      <g data-step="4" class="pop-in" style="transition-delay:.3s"><use href="#cube" x="440" y="70" width="130" height="130"/>
+        <rect x="483" y="40" width="44" height="54" rx="5" fill="#f3f5fa"/><path d="M491 54h28M491 65h20M491 76h24" stroke="#2f62b8" stroke-width="3.5" stroke-linecap="round"/></g>
+      <g data-step="4" style="transition-delay:.3s"><text x="505" y="245" text-anchor="middle" fill="#3ccf7f" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">web ✨</text></g>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="browser" data-step="4">
+        <div class="bar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+        <div class="page"><h1>Saved with commit!</h1></div>
+      </div>
+      <div class="card tip" data-step="5"><p style="font-size:18px"><span class="en">✅ A <b>brand-new</b> container, and your page is there. In Lesson 6 it was lost; now it's saved <b>in the image</b>.</span><span class="fa">✅ یک کانتینر <b>کاملاً جدید</b>، و صفحه‌ی شما آنجاست. در درس ۶ از بین رفت؛ حالا <b>در ایمیج</b> ذخیره شده.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= SUMMARY ================= -->
-<section class="card" id="sum">
-  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><code>docker cp FROM TO</code></td><td><span class="en">Copy files between your PC and a container (<code>NAME:/path</code>)</span><span class="fa">کپی فایل بین کامپیوتر شما و کانتینر (<code>NAME:/path</code>)</span></td></tr>
-      <tr><td><code>docker commit CONTAINER NAME:TAG</code></td><td><span class="en">Save a container's current state as a new image</span><span class="fa">ذخیره‌ی وضعیت فعلی کانتینر به‌صورت ایمیج جدید</span></td></tr>
-      <tr><td><code>docker history IMAGE</code></td><td><span class="en">Show the layers an image is made of</span><span class="fa">نمایش لایه‌هایی که ایمیج از آن‌ها ساخته شده</span></td></tr>
-      <tr><td><span class="en">The catch</span><span class="fa">مشکل</span></td><td><span class="en">A commit doesn't record what you did; a Dockerfile does</span><span class="fa">commit ثبت نمی‌کند چه کاری کردید؛ Dockerfile ثبت می‌کند</span></td></tr>
-    </tbody>
-  </table>
+<!-- ======================= 8 · HISTORY ======================= -->
+<section class="slide" data-scene="fx" data-title-en="What's inside? docker history" data-title-fa="داخلش چیست؟ docker history">
+  <div class="kicker a"><span class="en">Step 5 · The catch</span><span class="fa">قدم ۵ · مشکل کجاست</span></div>
+  <h2><span class="en split">What's <span class="hl">inside?</span></span><span class="fa split">داخلش <span class="hl">چیست؟</span></span></h2>
+  <p class="lead sm a" style="--d:.4;margin-top:8px"><span class="en">An image is built in <b>layers</b>, one per step. <code>docker history</code> lists them, newest first:</span><span class="fa">یک ایمیج از <b>لایه‌ها</b> ساخته می‌شود، یکی برای هر مرحله. <code>docker history</code> آن‌ها را فهرست می‌کند، جدیدترین اول:</span></p>
+  <div class="term sm a" style="--d:.5;margin-top:16px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1" style="margin-bottom:0"><div class="cmd">docker history my-web:handmade</div><pre class="out">
+IMAGE          CREATED         CREATED BY                         SIZE
+<span class="mk" data-hot="3">29c20f0b1052   5 seconds ago   nginx -g daemon off;               81.9kB</span>    <span class="c"># ← your commit</span>
+<span class="mk" data-hot="2">f9ea18bfa4fa   4 days ago      CMD ["nginx" "-g" "daemon off;"]   0B</span>        <span class="c"># ← nginx's own steps</span>
+<span class="mk" data-hot="2">&lt;missing&gt;      4 days ago      STOPSIGNAL SIGQUIT                 0B</span>
+<span class="mk" data-hot="2">&lt;missing&gt;      4 days ago      EXPOSE map[80/tcp:{}]              0B</span>
+...</pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:20px">
+    <div class="card" data-step="2"><p style="font-size:19px"><span class="en">nginx's layers show the exact steps its authors wrote (<code>EXPOSE</code>, <code>CMD</code>…).</span><span class="fa">لایه‌های nginx دقیقاً مراحلی را که سازندگانش نوشته‌اند نشان می‌دهند (<code>EXPOSE</code>، <code>CMD</code> و …).</span></p></div>
+    <div class="card key" data-step="3"><p style="font-size:19px"><span class="en"><b>Your</b> layer only says <code>nginx -g daemon off;</code>, which is just the program that was running. It says <b>nothing</b> about what you changed.</span><span class="fa">لایه‌ی <b>شما</b> فقط می‌گوید <code>nginx -g daemon off;</code>، یعنی همان برنامه‌ای که در حال اجرا بود. <b>هیچ چیزی</b> درباره‌ی تغییری که دادید نمی‌گوید.</span></p></div>
   </div>
 </section>
 
-<div class="done-banner" id="doneBanner">
-  <h2>🎉 <span class="en">You made your first image by hand!</span><span class="fa">اولین ایمیج‌تان را با دست ساختید!</span></h2>
-  <p id="nextLine"></p>
+<!-- ======================= 9 · PROBLEMS ======================= -->
+<section class="slide" data-title-en="Problems with commit" data-title-fa="مشکلات commit">
+  <div class="kicker a"><span class="en">Step 5 · The catch</span><span class="fa">قدم ۵ · مشکل کجاست</span></div>
+  <h2><span class="en split">⚠ Problems with <span class="hl">commit</span></span><span class="fa split">⚠ مشکلات <span class="hl">commit</span></span></h2>
+  <div class="probs">
+    <div class="card" data-step="1"><div class="ic">🙈</div><p><span class="en">Nobody can see <b>what</b> you changed or <b>how</b>, not even you a month later.</span><span class="fa">هیچ‌کس نمی‌تواند ببیند <b>چه چیزی</b> را و <b>چطور</b> تغییر دادید، حتی خودتان یک ماه بعد.</span></p></div>
+    <div class="card" data-step="2"><div class="ic">🔁</div><p><span class="en">To make version 2, you'd have to repeat every manual step by hand.</span><span class="fa">برای ساختن نسخه‌ی ۲ باید همه‌ی مراحل دستی را دوباره با دست انجام دهید.</span></p></div>
+    <div class="card" data-step="3"><div class="ic">🗑</div><p><span class="en">Anything else you did in the container (test files, mistakes) is saved too.</span><span class="fa">هر کار دیگری که در کانتینر کردید (فایل‌های آزمایشی، اشتباه‌ها) هم ذخیره می‌شود.</span></p></div>
+  </div>
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:30px;align-items:center;margin-top:34px" data-step="4">
+    <svg viewBox="0 0 220 160" style="width:220px;height:160px;direction:ltr">
+      <rect x="20" y="10" width="110" height="140" rx="10" fill="#f6f1e4"/>
+      <path d="M36 40h76M36 62h66M36 84h76M36 106h50" stroke="#c9b98f" stroke-width="7" stroke-linecap="round"/>
+      <path d="M140 80H170" stroke="#3ccf7f" stroke-width="3" class="flow"/><path d="M164 70l10 10-10 10" stroke="#3ccf7f" stroke-width="3" fill="none"/>
+      <use href="#slab" x="172" y="58" width="48" height="34" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/>
+    </svg>
+    <div class="card key"><p><span class="en">🔑 <code>commit</code> is fine for a quick experiment. For real images, the steps should be <b>written down</b>, so anyone can read them and build the same image again. That's what a <b>Dockerfile</b> is: the next lesson.</span><span class="fa">🔑 <code>commit</code> برای یک آزمایش سریع خوب است. برای ایمیج‌های واقعی، مراحل باید <b>نوشته شوند</b> تا هر کسی بتواند آن‌ها را بخواند و همان ایمیج را دوباره بسازد. <b>Dockerfile</b> همین است: موضوع درس بعد.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 10 · CLEAN UP ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Clean up" data-title-fa="تمیزکاری">
+  <div class="kicker a"><span class="en">Step 6</span><span class="fa">قدم ۶</span></div>
+  <h2><span class="en split">Clean <span class="hl">up</span></span><span class="fa split"><span class="hl">تمیزکاری</span></span></h2>
+  <div style="display:grid;grid-template-columns:840px 1fr;gap:30px;margin-top:26px">
+    <div class="term sm a" style="--d:.4;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Delete web." data-task-fa="👉 web را حذف کنید."><div class="cmd">docker rm -f web</div></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Delete your handmade image (Lesson 1)." data-task-fa="👉 ایمیج دست‌ساز خودتان را حذف کنید (درس ۱)." style="margin-bottom:0"><div class="cmd">docker image rm my-web:handmade</div></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 540 320" class="a fade" style="--d:.5;width:540px;height:320px;overflow:visible;direction:ltr">
+      <g data-until="4"><g transform="translate(130 150) scale(1.1)">
+        <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#2a5bd8;--l:#163a96;--r:#0f2a70"/>
+        <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+        <use href="#slab" x="-62" y="-58" width="124" height="86" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/>
+      </g><text x="130" y="270" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">my-web:handmade</text></g>
+      <g data-until="2"><use href="#cube" x="340" y="90" width="130" height="130"/><text x="405" y="270" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">web</text></g>
+      <g data-step="4" class="pop-in" style="transition-delay:.5s">
+        <circle cx="270" cy="150" r="56" fill="#0b2a1a" stroke="#3ccf7f" stroke-width="4"/><path d="M242 150l20 20 34-38" stroke="#3ccf7f" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================= 11 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 You made your first image <span class="hl">by hand!</span></span><span class="fa split">🎉 اولین ایمیج‌تان را <span class="hl">با دست ساختید!</span></span></h2>
+  <div class="sumgrid">
+    <div class="card a" style="--d:.4"><code>docker cp FROM TO</code><p><span class="en">Copy files between your PC and a container (<code>NAME:/path</code>)</span><span class="fa">کپی فایل بین کامپیوتر شما و کانتینر (<code>NAME:/path</code>)</span></p></div>
+    <div class="card a" style="--d:.5"><code>docker commit CONTAINER NAME:TAG</code><p><span class="en">Save a container's current state as a new image</span><span class="fa">ذخیره‌ی وضعیت فعلی کانتینر به‌صورت ایمیج جدید</span></p></div>
+    <div class="card a" style="--d:.6"><code>docker history IMAGE</code><p><span class="en">Show the layers an image is made of</span><span class="fa">نمایش لایه‌هایی که ایمیج از آن‌ها ساخته شده</span></p></div>
+    <div class="card key a" style="--d:.7"><code class="tx"><span class="en">⚠ The catch</span><span class="fa">⚠ مشکل</span></code><p><span class="en">A commit doesn't record what you did; a Dockerfile does</span><span class="fa">commit ثبت نمی‌کند چه کاری کردید؛ Dockerfile ثبت می‌کند</span></p></div>
+  </div>
+  <div class="btnrow a" style="--d:1.1">
+    <a class="bigbtn primary" href="17-dockerfile.html"><span class="en">Next: Lesson 17 · Your first Dockerfile →</span><span class="fa">بعدی: درس ۱۷ · اولین Dockerfile شما ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 11</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
 </div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
 
-<nav class="pager" id="pager"></nav>
-
-<footer>
-  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
-</footer>
-
-</main>
-
-</div>
-
+<script>
+/* ---------- lesson 16 scenes ---------- */
+(() => {
+  /* [data-until="k"]: visible until the slide reaches step k.  [data-hot="k m"]: highlighted on exactly those steps */
+  const fx = (slide) => ({ step(k) {
+    slide.querySelectorAll('[data-until]').forEach(el => el.classList.toggle('gone', k >= +el.dataset.until));
+    slide.querySelectorAll('[data-hot]').forEach(el => el.classList.toggle('hot', el.dataset.hot.split(' ').includes(String(k))));
+  } });
+  window.SCENES = {
+    fx,
+    sum(slide, api) {
+      const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+      const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+      const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+      const stop = api.loop(t => {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of P) {
+          p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+          if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+        }
+      });
+      return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+    }
+  };
+})();
+</script>
 <script src="tips.js"></script>
-<script src="course.js"></script>
+<script src="deck.js"></script>
 </body>
 </html>

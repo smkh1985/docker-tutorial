@@ -1,254 +1,472 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 10 · Edit live</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 10 · Edit live (motion)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="course.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- lesson 10 specifics ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:270px}
+  .goal svg{width:96px;height:96px}
+  .goal h3{font-size:25px}
+  .term.sm .body{font-size:17px}
+  .nohint .hint{display:none}
+  .out .err{color:#ff8a8a}
+  .card.sm{padding:18px 22px}.card.sm p{font-size:17.5px}
+  body.lang-fa .card,body.lang-fa .lead{direction:rtl;text-align:right}
+  body.lang-fa .term .bar .fa{font-family:Vazirmatn,sans-serif}
+  :not(pre)>code{white-space:nowrap}
+  .stack{position:relative}.stack>*{position:absolute;left:0;right:0;top:0}
+  .stx{font-family:Inter,sans-serif}.stx.fa{font-family:Vazirmatn,sans-serif}
+  .cv-pc{color:#ffcf6b}.cv-ctr{color:#3ccf7f}.cv-ro{color:#ff6b6b}
+  /* a small browser window */
+  .browser{border-radius:14px;overflow:hidden;background:#f4f6fb;box-shadow:0 30px 70px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .browser .bbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#dfe4ee}
+  .browser .bbar i{width:11px;height:11px;border-radius:50%;background:#ff5f57}.browser .bbar i:nth-child(2){background:#febc2e}.browser .bbar i:nth-child(3){background:#28c840}
+  .browser .url{margin-left:10px;flex:1;padding:5px 12px;border-radius:8px;background:#fff;font:500 15px var(--mono);color:#455}
+  .browser .page{position:relative;height:150px;padding:26px 30px;color:#111;font:700 40px/1.2 "Times New Roman",serif}
+  .browser .page>div{position:absolute;left:30px;top:30px}
+  .browser .page [data-only],.browser .page [data-step]{filter:none}
+  .reload.in{animation:reload .7s}
+  @keyframes reload{0%{opacity:0}40%{opacity:0}100%{opacity:1}}
+  .btnrow{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px;padding:18px 24px}
+  .sumgrid code{font-size:19px;flex:none;min-width:360px;text-align:left}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .crash[data-only]{transition:opacity .8s,transform 1s cubic-bezier(.5,0,.8,.4)}
+  .crash[data-only]:not(.in){transform:translate(40px,120px) rotate(18deg)}
+  .cover[data-step]{transform:translate(0,-170px);filter:none}
+  .cover[data-step].in{transform:none;transition:transform 1s var(--back),opacity .4s}
+  .ttl-a{animation:ttlA 6s infinite}.ttl-b{animation:ttlB 6s infinite}
+  @keyframes ttlA{0%,42%{opacity:1}50%,92%{opacity:0}100%{opacity:1}}
+  @keyframes ttlB{0%,42%{opacity:0}50%,92%{opacity:1}100%{opacity:0}}
+  .pen{animation:pen 6s infinite;transform-box:view-box}
+  @keyframes pen{0%,30%{transform:none}36%{transform:translate(14px,-6px)}40%{transform:translate(-6px,4px)}44%{transform:translate(10px,-2px)}50%,100%{transform:none}}
+</style>
 </head>
-<body class="lang-en" data-lesson="10">
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
 
-<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
-<header class="topbar">
-  <div class="topbar-inner">
-    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
-      <span class="title-text" id="brandTitle"></span>
-    </a>
-    <div class="progress-wrap">
-      <div class="progress"><div id="bar"></div></div>
-      <span class="progress-label" id="plabel">0 / 0</span>
-    </div>
-    <span id="navSlot"></span>
-    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
-    <button class="btn" id="themeBtn" title="Theme">◐</button>
-    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
-  </div>
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="folder" viewBox="0 0 120 96">
+      <path d="M4 16a8 8 0 0 1 8-8h30l10 12h56a8 8 0 0 1 8 8v56a8 8 0 0 1-8 8H12a8 8 0 0 1-8-8z" fill="#d79a22"/>
+      <path d="M4 32h112v52a8 8 0 0 1-8 8H12a8 8 0 0 1-8-8z" fill="#ffcf6b"/>
+    </symbol>
+    <symbol id="file" viewBox="0 0 80 100">
+      <path d="M6 6h46l22 22v66H6z" fill="#eef2fb"/><path d="M52 6v22h22" fill="#c9d3e6"/>
+      <path d="M16 46h48M16 60h48M16 74h32" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="index.html"><img src="docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
 </header>
 
-<div class="layout">
+<div id="viewport"><div id="stage">
 
-<!-- ================= TABLE OF CONTENTS ================= -->
-<nav class="toc">
-  <ol>
-    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Make a page on your PC</span><span class="fa">۱ · ساختن صفحه روی کامپیوتر</span></a></li>
-    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Mount it with -v</span><span class="fa">۲ · اتصال با ‎-v</span></a></li>
-    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Open it</span><span class="fa">۳ · باز کردن</span></a></li>
-    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Edit on your PC</span><span class="fa">۴ · ویرایش روی کامپیوتر</span></a></li>
-    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Read-only</span><span class="fa">۵ · فقط‌خواندنی</span></a></li>
-    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Clean up</span><span class="fa">۶ · تمیزکاری</span></a></li>
-  </ol>
-</nav>
-
-<main>
-
-<!-- ================= HERO ================= -->
-<section class="hero">
-  <h1>
-    <span class="en">Lesson 10 — Edit live with a shared folder</span>
-    <span class="fa">درس ۱۰ — ویرایش زنده با یک پوشه‌ی مشترک</span>
-  </h1>
-  <p class="en">In Lesson 8 you used <code>-v</code> to keep data safe. <code>-v</code> has a second superpower: <b>edit files on your PC and the container sees the change right away</b>. You'll use it to work on a web page.</p>
-  <p class="fa">در درس ۸ از <code>-v</code> برای امن نگه داشتن داده‌ها استفاده کردید. <code>-v</code> یک قدرت دوم هم دارد: <b>فایل‌ها را روی کامپیوترتان ویرایش کنید و کانتینر بلافاصله تغییر را می‌بیند</b>. از آن برای کار روی یک صفحه‌ی وب استفاده می‌کنید.</p>
-  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
-  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 10 — Edit live" data-title-fa="درس ۱۰ — ویرایش زنده" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 10</span><span class="fa">دوره‌ی Docker · درس ۱۰</span></div>
+    <h1 style="font-size:120px;line-height:1.05;margin:26px 0 26px">
+      <span class="en split">Edit <span class="hl">live</span></span><span class="fa split">ویرایش <span class="hl">زنده</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en"><code>-v</code> has a second superpower: <b>edit files on your PC and the container sees the change right away</b>. You'll use it to work on a web page.</span><span class="fa"><code>-v</code> یک قدرت دوم هم دارد: <b>فایل‌ها را روی کامپیوترتان ویرایش کنید و کانتینر بلافاصله تغییر را می‌بیند</b>. از آن برای کار روی یک صفحه‌ی وب استفاده می‌کنید.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:700px;height:680px;overflow:visible;direction:ltr" viewBox="0 0 700 680">
+    <circle cx="350" cy="330" r="290" fill="none" stroke="rgba(110,155,255,.16)" stroke-dasharray="4 10"/>
+    <use href="#folder" x="40" y="120" width="210" height="168"/>
+    <use href="#file" x="100" y="170" width="80" height="100"/>
+    <g class="pen"><path d="M196 166l40-40 14 14-40 40-20 6z" fill="#ffb54d"/><path d="M236 126l8-8 14 14-8 8z" fill="#ff6b6b"/></g>
+    <text x="145" y="320" text-anchor="middle" fill="#ffcf6b" font-size="20" font-family="JetBrains Mono,monospace">~/my-site</text>
+    <path id="lnk" d="M270 200H440" stroke="#ffcf6b" stroke-width="4" stroke-dasharray="8 8" class="flow" fill="none"/>
+    <circle r="8" fill="#ffcf6b"><animateMotion dur="1.6s" repeatCount="indefinite"><mpath href="#lnk"/></animateMotion></circle>
+    <text x="355" y="186" text-anchor="middle" fill="#ffcf6b" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">-v</text>
+    <g transform="translate(540 210)"><use href="#cube" x="-90" y="-98" width="180" height="180"/></g>
+    <text x="540" y="330" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">web</text>
+    <path d="M540 350V410" stroke="#3ccf7f" stroke-width="3" class="flow"/>
+    <g transform="translate(200 420)">
+      <rect width="460" height="160" rx="14" fill="#f4f6fb"/>
+      <rect width="460" height="36" rx="14" fill="#dfe4ee"/><rect y="20" width="460" height="16" fill="#dfe4ee"/>
+      <circle cx="20" cy="18" r="6" fill="#ff5f57"/><circle cx="38" cy="18" r="6" fill="#febc2e"/><circle cx="56" cy="18" r="6" fill="#28c840"/>
+      <rect x="76" y="8" width="370" height="20" rx="6" fill="#fff"/><text x="88" y="23" fill="#455" font-size="13" font-family="JetBrains Mono,monospace">localhost:8080</text>
+      <text x="26" y="104" fill="#111" font-size="34" font-weight="700" font-family="Times New Roman,serif" class="ttl-a">Hello from my PC!</text>
+      <text x="26" y="104" fill="#111" font-size="34" font-weight="700" font-family="Times New Roman,serif" class="ttl-b">Changed on my PC!</text>
+    </g>
+    <text x="350" y="660" text-anchor="middle" fill="#93a0bb" font-family="JetBrains Mono,monospace" font-size="18" letter-spacing="3" class="en">EDIT ON YOUR PC · SEE IT LIVE</text>
+    <text x="350" y="660" text-anchor="middle" fill="#93a0bb" font-family="Vazirmatn,sans-serif" font-size="22" class="fa" direction="rtl">روی کامپیوترتان ویرایش کنید · زنده ببینید</text>
+  </svg>
 </section>
 
-<!-- ================= 1 MAKE PAGE ================= -->
-<section class="card step" id="s1">
-  <h2><span class="num">1</span>
-    <span class="en">Make a page on your PC</span><span class="fa">ساختن یک صفحه روی کامپیوتر</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">These commands run on <b>your PC</b>, not in a container. Make a folder called <code>my-site</code> in your home folder, and put a page in it with <code>echo</code>, like in Lesson 6:</p>
-  <p class="fa">این دستورها روی <b>کامپیوتر خودتان</b> اجرا می‌شوند، نه داخل کانتینر. یک پوشه به نام <code>my-site</code> در پوشه‌ی خانه‌تان بسازید و با <code>echo</code>، مثل درس ۶، یک صفحه در آن بگذارید:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>mkdir ~/my-site
-echo '&lt;h1&gt;Hello from my PC!&lt;/h1&gt;' &gt; ~/my-site/index.html</code></pre></div>
-  <p class="en">Check what's in the file:</p>
-  <p class="fa">محتوای فایل را بررسی کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>cat ~/my-site/index.html</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>&lt;h1&gt;Hello from my PC!&lt;/h1&gt;</code></pre></div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>~/my-site/index.html</code> exists on my PC</span><span class="fa"><code>~/my-site/index.html</code> روی کامپیوتر من وجود دارد</span></span></label>
-  </div>
-</section>
-
-<!-- ================= 2 MOUNT ================= -->
-<section class="card step" id="s2">
-  <h2><span class="num">2</span>
-    <span class="en">Mount the folder with <code>-v</code></span><span class="fa">اتصال پوشه با <code>-v</code></span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Start nginx named <code>web</code> on <code>localhost:8080</code>, as before, plus <code>-v</code> from Lesson 8. This time share <code>~/my-site</code> as nginx's page folder:</p>
-  <p class="fa">nginx را با نام <code>web</code> روی <code>localhost:8080</code> مثل قبل اجرا کنید، به‌اضافه‌ی <code>-v</code> از درس ۸. این بار <code>~/my-site</code> را به‌عنوان پوشه‌ی صفحه‌های nginx به اشتراک بگذارید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 -v ~/my-site:/usr/share/nginx/html nginx</code></pre></div>
-  <p class="en">As in Lesson 8: <b>your PC first</b>, then the container.</p>
-  <p class="fa">مثل درس ۸: <b>اول کامپیوتر شما</b>، بعد کانتینر.</p>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><code>~/my-site</code></td><td><span class="en">The folder on <b>your PC</b></span><span class="fa">پوشه روی <b>کامپیوتر شما</b></span></td></tr>
-      <tr><td><code>/usr/share/nginx/html</code></td><td><span class="en">The folder <b>inside the container</b> where nginx looks for pages. You saw it in Lesson 6</span><span class="fa">پوشه‌ی <b>داخل کانتینر</b> که nginx صفحه‌ها را آنجا پیدا می‌کند. در درس ۶ آن را دیدید</span></td></tr>
-    </tbody>
-  </table>
-  </div>
-  <div class="flow">
-    <div class="box"><b><span class="en">Your PC</span><span class="fa">کامپیوتر شما</span></b><small><code>~/my-site/index.html</code></small></div>
-    <div class="arrow"><small><code>-v</code> <span class="en">same folder, seen from both sides</span><span class="fa">یک پوشه، از هر دو طرف</span></small></div>
-    <div class="box ctr"><b><span class="en">Container</span><span class="fa">کانتینر</span> <code>web</code></b><small><code>/usr/share/nginx/html/index.html</code></small></div>
-  </div>
-  <p class="en">It's not a copy. The container sees <b>the same folder</b> as your PC.</p>
-  <p class="fa">این یک کپی نیست. کانتینر <b>همان پوشه‌ی</b> کامپیوتر شما را می‌بیند.</p>
-  <details class="q">
-    <summary><span class="en">❓ The browser shows <b>403 Forbidden</b>?</span><span class="fa">❓ مرورگر <b>403 Forbidden</b> نشان می‌دهد؟</span></summary>
-    <p class="en">You probably mistyped the folder on your PC (e.g. <code>~/my-sitee</code>). Docker doesn't complain: it silently creates a new, <b>empty</b> folder with that name, owned by <code>root</code>. nginx finds no page there and answers 403.</p>
-    <p class="fa">احتمالاً نام پوشه‌ی کامپیوترتان را اشتباه تایپ کرده‌اید (مثلاً <code>~/my-sitee</code>). Docker خطا نمی‌دهد: بی‌صدا یک پوشه‌ی جدید و <b>خالی</b> با آن نام می‌سازد که مال <code>root</code> است. nginx آنجا صفحه‌ای پیدا نمی‌کند و 403 جواب می‌دهد.</p>
-    <p class="en">Fix: delete the container (<code>docker rm -f web</code>), remove the wrong empty folder (<code>sudo rmdir ~/my-sitee</code>), and run again with the right name.</p>
-    <p class="fa">راه‌حل: کانتینر را حذف کنید (<code>docker rm -f web</code>)، پوشه‌ی خالیِ اشتباه را پاک کنید (<code>sudo rmdir ~/my-sitee</code>) و با نام درست دوباره اجرا کنید.</p>
-  </details>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The container started with no error</span><span class="fa">کانتینر بدون خطا اجرا شد</span></span></label>
-    <label><input type="checkbox" data-id="s2-2"><span><span class="en">I know which path is on my PC and which is in the container</span><span class="fa">می‌دانم کدام مسیر روی کامپیوتر من است و کدام داخل کانتینر</span></span></label>
+<!-- ======================= 3 · MAKE A PAGE ======================= -->
+<section class="slide" data-title-en="Make a page on your PC" data-title-fa="ساختن یک صفحه روی کامپیوتر">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Make a page <span class="hl">on your PC</span></span><span class="fa split">ساختن یک صفحه <span class="hl">روی کامپیوتر</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">These commands run on <b>your PC</b>, not in a container. Make a folder called <code>my-site</code> in your home folder, and put a page in it with <code>echo</code>, like in Lesson 6:</span><span class="fa">این دستورها روی <b>کامپیوتر خودتان</b> اجرا می‌شوند، نه داخل کانتینر. یک پوشه به نام <code>my-site</code> در پوشه‌ی خانه‌تان بسازید و با <code>echo</code>، مثل درس ۶، یک صفحه در آن بگذارید:</span></p>
+  <div style="display:grid;grid-template-columns:860px 1fr;gap:30px;margin-top:22px;direction:ltr">
+    <div class="term sm a" style="--d:.5;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash · <span class="en">your PC</span><span class="fa">کامپیوتر شما</span></span></div>
+      <div class="body">
+        <div class="run" data-step="1"><div class="cmd">mkdir ~/my-site</div></div>
+        <div class="run" data-step="2"><div class="cmd">echo '&lt;h1&gt;Hello from my PC!&lt;/h1&gt;' &gt; ~/my-site/index.html</div></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Check what's in the file." data-task-fa="👉 محتوای فایل را بررسی کنید."><div class="cmd">cat ~/my-site/index.html</div><pre class="out">
+&lt;h1&gt;Hello from my PC!&lt;/h1&gt;</pre></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 500 360" class="a blur" style="--d:.6;width:500px;height:360px;overflow:visible">
+      <rect x="10" y="10" width="480" height="340" rx="22" fill="rgba(255,207,107,.05)" stroke="rgba(255,207,107,.4)"/>
+      <text x="34" y="48" fill="#ffcf6b" font-size="20" font-weight="700" class="stx en">💻 Your PC</text>
+      <text x="466" y="48" fill="#ffcf6b" font-size="21" font-weight="700" class="stx fa" direction="rtl">💻 کامپیوتر شما</text>
+      <g data-step="1" class="pop-in">
+        <use href="#folder" x="130" y="80" width="240" height="192"/>
+        <text x="250" y="310" text-anchor="middle" fill="#ffcf6b" font-size="20" font-family="JetBrains Mono,monospace">~/my-site</text>
+      </g>
+      <g data-step="2" class="pop-in">
+        <use href="#file" x="210" y="132" width="80" height="100"/>
+        <text x="250" y="252" text-anchor="middle" fill="#1a1d28" font-size="15" font-weight="700" font-family="JetBrains Mono,monospace">index.html</text>
+      </g>
+    </svg>
   </div>
 </section>
 
-<!-- ================= 3 OPEN ================= -->
-<section class="card step" id="s3">
-  <h2><span class="num">3</span>
-    <span class="en">Open it</span><span class="fa">باز کردن در مرورگر</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a>:</p>
-  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را باز کنید:</p>
-  <div class="browser">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Hello from my PC!</h1></div>
+<!-- ======================= 4 · MOUNT ======================= -->
+<section class="slide" data-title-en="Mount the folder with -v" data-title-fa="اتصال پوشه با ‎-v">
+  <div class="kicker a"><span class="en">Step 2</span><span class="fa">قدم ۲</span></div>
+  <h2><span class="en split">Mount the folder <span class="hl">with -v</span></span><span class="fa split">اتصال پوشه <span class="hl">با ‎-v</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Start nginx named &lt;code&gt;web&lt;/code&gt; on &lt;code&gt;localhost:8080&lt;/code&gt;, as before, plus &lt;code&gt;-v&lt;/code&gt;: share &lt;code&gt;~/my-site&lt;/code&gt; as nginx's page folder &lt;code&gt;/usr/share/nginx/html&lt;/code&gt;." data-task-fa="👉 nginx را با نام &lt;code&gt;web&lt;/code&gt; روی &lt;code&gt;localhost:8080&lt;/code&gt; مثل قبل اجرا کنید، به‌اضافه‌ی &lt;code&gt;-v&lt;/code&gt;: پوشه‌ی &lt;code&gt;~/my-site&lt;/code&gt; را به‌عنوان پوشه‌ی صفحه‌های nginx یعنی &lt;code&gt;/usr/share/nginx/html&lt;/code&gt; به اشتراک بگذارید."><div class="cmd">docker run -d --name web -p 8080:80 -v ~/my-site:/usr/share/nginx/html nginx</div><pre class="out">
+3f9a2c7e1b4d8a6f0c5e9b2d7a1f4c8e6b0d3a9f2c5e8b1d4a7f0c3e6b9d2a5f</pre></div>
+    </div>
   </div>
-  <p class="en">nginx is serving the file from <b>your PC</b>. No “Welcome to nginx!” this time.</p>
-  <p class="fa">nginx فایل را از <b>کامپیوتر شما</b> سرو می‌کند. این بار خبری از «Welcome to nginx!» نیست.</p>
-  <details class="q">
-    <summary><span class="en">❓ Where did the original welcome page go?</span><span class="fa">❓ صفحه‌ی خوش‌آمد اصلی کجا رفت؟</span></summary>
-    <p class="en">Your folder is placed <b>on top of</b> the container's folder and hides what the image had there. Look inside:</p>
-    <p class="fa">پوشه‌ی شما <b>روی</b> پوشه‌ی کانتینر قرار می‌گیرد و چیزی را که ایمیج آنجا داشت پنهان می‌کند. داخلش را ببینید:</p>
-    <div class="code"><span class="lbl">bash</span><pre><code>docker exec web ls /usr/share/nginx/html</code></pre></div>
-    <div class="code"><span class="lbl">output</span><pre><code>index.html</code></pre></div>
-    <p class="en">Only your file. <code>50x.html</code> is hidden. The image itself didn't change: without <code>-v</code> you'd get the welcome page again.</p>
-    <p class="fa">فقط فایل شما. <code>50x.html</code> پنهان شده. خود ایمیج تغییری نکرده: بدون <code>-v</code> دوباره صفحه‌ی خوش‌آمد را می‌بینید.</p>
-  </details>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s3-1"><span><span class="en">The browser shows “Hello from my PC!”</span><span class="fa">مرورگر «Hello from my PC!» را نشان می‌دهد</span></span></label>
-  </div>
-</section>
-
-<!-- ================= 4 EDIT ================= -->
-<section class="card step" id="s4">
-  <h2><span class="num">4</span>
-    <span class="en">Edit the page on your PC</span><span class="fa">ویرایش صفحه روی کامپیوتر</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">On your PC (no <code>exec</code>, no container), replace the text in <code>~/my-site/index.html</code> with <code>&lt;h1&gt;Changed on my PC!&lt;/h1&gt;</code>:</p>
-  <p class="fa">روی کامپیوتر خودتان (بدون <code>exec</code>، بدون کانتینر)، متن <code>~/my-site/index.html</code> را با <code>&lt;h1&gt;Changed on my PC!&lt;/h1&gt;</code> جایگزین کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>echo '&lt;h1&gt;Changed on my PC!&lt;/h1&gt;' &gt; ~/my-site/index.html</code></pre></div>
-  <p class="en">Reload the browser:</p>
-  <p class="fa">مرورگر را reload کنید:</p>
-  <div class="browser">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Changed on my PC!</h1></div>
-  </div>
-  <p class="en">The change shows up <b>right away</b>: no restart, no <code>exec</code>. You can also edit the file in any editor on your PC (VS Code, gedit, …).</p>
-  <p class="fa">تغییر <b>بلافاصله</b> دیده می‌شود: بدون ری‌استارت، بدون <code>exec</code>. می‌توانید فایل را با هر ویرایشگری روی کامپیوترتان هم ویرایش کنید (VS Code، gedit و …).</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s4-1"><span><span class="en">After reloading, the browser shows “Changed on my PC!”</span><span class="fa">بعد از reload، مرورگر «Changed on my PC!» را نشان می‌دهد</span></span></label>
+  <div style="display:grid;grid-template-columns:820px 1fr;gap:30px;margin-top:22px;direction:ltr">
+    <svg viewBox="0 0 820 360" data-step="3" style="width:820px;height:360px;overflow:visible">
+      <rect x="0" y="10" width="330" height="300" rx="20" fill="rgba(255,207,107,.05)" stroke="rgba(255,207,107,.4)"/>
+      <text x="20" y="44" fill="#ffcf6b" font-size="19" font-weight="700" class="stx en">💻 Your PC</text>
+      <text x="310" y="44" fill="#ffcf6b" font-size="20" font-weight="700" class="stx fa" direction="rtl">💻 کامپیوتر شما</text>
+      <use href="#folder" x="85" y="80" width="160" height="128"/>
+      <use href="#file" x="138" y="120" width="54" height="68"/>
+      <text x="165" y="240" text-anchor="middle" fill="#ffcf6b" font-size="17" font-family="JetBrains Mono,monospace">~/my-site/index.html</text>
+      <rect x="490" y="10" width="330" height="300" rx="20" fill="rgba(60,207,127,.05)" stroke="rgba(60,207,127,.4)"/>
+      <text x="510" y="44" fill="#3ccf7f" font-size="19" font-weight="700" class="stx en">📦 Container web</text>
+      <text x="800" y="44" fill="#3ccf7f" font-size="20" font-weight="700" class="stx fa" direction="rtl">📦 کانتینر web</text>
+      <use href="#folder" x="575" y="80" width="160" height="128"/>
+      <use href="#file" x="628" y="120" width="54" height="68"/>
+      <text x="655" y="240" text-anchor="middle" fill="#3ccf7f" font-size="14" font-family="JetBrains Mono,monospace">/usr/share/nginx/html/index.html</text>
+      <path id="both" d="M340 150H480" stroke="#ffcf6b" stroke-width="4" stroke-dasharray="8 8" class="flow" fill="none"/>
+      <path d="M352 138l-12 12 12 12M468 138l12 12-12 12" fill="none" stroke="#ffcf6b" stroke-width="4"/>
+      <circle r="7" fill="#ffcf6b"><animateMotion dur="1.6s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;.5;1" calcMode="linear"><mpath href="#both"/></animateMotion></circle>
+      <text x="410" y="126" text-anchor="middle" fill="#ffcf6b" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">-v</text>
+      <text x="410" y="348" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="600" class="stx en">same folder, seen from both sides</text>
+      <text x="410" y="348" text-anchor="middle" fill="#eef2fb" font-size="19" font-weight="600" class="stx fa" direction="rtl">یک پوشه، از هر دو طرف</text>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card sm" data-step="2"><div class="n"><span class="en">AS IN LESSON 8: YOUR PC FIRST</span><span class="fa">مثل درس ۸: اول کامپیوتر شما</span></div><p><code class="cv-pc">~/my-site</code> <span class="en">The folder on <b>your PC</b></span><span class="fa">پوشه روی <b>کامپیوتر شما</b></span></p></div>
+      <div class="card sm" data-step="2" style="transition-delay:.2s"><p><code class="cv-ctr">/usr/share/nginx/html</code> <span class="en">The folder <b>inside the container</b> where nginx looks for pages. You saw it in Lesson 6</span><span class="fa">پوشه‌ی <b>داخل کانتینر</b> که nginx صفحه‌ها را آنجا پیدا می‌کند. در درس ۶ آن را دیدید</span></p></div>
+      <div class="card sm key" data-step="3"><div class="n">🔑</div><p><span class="en">It's not a copy. The container sees <b>the same folder</b> as your PC.</span><span class="fa">این یک کپی نیست. کانتینر <b>همان پوشه‌ی</b> کامپیوتر شما را می‌بیند.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 5 READ-ONLY ================= -->
-<section class="card step" id="s5">
-  <h2><span class="num">5</span>
-    <span class="en">Read-only: protect your files with <code>:ro</code></span><span class="fa">فقط‌خواندنی: محافظت از فایل‌ها با <code>:ro</code></span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">nginx only needs to <b>read</b> your page, but right now the container could also <b>change</b> or delete your files. Add <code>:ro</code> (<b>read-only</b>) at the end of <code>-v</code> so it can't.</p>
-  <p class="fa">nginx فقط لازم دارد صفحه‌ی شما را <b>بخواند</b>، ولی الان کانتینر می‌تواند فایل‌های شما را <b>تغییر</b> دهد یا حذف کند. <code>:ro</code> (<b>read-only</b>، فقط‌خواندنی) را به آخر <code>-v</code> اضافه کنید تا نتواند.</p>
-  <p class="en">Delete <code>web</code> in one command:</p>
-  <p class="fa"><code>web</code> را با یک دستور حذف کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web</code></pre></div>
-  <p class="en">Start it again with <code>:ro</code>:</p>
-  <p class="fa">با <code>:ro</code> دوباره اجرایش کنید:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 -v ~/my-site:/usr/share/nginx/html:ro nginx</code></pre></div>
-  <p class="en">The page still works. Now go inside <code>web</code> and try to overwrite it with <code>&lt;h1&gt;Hacked!&lt;/h1&gt;</code>, like in Lesson 6:</p>
-  <p class="fa">صفحه هنوز کار می‌کند. حالا به داخل <code>web</code> بروید و سعی کنید آن را با <code>&lt;h1&gt;Hacked!&lt;/h1&gt;</code> بازنویسی کنید، مثل درس ۶:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker exec -it web bash</code></pre></div>
-  <div class="code reveal"><span class="lbl">bash · inside</span><pre><code>echo '&lt;h1&gt;Hacked!&lt;/h1&gt;' &gt; /usr/share/nginx/html/index.html</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>bash: /usr/share/nginx/html/index.html: Read-only file system</code></pre></div>
-  <p class="en">✅ Refused. The container can only read the folder. Leave the shell:</p>
-  <p class="fa">✅ رد شد. کانتینر فقط می‌تواند پوشه را بخواند. از شل خارج شوید:</p>
-  <div class="code reveal"><span class="lbl">bash · inside</span><pre><code>exit</code></pre></div>
-  <p class="en">You can still edit the page <b>on your PC</b>, and the browser shows the change as before. <code>:ro</code> only limits the container.</p>
-  <p class="fa">هنوز می‌توانید صفحه را <b>روی کامپیوترتان</b> ویرایش کنید و مرورگر مثل قبل تغییر را نشان می‌دهد. <code>:ro</code> فقط کانتینر را محدود می‌کند.</p>
-  <div class="note key">
-    <p class="en">🔑 If a container only needs to read a folder, mount it with <code>:ro</code>. A bug or an attacker inside the container can't damage your files.</p>
-    <p class="fa">🔑 اگر کانتینری فقط لازم دارد یک پوشه را بخواند، آن را با <code>:ro</code> mount کنید. یک باگ یا مهاجم داخل کانتینر نمی‌تواند به فایل‌های شما آسیب بزند.</p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s5-ro"><span><span class="en">Writing inside the container gave <code>Read-only file system</code></span><span class="fa">نوشتن داخل کانتینر خطای <code>Read-only file system</code> داد</span></span></label>
+<!-- ======================= 5 · OPEN IT ======================= -->
+<section class="slide" data-title-en="Open it" data-title-fa="باز کردن در مرورگر">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Open <span class="hl">localhost:8080</span></span><span class="fa split"><span class="hl">localhost:8080</span> را باز کنید</span></h2>
+  <div style="display:grid;grid-template-columns:1fr 600px;gap:40px;margin-top:30px;direction:ltr">
+    <svg viewBox="0 0 760 520" class="a blur" style="--d:.4;width:760px;height:520px;overflow:visible">
+      <use href="#folder" x="20" y="70" width="170" height="136"/>
+      <use href="#file" x="78" y="112" width="56" height="70"/>
+      <text x="105" y="240" text-anchor="middle" fill="#ffcf6b" font-size="17" font-family="JetBrains Mono,monospace">~/my-site</text>
+      <path id="p1" d="M200 140H310" stroke="#ffcf6b" stroke-width="4" stroke-dasharray="8 8" class="flow" fill="none"/>
+      <g transform="translate(400 140)"><use href="#cube" x="-75" y="-82" width="150" height="150"/></g>
+      <text x="400" y="250" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">web · nginx</text>
+      <path id="p2" d="M490 140C620 140 640 250 640 330" stroke="#3ccf7f" stroke-width="4" stroke-dasharray="8 8" class="flow" fill="none"/>
+      <text x="610" y="190" fill="#3ccf7f" font-size="17" font-family="JetBrains Mono,monospace">:8080</text>
+      <g><use href="#file" x="-14" y="-18" width="28" height="35"/><animateMotion dur="2.6s" repeatCount="indefinite" path="M200 140H310M490 140C620 140 640 250 640 330"/></g>
+      <g transform="translate(330 340)">
+        <rect width="420" height="170" rx="14" fill="#f4f6fb"/>
+        <rect width="420" height="36" rx="14" fill="#dfe4ee"/><rect y="20" width="420" height="16" fill="#dfe4ee"/>
+        <circle cx="20" cy="18" r="6" fill="#ff5f57"/><circle cx="38" cy="18" r="6" fill="#febc2e"/><circle cx="56" cy="18" r="6" fill="#28c840"/>
+        <rect x="76" y="8" width="330" height="20" rx="6" fill="#fff"/><text x="88" y="23" fill="#455" font-size="13" font-family="JetBrains Mono,monospace">localhost:8080</text>
+        <text x="24" y="108" fill="#111" font-size="34" font-weight="700" font-family="Times New Roman,serif">Hello from my PC!</text>
+      </g>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card" data-step="1"><div class="n">✅</div><p><span class="en">nginx is serving the file from <b>your PC</b>. No “Welcome to nginx!” this time.</span><span class="fa">nginx فایل را از <b>کامپیوتر شما</b> سرو می‌کند. این بار خبری از «Welcome to nginx!» نیست.</span></p></div>
+      <div class="card sm" data-step="2"><div class="n"><span class="en">❓ 403 FORBIDDEN?</span><span class="fa">❓ 403 Forbidden؟</span></div><p><span class="en">You probably mistyped the folder on your PC (e.g. <code>~/my-sitee</code>). Docker doesn't complain: it silently creates a new, <b>empty</b> folder with that name, owned by <code>root</code>. nginx finds no page there and answers 403.</span><span class="fa">احتمالاً نام پوشه‌ی کامپیوترتان را اشتباه تایپ کرده‌اید (مثلاً <code>~/my-sitee</code>). Docker خطا نمی‌دهد: بی‌صدا یک پوشه‌ی جدید و <b>خالی</b> با آن نام می‌سازد که مال <code>root</code> است. nginx آنجا صفحه‌ای پیدا نمی‌کند و 403 جواب می‌دهد.</span></p></div>
+      <div class="card sm tip" data-step="3"><div class="n"><span class="en">FIX</span><span class="fa">راه‌حل</span></div><p><span class="en">Delete the container (<code>docker rm -f web</code>), remove the wrong empty folder (<code>sudo rmdir ~/my-sitee</code>), and run again with the right name.</span><span class="fa">کانتینر را حذف کنید (<code>docker rm -f web</code>)، پوشه‌ی خالیِ اشتباه را پاک کنید (<code>sudo rmdir ~/my-sitee</code>) و با نام درست دوباره اجرا کنید.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 6 CLEAN UP ================= -->
-<section class="card step" id="s6">
-  <h2><span class="num">6</span>
-    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web</code></pre></div>
-  <div class="note key">
-    <p class="en">🔑 Deleting the container doesn't touch <code>~/my-site</code>. Keep the folder: we'll use it again in Lesson 17.</p>
-    <p class="fa">🔑 حذف کانتینر به <code>~/my-site</code> دست نمی‌زند. پوشه را نگه دارید: در درس ۱۷ دوباره از آن استفاده می‌کنیم.</p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s6-1"><span><span class="en"><code>web</code> is deleted, and <code>~/my-site</code> is still on my PC</span><span class="fa"><code>web</code> حذف شد و <code>~/my-site</code> هنوز روی کامپیوتر من است</span></span></label>
+<!-- ======================= 6 · WHERE DID THE WELCOME PAGE GO ======================= -->
+<section class="slide" data-title-en="Where did the welcome page go?" data-title-fa="صفحه‌ی خوش‌آمد کجا رفت؟">
+  <div class="kicker a"><span class="en">Step 3 · A question</span><span class="fa">قدم ۳ · یک سؤال</span></div>
+  <h2><span class="en split">Where did the <span class="hl">welcome page</span> go?</span><span class="fa split">صفحه‌ی <span class="hl">خوش‌آمد</span> اصلی کجا رفت؟</span></h2>
+  <div style="display:grid;grid-template-columns:640px 1fr;gap:40px;margin-top:26px;direction:ltr">
+    <svg viewBox="0 0 640 560" class="a blur" style="--d:.4;width:640px;height:560px;overflow:visible">
+      <rect x="10" y="190" width="620" height="350" rx="22" fill="rgba(60,207,127,.05)" stroke="rgba(60,207,127,.45)"/>
+      <text x="30" y="530" fill="#3ccf7f" font-size="17" class="stx en">📦 container web · /usr/share/nginx/html</text>
+      <text x="610" y="530" fill="#3ccf7f" font-size="18" class="stx fa" direction="rtl">📦 کانتینر web · ‎/usr/share/nginx/html</text>
+      <g>
+        <use href="#file" x="150" y="290" width="100" height="125"/>
+        <text x="200" y="450" text-anchor="middle" fill="#eef2fb" font-size="17" font-family="JetBrains Mono,monospace">index.html</text>
+        <text x="200" y="474" text-anchor="middle" fill="#93a0bb" font-size="14" font-family="JetBrains Mono,monospace">Welcome to nginx!</text>
+        <use href="#file" x="390" y="290" width="100" height="125"/>
+        <text x="440" y="450" text-anchor="middle" fill="#eef2fb" font-size="17" font-family="JetBrains Mono,monospace">50x.html</text>
+      </g>
+      <text x="320" y="240" text-anchor="middle" fill="#93a0bb" font-size="17" class="stx en">what the image has</text>
+      <text x="320" y="240" text-anchor="middle" fill="#93a0bb" font-size="18" class="stx fa" direction="rtl">چیزی که ایمیج دارد</text>
+      <g class="cover" data-step="1">
+        <rect x="40" y="200" width="560" height="300" rx="20" fill="#2a2010" stroke="#ffcf6b" stroke-width="3"/>
+        <rect x="40" y="200" width="560" height="300" rx="20" fill="rgba(255,207,107,.12)"/>
+        <use href="#folder" x="90" y="250" width="160" height="128"/>
+        <use href="#file" x="380" y="270" width="100" height="125"/>
+        <text x="430" y="430" text-anchor="middle" fill="#eef2fb" font-size="17" font-family="JetBrains Mono,monospace">index.html</text>
+        <text x="430" y="454" text-anchor="middle" fill="#ffcf6b" font-size="14" font-family="JetBrains Mono,monospace">Hello from my PC!</text>
+        <text x="170" y="410" text-anchor="middle" fill="#ffcf6b" font-size="18" font-family="JetBrains Mono,monospace">~/my-site</text>
+      </g>
+      <g data-step="1">
+        <text x="320" y="120" text-anchor="middle" fill="#ffcf6b" font-size="22" font-weight="700" class="stx en">your folder goes on top</text>
+        <text x="320" y="120" text-anchor="middle" fill="#ffcf6b" font-size="23" font-weight="700" class="stx fa" direction="rtl">پوشه‌ی شما روی آن قرار می‌گیرد</text>
+        <path d="M320 140V185" stroke="#ffcf6b" stroke-width="3" class="flow"/><path d="M310 175l10 12 10-12" fill="none" stroke="#ffcf6b" stroke-width="3"/>
+      </g>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card" data-step="1"><p><span class="en">Your folder is placed <b>on top of</b> the container's folder and hides what the image had there. Look inside:</span><span class="fa">پوشه‌ی شما <b>روی</b> پوشه‌ی کانتینر قرار می‌گیرد و چیزی را که ایمیج آنجا داشت پنهان می‌کند. داخلش را ببینید:</span></p></div>
+      <div class="term sm" data-step="2">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run" data-step="2"><div class="cmd">docker exec web ls /usr/share/nginx/html</div><pre class="out">
+index.html</pre></div>
+        </div>
+      </div>
+      <div class="card key" data-step="3"><div class="n">🔑</div><p><span class="en">Only your file. <code>50x.html</code> is hidden. The image itself didn't change: without <code>-v</code> you'd get the welcome page again.</span><span class="fa">فقط فایل شما. <code>50x.html</code> پنهان شده. خود ایمیج تغییری نکرده: بدون <code>-v</code> دوباره صفحه‌ی خوش‌آمد را می‌بینید.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= SUMMARY ================= -->
-<section class="card" id="sum">
-  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><code>-v PC_FOLDER:CONTAINER_FOLDER</code></td><td><span class="en">Share a folder from your PC with the container</span><span class="fa">اشتراک یک پوشه‌ی کامپیوتر شما با کانتینر</span></td></tr>
-      <tr><td><span class="en">Edit on your PC</span><span class="fa">ویرایش روی کامپیوتر</span></td><td><span class="en">The container sees it right away</span><span class="fa">کانتینر بلافاصله آن را می‌بیند</span></td></tr>
-      <tr><td><code>-v …:…:ro</code></td><td><span class="en">Mount read-only: the container can read but not change your files</span><span class="fa">mount فقط‌خواندنی: کانتینر می‌تواند فایل‌ها را بخواند ولی تغییر ندهد</span></td></tr>
-      <tr><td><code>docker rm</code></td><td><span class="en">Deletes the container, never your folder</span><span class="fa">کانتینر را حذف می‌کند، هرگز پوشه‌ی شما را</span></td></tr>
-    </tbody>
-  </table>
+<!-- ======================= 7 · EDIT ======================= -->
+<section class="slide" data-title-en="Edit the page on your PC" data-title-fa="ویرایش صفحه روی کامپیوتر">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">Edit the page <span class="hl">on your PC</span></span><span class="fa split">ویرایش صفحه <span class="hl">روی کامپیوتر</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash · <span class="en">your PC</span><span class="fa">کامپیوتر شما</span></span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 On your PC (no &lt;code&gt;exec&lt;/code&gt;, no container), replace the text in &lt;code&gt;~/my-site/index.html&lt;/code&gt; with &lt;code&gt;&amp;lt;h1&amp;gt;Changed on my PC!&amp;lt;/h1&amp;gt;&lt;/code&gt;" data-task-fa="👉 روی کامپیوتر خودتان (بدون &lt;code&gt;exec&lt;/code&gt;، بدون کانتینر)، متن &lt;code&gt;~/my-site/index.html&lt;/code&gt; را با &lt;code&gt;&amp;lt;h1&amp;gt;Changed on my PC!&amp;lt;/h1&amp;gt;&lt;/code&gt; جایگزین کنید."><div class="cmd">echo '&lt;h1&gt;Changed on my PC!&lt;/h1&gt;' &gt; ~/my-site/index.html</div></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 560px;gap:40px;margin-top:24px;direction:ltr;align-items:start">
+    <svg viewBox="0 0 800 300" class="a blur" style="--d:.5;width:800px;height:300px;overflow:visible">
+      <use href="#folder" x="10" y="60" width="180" height="144"/>
+      <use href="#file" x="72" y="104" width="60" height="75"/>
+      <g data-step="2"><path d="M136 100l40-40 14 14-40 40-20 6z" fill="#ffb54d" class="pen"/></g>
+      <text x="100" y="236" text-anchor="middle" fill="#ffcf6b" font-size="17" font-family="JetBrains Mono,monospace">~/my-site</text>
+      <path id="e1" d="M200 140H290" stroke="#ffcf6b" stroke-width="4" stroke-dasharray="8 8" class="flow" fill="none"/>
+      <g transform="translate(370 140)"><use href="#cube" x="-65" y="-72" width="130" height="130"/></g>
+      <text x="370" y="236" text-anchor="middle" fill="#eef2fb" font-size="17" font-weight="700" font-family="JetBrains Mono,monospace">web</text>
+      <path id="e2" d="M450 140H560" stroke="#3ccf7f" stroke-width="4" stroke-dasharray="8 8" class="flow" fill="none"/>
+      <g data-step="2"><circle r="9" fill="#ffb54d"><animateMotion dur="1.4s" repeatCount="indefinite" path="M200 140H290M450 140H560"/></circle></g>
+      <g transform="translate(570 70)">
+        <rect width="230" height="140" rx="12" fill="#f4f6fb"/>
+        <rect width="230" height="28" rx="12" fill="#dfe4ee"/><rect y="16" width="230" height="12" fill="#dfe4ee"/>
+        <circle cx="16" cy="14" r="5" fill="#ff5f57"/><circle cx="31" cy="14" r="5" fill="#febc2e"/><circle cx="46" cy="14" r="5" fill="#28c840"/>
+        <text x="62" y="19" fill="#455" font-size="11" font-family="JetBrains Mono,monospace">localhost:8080 ⟳</text>
+        <text x="16" y="88" fill="#111" font-size="21" font-weight="700" font-family="Times New Roman,serif" data-only="0 1">Hello from my PC!</text>
+        <text x="16" y="88" fill="#111" font-size="21" font-weight="700" font-family="Times New Roman,serif" data-step="2" class="reload">Changed on my PC!</text>
+      </g>
+      <text x="685" y="244" text-anchor="middle" fill="#93a0bb" font-size="16" class="stx en">reload the browser</text>
+      <text x="685" y="244" text-anchor="middle" fill="#93a0bb" font-size="17" class="stx fa" direction="rtl">مرورگر را reload کنید</text>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card key" data-step="2"><div class="n"><span class="en">RIGHT AWAY</span><span class="fa">بلافاصله</span></div><p><span class="en">The change shows up <b>right away</b>: no restart, no <code>exec</code>.</span><span class="fa">تغییر <b>بلافاصله</b> دیده می‌شود: بدون ری‌استارت، بدون <code>exec</code>.</span></p></div>
+      <div class="card sm tip" data-step="3"><div class="n">💡</div><p><span class="en">You can also edit the file in any editor on your PC (VS Code, gedit, …).</span><span class="fa">می‌توانید فایل را با هر ویرایشگری روی کامپیوترتان هم ویرایش کنید (VS Code، gedit و …).</span></p></div>
+    </div>
   </div>
 </section>
 
-<div class="done-banner" id="doneBanner">
-  <h2>🎉 <span class="en">Your page now lives on your PC!</span><span class="fa">حالا صفحه‌ی شما روی کامپیوتر خودتان است!</span></h2>
-  <p id="nextLine"></p>
+<!-- ======================= 8 · READ-ONLY ======================= -->
+<section class="slide" data-title-en="Read-only with :ro" data-title-fa="فقط‌خواندنی با ‎:ro">
+  <div class="kicker a"><span class="en">Step 5</span><span class="fa">قدم ۵</span></div>
+  <h2><span class="en split">Protect your files <span class="hl">with :ro</span></span><span class="fa split">محافظت از فایل‌ها <span class="hl">با ‎:ro</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">nginx only needs to <b>read</b> your page, but right now the container could also <b>change</b> or delete your files. Add <code>:ro</code> (<b>read-only</b>) at the end of <code>-v</code> so it can't.</span><span class="fa">nginx فقط لازم دارد صفحه‌ی شما را <b>بخواند</b>، ولی الان کانتینر می‌تواند فایل‌های شما را <b>تغییر</b> دهد یا حذف کند. <code>:ro</code> (<b><bdi>read-only</bdi></b>، فقط‌خواندنی) را به آخر <code>-v</code> اضافه کنید تا نتواند.</span></p>
+  <div class="term sm a" style="--d:.5;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Delete web in one command." data-task-fa="👉 web را با یک دستور حذف کنید."><div class="cmd">docker rm -f web</div><pre class="out">
+web</pre></div>
+      <div class="run" data-step="3"><div class="cmd">docker run -d --name web -p 8080:80 -v ~/my-site:/usr/share/nginx/html:ro nginx</div><pre class="out">
+9e4b1d7a3c6f0e2b8d5a1c4f7e0b3d6a9c2f5e8b1d4a7c0f3e6b9d2a5c8f1e4b</pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:22px;direction:ltr;align-items:center">
+    <svg viewBox="0 0 660 200" data-step="4" style="width:660px;height:200px;overflow:visible">
+      <use href="#folder" x="20" y="40" width="150" height="120"/>
+      <text x="95" y="190" text-anchor="middle" fill="#ffcf6b" font-size="16" font-family="JetBrains Mono,monospace">~/my-site</text>
+      <path id="rd" d="M480 80H190" stroke="#3ccf7f" stroke-width="4" stroke-dasharray="8 8" class="flow" fill="none"/>
+      <circle r="7" fill="#3ccf7f"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#rd"/></animateMotion></circle>
+      <text x="335" y="66" text-anchor="middle" fill="#3ccf7f" font-size="17" font-weight="700" class="stx en">read ✓</text>
+      <text x="335" y="66" text-anchor="middle" fill="#3ccf7f" font-size="18" font-weight="700" class="stx fa" direction="rtl">خواندن ✓</text>
+      <path d="M480 130H330" stroke="#ff6b6b" stroke-width="4" stroke-dasharray="8 8"/>
+      <path d="M200 130H280" stroke="rgba(255,107,107,.3)" stroke-width="4" stroke-dasharray="8 8"/>
+      <text x="305" y="141" text-anchor="middle" font-size="30">🔒</text>
+      <text x="400" y="162" text-anchor="middle" fill="#ff6b6b" font-size="17" font-weight="700" class="stx en">write ✕</text>
+      <text x="400" y="162" text-anchor="middle" fill="#ff6b6b" font-size="18" font-weight="700" class="stx fa" direction="rtl">نوشتن ✕</text>
+      <g transform="translate(560 105)"><use href="#cube" x="-62" y="-68" width="124" height="124"/></g>
+    </svg>
+    <div class="card sm" data-step="4"><p><span class="en">The page still works. <code class="cv-ro">:ro</code> only limits the <b>container</b>: it can read the folder, but not change it.</span><span class="fa">صفحه هنوز کار می‌کند. <code class="cv-ro">:ro</code> فقط <b>کانتینر</b> را محدود می‌کند: می‌تواند پوشه را بخواند، ولی نمی‌تواند تغییرش دهد.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 9 · TRY TO CHANGE IT ======================= -->
+<section class="slide" data-title-en="Try to change it from inside" data-title-fa="تلاش برای تغییر از داخل">
+  <div class="kicker a"><span class="en">Step 5 · Test it</span><span class="fa">قدم ۵ · امتحانش کنید</span></div>
+  <h2><span class="en split">Try to <span class="hl">change it</span> from inside</span><span class="fa split">سعی کنید <span class="hl">از داخل تغییرش دهید</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">Go inside <code>web</code> and try to overwrite the page with <code>&lt;h1&gt;Hacked!&lt;/h1&gt;</code>, like in Lesson 6:</span><span class="fa">به داخل <code>web</code> بروید و سعی کنید صفحه را با <code>&lt;h1&gt;Hacked!&lt;/h1&gt;</code> بازنویسی کنید، مثل درس ۶:</span></p>
+  <div style="display:grid;grid-template-columns:900px 1fr;gap:30px;margin-top:20px;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="term sm a" style="--d:.5">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Open a shell inside &lt;code&gt;web&lt;/code&gt;." data-task-fa="👉 یک شل داخل &lt;code&gt;web&lt;/code&gt; باز کنید."><div class="cmd">docker exec -it web bash</div></div>
+        </div>
+      </div>
+      <div class="term sm" data-step="3">
+        <div class="bar"><i></i><i></i><i></i><span>bash · <span class="en">inside web</span><span class="fa">داخل web</span></span></div>
+        <div class="body">
+          <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Overwrite &lt;code&gt;index.html&lt;/code&gt; with &lt;code&gt;&amp;lt;h1&amp;gt;Hacked!&amp;lt;/h1&amp;gt;&lt;/code&gt;" data-task-fa="👉 &lt;code&gt;index.html&lt;/code&gt; را با &lt;code&gt;&amp;lt;h1&amp;gt;Hacked!&amp;lt;/h1&amp;gt;&lt;/code&gt; بازنویسی کنید."><div class="cmd">echo '&lt;h1&gt;Hacked!&lt;/h1&gt;' &gt; /usr/share/nginx/html/index.html</div><pre class="out">
+<span class="err">bash: /usr/share/nginx/html/index.html: Read-only file system</span></pre></div>
+          <div class="run recall" data-step="6" data-reveal="7" data-task-en="👉 Leave the shell." data-task-fa="👉 از شل خارج شوید."><div class="cmd">exit</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <svg viewBox="0 0 480 200" class="a blur" style="--d:.6;width:480px;height:200px;overflow:visible">
+        <use href="#folder" x="20" y="40" width="150" height="120"/>
+        <text x="95" y="190" text-anchor="middle" fill="#ffcf6b" font-size="16" font-family="JetBrains Mono,monospace">~/my-site</text>
+        <text x="95" y="30" text-anchor="middle" font-size="30">🔒</text>
+        <g transform="translate(390 100)"><use href="#cube" x="-62" y="-68" width="124" height="124"/></g>
+        <g data-step="4">
+          <path d="M320 100H200" stroke="#ff6b6b" stroke-width="4" stroke-dasharray="8 8"/>
+          <circle r="10" fill="#ff6b6b"><animateMotion dur="1.2s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;.5;1" calcMode="linear" path="M320 100H200"/></circle>
+          <text x="260" y="80" text-anchor="middle" fill="#ff6b6b" font-size="18" font-weight="700" class="stx en">refused</text>
+          <text x="260" y="80" text-anchor="middle" fill="#ff6b6b" font-size="19" font-weight="700" class="stx fa" direction="rtl">رد شد</text>
+        </g>
+      </svg>
+      <div class="stack" style="height:330px">
+        <div class="card sm tip" data-only="4 5 6"><div class="n">✅</div><p><span class="en">Refused. The container can only read the folder.</span><span class="fa">رد شد. کانتینر فقط می‌تواند پوشه را بخواند.</span></p></div>
+        <div class="card sm" data-only="5 6" style="top:110px"><p><span class="en">You can still edit the page <b>on your PC</b>, and the browser shows the change as before.</span><span class="fa">هنوز می‌توانید صفحه را <b>روی کامپیوترتان</b> ویرایش کنید و مرورگر مثل قبل تغییر را نشان می‌دهد.</span></p></div>
+        <div class="card key" data-step="7"><div class="n">🔑</div><p><span class="en">If a container only needs to read a folder, mount it with <code>:ro</code>. A bug or an attacker inside the container can't damage your files.</span><span class="fa">اگر کانتینری فقط لازم دارد یک پوشه را بخواند، آن را با <code>:ro</code> mount کنید. یک باگ یا مهاجم داخل کانتینر نمی‌تواند به فایل‌های شما آسیب بزند.</span></p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 10 · CLEAN UP ======================= -->
+<section class="slide" data-title-en="Clean up" data-title-fa="تمیزکاری">
+  <div class="kicker a"><span class="en">Step 6</span><span class="fa">قدم ۶</span></div>
+  <h2><span class="en split">Clean <span class="hl">up</span></span><span class="fa split"><span class="hl">تمیزکاری</span></span></h2>
+  <div style="display:grid;grid-template-columns:760px 1fr;gap:40px;margin-top:30px;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="term a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Delete web in one command." data-task-fa="👉 web را با یک دستور حذف کنید."><div class="cmd">docker rm -f web</div><pre class="out">
+web</pre></div>
+        </div>
+      </div>
+      <div class="card key" data-step="3"><div class="n">🔑</div><p><span class="en">Deleting the container doesn't touch <code>~/my-site</code>. Keep the folder: we'll use it again in Lesson 17.</span><span class="fa">حذف کانتینر به <code>~/my-site</code> دست نمی‌زند. پوشه را نگه دارید: در درس ۱۷ دوباره از آن استفاده می‌کنیم.</span></p></div>
+    </div>
+    <svg viewBox="0 0 560 420" class="a blur" style="--d:.5;width:560px;height:420px;overflow:visible">
+      <use href="#folder" x="20" y="150" width="200" height="160"/>
+      <use href="#file" x="86" y="204" width="68" height="85"/>
+      <text x="120" y="350" text-anchor="middle" fill="#ffcf6b" font-size="19" font-family="JetBrains Mono,monospace">~/my-site</text>
+      <g class="crash" data-only="0 1">
+        <path d="M230 230H330" stroke="#ffcf6b" stroke-width="4" stroke-dasharray="8 8" class="flow"/>
+        <g transform="translate(430 230)"><use href="#cube" x="-80" y="-88" width="160" height="160"/></g>
+        <text x="430" y="350" text-anchor="middle" fill="#eef2fb" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">web</text>
+      </g>
+      <g data-step="3">
+        <text x="120" y="120" text-anchor="middle" fill="#3ccf7f" font-size="22" font-weight="700" class="stx en">✓ still here</text>
+        <text x="120" y="120" text-anchor="middle" fill="#3ccf7f" font-size="23" font-weight="700" class="stx fa" direction="rtl">✓ هنوز اینجاست</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================= 11 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 Your page now lives <span class="hl">on your PC!</span></span><span class="fa split">🎉 حالا صفحه‌ی شما <span class="hl">روی کامپیوتر خودتان است!</span></span></h2>
+  <div class="sumgrid">
+    <div class="card a" style="--d:.4"><code>-v PC_FOLDER:CONTAINER_FOLDER</code><p><span class="en">Share a folder from your PC with the container</span><span class="fa">اشتراک یک پوشه‌ی کامپیوتر شما با کانتینر</span></p></div>
+    <div class="card a" style="--d:.55"><code><span class="en">Edit on your PC</span><span class="fa">ویرایش روی کامپیوتر</span></code><p><span class="en">The container sees it right away</span><span class="fa">کانتینر بلافاصله آن را می‌بیند</span></p></div>
+    <div class="card a" style="--d:.7"><code>-v …:…:ro</code><p><span class="en">Mount read-only: the container can read but not change your files</span><span class="fa">mount فقط‌خواندنی: کانتینر می‌تواند فایل‌ها را بخواند ولی تغییر ندهد</span></p></div>
+    <div class="card a" style="--d:.85"><code>docker rm</code><p><span class="en">Deletes the container, never your folder</span><span class="fa">کانتینر را حذف می‌کند، هرگز پوشه‌ی شما را</span></p></div>
+  </div>
+  <div class="btnrow a" style="--d:1.1">
+    <a class="bigbtn primary" href="11-env.html"><span class="en">Next: Lesson 11 · Settings with environment variables →</span><span class="fa">بعدی: درس ۱۱ · تنظیمات با متغیرهای محیطی ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 11</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
 </div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
 
-<nav class="pager" id="pager"></nav>
-
-<footer>
-  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
-</footer>
-
-</main>
-
-</div>
-
+<script>
+/* ---------- lesson 10 scenes ---------- */
+window.SCENES = {
+  /* confetti */
+  sum(slide, api) {
+    const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+    const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+    const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+    const stop = api.loop(t => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of P) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+        if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+      }
+    });
+    return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+  }
+};
+</script>
 <script src="tips.js"></script>
-<script src="course.js"></script>
+<script src="deck.js"></script>
 </body>
 </html>

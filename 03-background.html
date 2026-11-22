@@ -1,69 +1,212 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 3 · Run in the background</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 3 · Run in the background (motion)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="course.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- lesson 3 specifics ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  body.lang-fa .dirauto{direction:rtl}
+  .goal{display:flex;flex-direction:column;gap:12px;min-height:250px}
+  .goal svg{width:90px;height:90px}
+  .goal h3{font-size:23px}
+  .colcards{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:16px}
+  .colcards .card .n{font-size:15px;color:var(--sky)}
+  .term.sm .body{font-size:17px}
+  .term.xs .body{font-size:16px;padding:16px 20px 18px}
+  .term.xxs .body{font-size:15px;padding:14px 18px 16px}
+  .term .stale{white-space:pre;color:#6f7a90;margin:0}
+  .card.sm{padding:16px 20px}.card.sm p{font-size:17px}
+  .card p code,.lead code{white-space:nowrap}
+  .blink{animation:blinkk 1s steps(1) infinite}@keyframes blinkk{50%{opacity:0}}
+  .sv{opacity:0;transition:opacity .5s,transform .7s var(--back)}
+  .sv.vis{opacity:1}
+  .ng-code{margin:0;background:#070b16;border:1px solid var(--line);border-radius:16px;padding:22px 28px;font:500 19px/1.9 var(--mono);color:#dfe6f5;direction:ltr;text-align:left;white-space:pre;font-variant-ligatures:none}
+  .ng-code .ln{display:block;border-radius:8px;padding:0 12px;margin:0 -12px;transition:background .4s,box-shadow .4s}
+  .ng-code .ln.on{background:rgba(29,99,237,.3);box-shadow:inset 3px 0 0 #6e9bff}
+  .ng-code .c{color:#6f7d99}.ng-code .k{color:#b48cff}
+  .ng-st{opacity:.4;transition:opacity .4s}.ng-st.on{opacity:1}
+  .ngcaps{display:grid}.ngcaps>*{grid-area:1/1}
+  .lc-mk{transition:transform 1.1s var(--ease)}
+  .lc-st{transition:opacity .5s}
+  /* title loop: attached → detached */
+  .tA{animation:tA 8s linear infinite}@keyframes tA{0%,46%{opacity:1}50%,96%{opacity:0}100%{opacity:1}}
+  .tB{animation:tB 8s linear infinite}@keyframes tB{0%,46%{opacity:0}50%,96%{opacity:1}100%{opacity:0}}
+  .tcab{animation:tcab 8s var(--ease) infinite}@keyframes tcab{0%,44%{transform:none;opacity:1}52%{transform:translate(0,40px);opacity:0}96%{opacity:0;transform:translate(0,40px)}100%{opacity:1;transform:none}}
+  .cmpt{width:100%;border-collapse:collapse;direction:ltr}
+  .cmpt th,.cmpt td{padding:10px 12px;text-align:left;font-size:18px;border-bottom:1px dashed rgba(110,155,255,.18)}
+  .cmpt th{font:700 15px var(--font);color:var(--sky);letter-spacing:.05em}
+  body.lang-fa .cmpt{direction:rtl}body.lang-fa .cmpt th,body.lang-fa .cmpt td{text-align:right}
+  .cmpt td:first-child{color:var(--muted);font-size:16px}
+  .btnrow{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px;padding:18px 24px}
+  .sumgrid code{font-size:18px;flex:none;min-width:385px;text-align:left}
+  .sumgrid p{font-size:18px}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+</style>
 </head>
-<body class="lang-en" data-lesson="03">
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
 
-<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
-<header class="topbar">
-  <div class="topbar-inner">
-    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
-      <span class="title-text" id="brandTitle"></span>
-    </a>
-    <div class="progress-wrap">
-      <div class="progress"><div id="bar"></div></div>
-      <span class="progress-label" id="plabel">0 / 0</span>
-    </div>
-    <span id="navSlot"></span>
-    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
-    <button class="btn" id="themeBtn" title="Theme">◐</button>
-    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
-  </div>
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="cubeoff" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#3a4357"/><path d="M0 30L60 0V60L0 90Z" fill="#2a3142"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#6b7489"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.1)" stroke-width="3"/>
+    </symbol>
+    <symbol id="box3" viewBox="-62 -60 124 114" overflow="visible">
+      <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#2a5bd8;--l:#163a96;--r:#0f2a70"/>
+      <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+      <use href="#slab" x="-62" y="-58" width="124" height="86" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+    </symbol>
+    <symbol id="tw" viewBox="0 0 220 160" overflow="visible">
+      <rect x="2" y="2" width="216" height="156" rx="14" fill="#05080f" stroke="rgba(110,155,255,.45)" stroke-width="3"/>
+      <rect x="2" y="2" width="216" height="30" rx="14" fill="#141b2c"/><rect x="2" y="20" width="216" height="12" fill="#141b2c"/>
+      <circle cx="20" cy="17" r="5" fill="#ff5f57"/><circle cx="36" cy="17" r="5" fill="#febc2e"/><circle cx="52" cy="17" r="5" fill="#28c840"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="index.html"><img src="docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
 </header>
 
-<div class="layout">
+<div id="viewport"><div id="stage">
 
-<!-- ================= TABLE OF CONTENTS ================= -->
-<nav class="toc">
-  <ol>
-    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Run in the foreground</span><span class="fa">۱ · اجرا در پیش‌زمینه</span></a></li>
-    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Check from a 2nd terminal</span><span class="fa">۲ · بررسی از ترمینال دوم</span></a></li>
-    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Stop with Ctrl+C</span><span class="fa">۳ · توقف با Ctrl+C</span></a></li>
-    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Run in the background</span><span class="fa">۴ · اجرا در پس‌زمینه</span></a></li>
-    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Stop and delete</span><span class="fa">۵ · توقف و حذف</span></a></li>
-  </ol>
-</nav>
-
-<main>
-
-<!-- ================= HERO ================= -->
-<section class="hero">
-  <h1>
-    <span class="en">Lesson 3 — Run in the background</span>
-    <span class="fa">درس ۳ — اجرای کانتینر در پس‌زمینه</span>
-  </h1>
-  <p class="en"><code>hello-world</code> printed a message and exited right away. Most real containers, like web servers, <b>keep running</b>. First you'll see what that does to your terminal, then fix it with <code>-d</code>.</p>
-  <p class="fa"><code>hello-world</code> یک پیام چاپ کرد و بلافاصله تمام شد. بیشتر کانتینرهای واقعی، مثل وب‌سرورها، <b>روشن می‌مانند</b>. اول می‌بینید این کار با ترمینال شما چه می‌کند، بعد با <code>-d</code> حلش می‌کنید.</p>
-  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
-  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 3 — Run in the background" data-title-fa="درس ۳ — اجرا در پس‌زمینه" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 3</span><span class="fa">دوره‌ی Docker · درس ۳</span></div>
+    <h1 style="font-size:104px;line-height:1.08;margin:26px 0 26px">
+      <span class="en split">Run in the <span class="hl">background</span></span><span class="fa split">اجرا در <span class="hl">پس‌زمینه</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en"><code>hello-world</code> printed a message and exited right away. Most real containers, like web servers, <b>keep running</b>. First you'll see what that does to your terminal, then fix it with <code>-d</code>.</span><span class="fa"><code>hello-world</code> یک پیام چاپ کرد و بلافاصله تمام شد. بیشتر کانتینرهای واقعی، مثل وب‌سرورها، <b>روشن می‌مانند</b>. اول می‌بینید این کار با ترمینال شما چه می‌کند، بعد با <code>-d</code> حلش می‌کنید.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:700px;height:600px;overflow:visible;direction:ltr" viewBox="0 0 700 600">
+    <use href="#tw" x="20" y="200" width="290" height="211"/>
+    <g class="tA" font-family="JetBrains Mono,monospace" font-size="14" fill="#a8b3c9">
+      <text x="44" y="276">[notice] start worker</text><text x="44" y="300">[notice] start worker</text><text x="44" y="324">GET / 200</text><text x="44" y="348">GET /favicon.ico</text>
+      <rect x="44" y="362" width="10" height="18" fill="#6e9bff" class="blink"/>
+    </g>
+    <g class="tB" font-family="JetBrains Mono,monospace" font-size="16">
+      <text x="44" y="282" fill="#3ccf7f">$ <tspan fill="#eef2fb">docker ps</tspan></text>
+      <text x="44" y="316" fill="#3ccf7f">$ <tspan fill="#eef2fb">ls</tspan></text>
+      <text x="44" y="350" fill="#3ccf7f">$</text><rect x="64" y="336" width="10" height="18" fill="#6e9bff" class="blink"/>
+    </g>
+    <g class="tcab">
+      <path id="tcPath" d="M520 330 C 440 330, 400 300, 312 300" stroke="#6e9bff" stroke-width="5" fill="none"/>
+      <circle r="5" fill="#a9c4ff"><animateMotion dur="1.1s" repeatCount="indefinite" path="M520 330 C 440 330, 400 300, 312 300"/></circle>
+      <circle r="5" fill="#a9c4ff"><animateMotion dur="1.1s" begin=".55s" repeatCount="indefinite" path="M520 330 C 440 330, 400 300, 312 300"/></circle>
+    </g>
+    <g transform="translate(520 240)"><use href="#cube" x="0" y="0" width="150" height="150"/><circle cx="136" cy="14" r="8" fill="#3ccf7f" class="pulse"/></g>
+    <text x="595" y="430" text-anchor="middle" fill="#a9c4ff" font-size="17" font-family="JetBrains Mono,monospace">nginx</text>
+    <g class="tA">
+      <text x="165" y="460" text-anchor="middle" fill="#ffb54d" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en">🔒 terminal attached</text>
+      <text x="165" y="460" text-anchor="middle" fill="#ffb54d" font-size="21" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">🔒 ترمینال چسبیده</text>
+    </g>
+    <g class="tB">
+      <text x="165" y="460" text-anchor="middle" fill="#3ccf7f" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en">✓ -d: terminal free</text>
+      <text x="165" y="460" text-anchor="middle" fill="#3ccf7f" font-size="21" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">✓ ‎-d: ترمینال آزاد</text>
+    </g>
+  </svg>
 </section>
 
-<!-- ================= 1 FOREGROUND ================= -->
-<section class="card step" id="s1">
-  <h2><span class="num">1</span>
-    <span class="en">Run nginx in the foreground</span><span class="fa">اجرای nginx در پیش‌زمینه</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en"><b>nginx</b> is a popular web server. Once started, it runs until you stop it. As in Lesson 2, we name the container with <code>--name</code>; this time it's <code>web</code>.</p>
-  <p class="fa"><b>nginx</b> یک وب‌سرور محبوب است. وقتی روشن شود، تا وقتی متوقفش نکنید اجرا می‌ماند. مثل درس ۲ با <code>--name</code> به کانتینر نام می‌دهیم؛ این بار <code>web</code>.</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker run --name web nginx</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>Unable to find image 'nginx:latest' locally     <span class="c"># first time only: download</span>
+<!-- ======================= 3a · MEET NGINX ======================= -->
+<section class="slide" data-scene="nginx" data-title-en="What is nginx?" data-title-fa="nginx چیست؟">
+  <div class="kicker a"><span class="en">First, meet nginx</span><span class="fa">اول، آشنایی با nginx</span></div>
+  <h2><span class="en split">What is <span class="hl">nginx?</span></span><span class="fa split"><span class="hl">nginx</span> چیست؟</span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px;font-size:21px"><span class="en"><b>nginx</b> is a <b>web server</b>: a program that runs a loop that never ends. It waits for a request, finds the page, and sends it back.</span><span class="fa"><b>nginx</b> یک <b>وب‌سرور</b> است: برنامه‌ای که یک حلقه‌ی بی‌پایان را اجرا می‌کند. منتظر درخواست می‌ماند، صفحه را پیدا می‌کند و آن را برمی‌گرداند.</span></p>
+  <div style="display:grid;grid-template-columns:640px 1fr;gap:36px;margin-top:26px;direction:ltr;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <pre class="ng-code a" style="--d:.55"><span class="c"># nginx, in plain words</span>
+<span class="k">while</span> True:
+<span class="ln">    request = wait_for_request()    <span class="c"># 1</span></span><span class="ln">    page = find_page(request)       <span class="c"># 2</span></span><span class="ln">    send_back(page, request.sender) <span class="c"># 3</span></span></pre>
+      <div class="ngcaps dirauto">
+        <div class="card sm" data-only="0"><p><span class="en">Press → to follow one visit, step by step.</span><span class="fa">→ را بزنید تا یک بازدید را قدم‌به‌قدم دنبال کنیم.</span></p></div>
+        <div class="card sm" data-only="1"><div class="n">1 · <span class="en">LISTEN</span><span class="fa">گوش دادن</span></div><p><span class="en">nginx waits. A browser sends a request: “give me <code>/index.html</code>”.</span><span class="fa">nginx منتظر است. یک مرورگر درخواست می‌فرستد: «<code>/index.html</code> را بده».</span></p></div>
+        <div class="card sm" data-only="2"><div class="n">2 · <span class="en">FIND</span><span class="fa">پیدا کردن</span></div><p><span class="en">nginx looks in its folder of pages and finds <code>index.html</code>.</span><span class="fa">nginx در پوشه‌ی صفحه‌هایش می‌گردد و <code>index.html</code> را پیدا می‌کند.</span></p></div>
+        <div class="card sm" data-only="3"><div class="n">3 · <span class="en">SEND BACK</span><span class="fa">برگرداندن</span></div><p><span class="en">nginx sends the page back to the browser that asked. The page appears.</span><span class="fa">nginx صفحه را به همان مرورگری که درخواست داده بود برمی‌گرداند. صفحه نمایش داده می‌شود.</span></p></div>
+        <div class="card key sm" data-step="4"><div class="n">🔁 <span class="en">AND AGAIN, FOREVER</span><span class="fa">و دوباره، برای همیشه</span></div><p><span class="en">Then it goes back to waiting. Unlike <code>hello-world</code> (Lesson 2), nginx never finishes by itself: it runs until <b>you</b> stop it.</span><span class="fa">بعد دوباره منتظر می‌ماند. برخلاف <code>hello-world</code> (درس ۲)، nginx خودش تمام نمی‌شود: تا وقتی <b>شما</b> متوقفش نکنید اجرا می‌ماند.</span></p></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 820 500" style="width:740px;height:451px;overflow:visible;margin-top:10px" class="a fade" font-family="Inter,Vazirmatn,sans-serif">
+      <!-- browser -->
+      <g transform="translate(0 130)">
+        <rect width="250" height="190" rx="14" fill="#fff"/>
+        <rect width="250" height="36" rx="14" fill="#dfe3ea"/><rect y="22" width="250" height="14" fill="#dfe3ea"/>
+        <circle cx="16" cy="18" r="5" fill="#ff5f57"/><circle cx="31" cy="18" r="5" fill="#febc2e"/><circle cx="46" cy="18" r="5" fill="#28c840"/>
+        <rect x="60" y="8" width="180" height="20" rx="10" fill="#fff"/>
+        <text x="70" y="23" font-family="JetBrains Mono,monospace" font-size="12" fill="#333">localhost/index.html</text>
+        <g class="ng-page" opacity="0"><text x="20" y="80" font-size="20" font-weight="700" fill="#202124" font-family="Arial,sans-serif">Welcome to nginx!</text>
+          <rect x="20" y="100" width="200" height="8" rx="4" fill="#d5d9e0"/><rect x="20" y="118" width="170" height="8" rx="4" fill="#d5d9e0"/><rect x="20" y="136" width="185" height="8" rx="4" fill="#d5d9e0"/></g>
+        <g class="ng-wait"><circle cx="125" cy="110" r="16" fill="none" stroke="#c9ced8" stroke-width="4" stroke-dasharray="60 40"><animateTransform attributeName="transform" type="rotate" from="0 125 110" to="360 125 110" dur="1s" repeatCount="indefinite"/></circle></g>
+        <text x="125" y="222" text-anchor="middle" fill="#a9c4ff" font-size="17" font-weight="600" class="en">Browser</text>
+        <text x="125" y="222" text-anchor="middle" fill="#a9c4ff" font-size="18" font-weight="600" class="fa">مرورگر</text>
+      </g>
+      <!-- wires -->
+      <path d="M255 212 H455" stroke="rgba(110,155,255,.35)" stroke-width="3" stroke-dasharray="6 7"/>
+      <path d="M255 262 H455" stroke="rgba(60,207,127,.35)" stroke-width="3" stroke-dasharray="6 7"/>
+      <!-- server -->
+      <rect x="460" y="10" width="355" height="480" rx="22" fill="rgba(17,26,48,.85)" stroke="rgba(110,155,255,.4)" stroke-width="2"/>
+      <text x="637" y="44" text-anchor="middle" fill="#a9c4ff" font-size="17" font-family="JetBrains Mono,monospace">nginx</text>
+      <circle cx="637" cy="170" r="88" fill="none" stroke="rgba(110,155,255,.25)" stroke-width="10"/>
+      <path d="M 683 95 A 88 88 0 0 1 720 140" fill="none" stroke="#6e9bff" stroke-width="4" marker-end="url(#ngArr)"/>
+      <defs><marker id="ngArr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#6e9bff"/></marker></defs>
+      <text x="637" y="178" text-anchor="middle" fill="#93a0bb" font-size="15" font-family="JetBrains Mono,monospace">while True</text>
+      <g class="ng-st" data-i="0"><circle cx="637" cy="82" r="24" fill="#111a30" stroke="#6e9bff" stroke-width="3"/><text x="637" y="90" text-anchor="middle" font-size="22">👂</text></g>
+      <g class="ng-st" data-i="1"><circle cx="713" cy="214" r="24" fill="#111a30" stroke="#6e9bff" stroke-width="3"/><text x="713" y="222" text-anchor="middle" font-size="22">🔎</text></g>
+      <g class="ng-st" data-i="2"><circle cx="561" cy="214" r="24" fill="#111a30" stroke="#6e9bff" stroke-width="3"/><text x="561" y="222" text-anchor="middle" font-size="20">↩</text></g>
+      <circle class="ng-dot" r="9" fill="#3ccf7f" cx="637" cy="82"/>
+      <!-- pages folder -->
+      <g transform="translate(500 300)">
+        <text x="0" y="0" fill="#ffb54d" font-size="16" font-weight="700" class="en">📁 pages</text>
+        <text x="275" y="0" text-anchor="start" direction="rtl" fill="#ffb54d" font-size="17" font-weight="700" class="fa">📁 صفحه‌ها</text>
+        <g font-family="JetBrains Mono,monospace" font-size="16" fill="#c8d2e6">
+          <rect class="ng-file" x="-8" y="16" width="290" height="34" rx="8" fill="rgba(60,207,127,0)" stroke="none"/>
+          <text x="6" y="39">📄 index.html</text><text x="6" y="79">📄 about.html</text><text x="6" y="119">🖼 logo.png</text>
+        </g>
+      </g>
+      <!-- moving packets -->
+      <g class="ng-req" opacity="0"><rect x="-70" y="-15" width="140" height="30" rx="8" fill="#1D63ED"/><text x="0" y="5" text-anchor="middle" fill="#fff" font-size="13" font-family="JetBrains Mono,monospace">GET /index.html</text></g>
+      <g class="ng-res" opacity="0"><rect x="-22" y="-27" width="44" height="54" rx="6" fill="#fff"/><rect x="-14" y="-15" width="28" height="5" rx="2" fill="#3ccf7f"/><rect x="-14" y="-4" width="28" height="4" rx="2" fill="#c8ced8"/><rect x="-14" y="5" width="22" height="4" rx="2" fill="#c8ced8"/><rect x="-14" y="14" width="26" height="4" rx="2" fill="#c8ced8"/></g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================= 3 · FOREGROUND ======================= -->
+<section class="slide" data-title-en="Run nginx in the foreground" data-title-fa="اجرای nginx در پیش‌زمینه">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Run nginx in the <span class="hl">foreground</span></span><span class="fa split">اجرای nginx در <span class="hl">پیش‌زمینه</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px;font-size:21px"><span class="en">Now let's run <b>nginx</b> in a container. As in Lesson 2, we name the container with <code>--name</code>; this time it's <code>web</code>.</span><span class="fa">حالا <b>nginx</b> را در یک کانتینر اجرا می‌کنیم. مثل درس ۲ با <code>--name</code> به کانتینر نام می‌دهیم؛ این بار <code>web</code>.</span></p>
+  <div style="display:grid;grid-template-columns:860px 1fr;gap:28px;margin-top:16px;direction:ltr">
+    <div class="term xs a" style="--d:.5">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run" data-step="1"><div class="cmd">docker run --name web nginx</div><pre class="out">
+Unable to find image 'nginx:latest' locally     <span class="c"># first time only: download</span>
 latest: Pulling from library/nginx
 ...
 Status: Downloaded newer image for nginx:latest
@@ -71,203 +214,400 @@ Status: Downloaded newer image for nginx:latest
 2026/10/10 09:10:49 [notice] 1#1: nginx/1.31.6
 2026/10/10 09:10:49 [notice] 1#1: start worker processes
 ...
-<span class="c">█   ← no prompt. The terminal is stuck here.</span></code></pre></div>
-  <p class="en">You don't get your prompt back. Your terminal is <b>attached</b> to the container: it shows nginx's log, and nginx will run until you stop it. You can't type other commands here.</p>
-  <p class="fa">prompt به شما برنمی‌گردد. ترمینال شما به کانتینر <b>چسبیده</b> است: لاگ nginx را نشان می‌دهد و nginx تا وقتی متوقفش نکنید اجرا می‌ماند. اینجا نمی‌توانید دستور دیگری تایپ کنید.</p>
-  <p class="en"><code>docker run</code> also downloaded the image by itself, because it wasn't on your PC. You don't always need <code>docker pull</code> first.</p>
-  <p class="fa"><code>docker run</code> خودش ایمیج را هم دانلود کرد، چون روی کامپیوتر شما نبود. همیشه لازم نیست اول <code>docker pull</code> بزنید.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s1-1"><span><span class="en">nginx's log is on screen and I have no prompt</span><span class="fa">لاگ nginx روی صفحه است و prompt ندارم</span></span></label>
+<span class="blink" style="color:#6e9bff">█</span><span class="c">   ← no prompt. The terminal is stuck here.</span></pre></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px" class="dirauto">
+      <svg viewBox="0 0 530 230" style="width:530px;height:230px;overflow:visible;direction:ltr" class="a fade">
+        <use href="#tw" x="10" y="40" width="200" height="146"/>
+        <g data-step="1" style="transition-delay:2.4s">
+          <g font-family="JetBrains Mono,monospace" font-size="12" fill="#a8b3c9"><text x="28" y="100">[notice] …</text><text x="28" y="120">[notice] …</text><text x="28" y="140">[notice] …</text></g>
+          <rect x="28" y="152" width="8" height="15" fill="#6e9bff" class="blink"/>
+          <path id="fgPath" d="M370 120 C 300 120, 280 112, 212 112" stroke="#6e9bff" stroke-width="5" fill="none"/>
+          <rect width="16" height="6" rx="2" fill="#a9c4ff"><animateMotion dur="1.2s" repeatCount="indefinite" path="M370 120 C 300 120, 280 112, 212 112"/></rect>
+          <rect width="16" height="6" rx="2" fill="#a9c4ff"><animateMotion dur="1.2s" begin=".6s" repeatCount="indefinite" path="M370 120 C 300 120, 280 112, 212 112"/></rect>
+          <g transform="translate(370 50)"><use href="#cube" x="0" y="0" width="130" height="130"/><circle cx="120" cy="12" r="7" fill="#3ccf7f" class="pulse"/></g>
+          <text x="435" y="210" text-anchor="middle" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">web · nginx</text>
+          <text x="110" y="214" text-anchor="middle" fill="#ffb54d" font-size="17" font-weight="700" font-family="Inter,sans-serif" class="en">🔒 attached</text>
+          <text x="110" y="214" text-anchor="middle" fill="#ffb54d" font-size="18" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">🔒 چسبیده</text>
+        </g>
+      </svg>
+      <div class="card key sm" data-step="2"><div class="n">🔒 <span class="en">NO PROMPT</span><span class="fa">بدون prompt</span></div><p><span class="en">Your terminal is <b>attached</b> to the container: it shows nginx's log, and nginx will run until you stop it. You can't type other commands here.</span><span class="fa">ترمینال شما به کانتینر <b>چسبیده</b> است: لاگ nginx را نشان می‌دهد و nginx تا وقتی متوقفش نکنید اجرا می‌ماند. اینجا نمی‌توانید دستور دیگری تایپ کنید.</span></p></div>
+      <div class="card tip sm" data-step="3"><div class="n">⬇ <span class="en">NO PULL NEEDED</span><span class="fa">بدون pull</span></div><p><span class="en"><code>docker run</code> downloaded the image by itself, because it wasn't on your PC. You don't always need <code>docker pull</code> first.</span><span class="fa"><code>docker run</code> خودش ایمیج را هم دانلود کرد، چون روی کامپیوتر شما نبود. همیشه لازم نیست اول <code>docker pull</code> بزنید.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 2 SECOND TERMINAL ================= -->
-<section class="card step" id="s2">
-  <h2><span class="num">2</span>
-    <span class="en">Check it from a second terminal</span><span class="fa">بررسی از یک ترمینال دوم</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Leave the first terminal as it is. Open a <b>new</b> terminal window or tab (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> in most Linux terminals) and run:</p>
-  <p class="fa">ترمینال اول را همان‌طور رها کنید. یک پنجره یا تب <b>جدید</b> ترمینال باز کنید (در بیشتر ترمینال‌های لینوکس <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd>) و اجرا کنید:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS     NAMES
-17dcab6b72b6   nginx     "/docker-entrypoint.…"   3 seconds ago   Up 2 seconds   80/tcp    web</code></pre></div>
-  <p class="en">This time <code>docker ps</code> <b>without</b> <code>-a</code> is enough, because the container is running. <code>STATUS</code> says <code>Up</code>. <code>PORTS 80/tcp</code> means nginx listens on port 80 <b>inside</b> the container; opening it in your browser comes in a later lesson.</p>
-  <p class="fa">این بار <code>docker ps</code> <b>بدون</b> <code>-a</code> کافی است، چون کانتینر در حال اجراست. <code>STATUS</code> برابر <code>Up</code> است. <code>PORTS 80/tcp</code> یعنی nginx روی پورت 80 <b>داخل</b> کانتینر گوش می‌دهد؛ باز کردن آن در مرورگر در درس‌های بعد.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s2-1"><span><span class="en">In the 2nd terminal, <code>docker ps</code> shows <code>web</code> as <code>Up</code></span><span class="fa">در ترمینال دوم، <code>docker ps</code> کانتینر <code>web</code> را با وضعیت <code>Up</code> نشان می‌دهد</span></span></label>
+<!-- ======================= 4 · SECOND TERMINAL ======================= -->
+<section class="slide" data-scene="cols" data-title-en="Check it from a second terminal" data-title-fa="بررسی از ترمینال دوم">
+  <div class="kicker a"><span class="en">Step 2</span><span class="fa">قدم ۲</span></div>
+  <h2><span class="en split">Check it from a <span class="hl">second terminal</span></span><span class="fa split">بررسی از یک <span class="hl">ترمینال دوم</span></span></h2>
+  <div style="display:grid;grid-template-columns:560px 1fr;gap:28px;margin-top:20px;align-items:center;direction:ltr">
+    <div class="term xxs a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span><span class="en">terminal 1 · still stuck</span><span class="fa">ترمینال ۱ · هنوز گیر کرده</span></span></div>
+      <div class="body"><pre class="stale">... [notice] 1#1: start worker processes
+...
+<span class="blink" style="color:#6e9bff">█</span></pre></div>
+    </div>
+    <p class="lead a dirauto" style="--d:.5;font-size:21px"><span class="en">Leave the first terminal as it is. Open a <b>new</b> terminal window or tab (<code>Ctrl</code>+<code>Shift</code>+<code>T</code> in most Linux terminals) and run:</span><span class="fa">ترمینال اول را همان‌طور رها کنید. یک پنجره یا تب <b>جدید</b> ترمینال باز کنید (در بیشتر ترمینال‌های لینوکس <code>Ctrl</code>+<code>Shift</code>+<code>T</code>) و اجرا کنید:</span></p>
+  </div>
+  <div class="term xs a" style="--d:.6;margin-top:18px">
+    <div class="bar"><i></i><i></i><i></i><span><span class="en">terminal 2 · new</span><span class="fa">ترمینال ۲ · جدید</span></span></div>
+    <div class="body">
+      <div class="run colsrc" data-step="1"><div class="cmd">docker ps</div><pre class="out">
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS     NAMES
+17dcab6b72b6   nginx     "/docker-entrypoint.…"   3 seconds ago   Up 2 seconds   80/tcp    web</pre></div>
+    </div>
+  </div>
+  <div class="colcards">
+    <div class="card sm" data-step="2" data-col="STATUS"><div class="n">STATUS · Up</div><p><span class="en">This time <code>docker ps</code> <b>without</b> <code>-a</code> is enough, because the container is running. <code>STATUS</code> says <code>Up</code>.</span><span class="fa">این بار <code>docker ps</code> <b>بدون</b> <code>-a</code> کافی است، چون کانتینر در حال اجراست. <code>STATUS</code> برابر <code>Up</code> است.</span></p></div>
+    <div class="card sm" data-step="3" data-col="PORTS"><div class="n">PORTS · 80/tcp</div><p><span class="en">nginx listens on port 80 <b>inside</b> the container. Opening it in your browser comes in a later lesson.</span><span class="fa">nginx روی پورت 80 <b>داخل</b> کانتینر گوش می‌دهد. باز کردن آن در مرورگر در درس‌های بعد.</span></p></div>
   </div>
 </section>
 
-<!-- ================= 3 CTRL+C ================= -->
-<section class="card step" id="s3">
-  <h2><span class="num">3</span>
-    <span class="en">Stop it with Ctrl+C</span><span class="fa">توقف با Ctrl+C</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">The first terminal is still <b>stuck</b>. To stop the container and get your terminal back, go to that terminal and press <kbd>Ctrl</kbd>+<kbd>C</kbd>:</p>
-  <p class="fa">ترمینال اول هنوز <b>گیر کرده</b> است. برای متوقف کردن کانتینر و برگشتن به ترمینال، به همان ترمینال بروید و <kbd>Ctrl</kbd>+<kbd>C</kbd> را بزنید:</p>
-  <div class="code"><span class="lbl">output</span><pre><code>^C
+<!-- ======================= 5 · CTRL+C ======================= -->
+<section class="slide" data-title-en="Stop it with Ctrl+C" data-title-fa="توقف با Ctrl+C">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Stop it with <span class="hl">Ctrl+C</span></span><span class="fa split">توقف با <span class="hl">Ctrl+C</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px;font-size:21px"><span class="en">The first terminal is still <b>stuck</b>. Go to that terminal and press <code>Ctrl</code>+<code>C</code>:</span><span class="fa">ترمینال اول هنوز <b>گیر کرده</b> است. به همان ترمینال بروید و <code>Ctrl</code>+<code>C</code> را بزنید:</span></p>
+  <div style="display:grid;grid-template-columns:900px 1fr;gap:28px;margin-top:16px;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="term xs a" style="--d:.5">
+        <div class="bar"><i></i><i></i><i></i><span><span class="en">terminal 1</span><span class="fa">ترمینال ۱</span></span></div>
+        <div class="body">
+          <pre class="stale">2026/10/10 09:10:49 [notice] 1#1: start worker processes</pre>
+          <div class="run" data-step="1" style="margin-bottom:0"><div class="cmd" style="display:none">^C</div><pre class="out" style="margin-top:0">
+^C
 2026/10/10 09:10:50 [notice] 1#1: signal 2 (SIGINT) received, exiting
 ...
-2026/10/10 09:10:50 [notice] 1#1: exit
-<span class="c">$   ← your prompt is back</span></code></pre></div>
-  <p class="en">nginx shut down. Run the same check as in step 2:</p>
-  <p class="fa">nginx خاموش شد. همان بررسی قدم ۲ را دوباره انجام دهید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</code></pre></div>
-  <p class="en">Only the header line: <code>web</code> is gone from the list. <code>docker ps</code> shows only <b>running</b> containers, and <code>web</code> isn't running anymore. (If you have other running containers, they'll still be listed, but not <code>web</code>.)</p>
-  <p class="fa">فقط خط عنوان: <code>web</code> از فهرست رفته است. <code>docker ps</code> فقط کانتینرهای <b>در حال اجرا</b> را نشان می‌دهد، و <code>web</code> دیگر اجرا نمی‌شود. (اگر کانتینرهای دیگری در حال اجرا دارید، آن‌ها هنوز در فهرست هستند، ولی <code>web</code> نیست.)</p>
-  <p class="en">But it wasn't deleted, only stopped. Want to see it? Use the switch that shows <b>all</b> containers, including stopped ones (you learned it in Lesson 2):</p>
-  <p class="fa">ولی حذف نشده، فقط متوقف شده. می‌خواهید ببینیدش؟ از سوئیچی استفاده کنید که <b>همه‌ی</b> کانتینرها، حتی متوقف‌شده‌ها، را نشان می‌دهد (آن را در درس ۲ یاد گرفتید):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps -a</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS                    PORTS     NAMES
-17dcab6b72b6   nginx     "/docker-entrypoint.…"   5 seconds ago   Exited (0) 1 second ago             web</code></pre></div>
-  <p class="en">Delete it, so the name <code>web</code> is free for the next step:</p>
-  <p class="fa">حذفش کنید تا نام <code>web</code> برای قدم بعد آزاد شود:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm web</code></pre></div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s3-1"><span><span class="en"><kbd>Ctrl</kbd>+<kbd>C</kbd> stopped nginx and gave me my prompt back</span><span class="fa"><kbd>Ctrl</kbd>+<kbd>C</kbd> nginx را متوقف کرد و prompt به من برگشت</span></span></label>
-    <label><input type="checkbox" data-id="s3-3"><span><span class="en"><code>docker ps</code> doesn't show <code>web</code>, but <code>docker ps -a</code> does</span><span class="fa"><code>docker ps</code> کانتینر <code>web</code> را نشان نمی‌دهد ولی <code>docker ps -a</code> نشان می‌دهد</span></span></label>
-    <label><input type="checkbox" data-id="s3-2"><span><span class="en">I deleted the stopped <code>web</code> container</span><span class="fa">کانتینر متوقف‌شده‌ی <code>web</code> را حذف کردم</span></span></label>
+2026/10/10 09:10:50 [notice] 1#1: exit</pre></div>
+          <div class="run recall" data-step="2" data-reveal="3" data-task-en="👉 Run the same check as in step 2: list the running containers." data-task-fa="👉 همان بررسی قدم ۲ را انجام دهید: کانتینرهای در حال اجرا را فهرست کنید." style="margin-top:6px"><div class="cmd">docker ps</div><pre class="out">
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</pre></div>
+        </div>
+      </div>
+      <div class="card sm" data-step="4" style="direction:inherit"><div class="n"><span class="en">ONLY THE HEADER LINE</span><span class="fa">فقط خط عنوان</span></div><p class="dirauto"><span class="en"><code>web</code> is gone from the list. <code>docker ps</code> shows only <b>running</b> containers, and <code>web</code> isn't running anymore. (Other running containers would still be listed.)</span><span class="fa"><code>web</code> از فهرست رفته است. <code>docker ps</code> فقط کانتینرهای <b>در حال اجرا</b> را نشان می‌دهد، و <code>web</code> دیگر اجرا نمی‌شود. (کانتینرهای دیگرِ در حال اجرا هنوز در فهرست هستند.)</span></p></div>
+    </div>
+    <svg viewBox="0 0 490 470" style="width:490px;height:470px;overflow:visible" class="a fade">
+      <use href="#tw" x="10" y="60" width="200" height="146"/>
+      <g data-only="0"><g font-family="JetBrains Mono,monospace" font-size="12" fill="#a8b3c9"><text x="28" y="120">[notice] …</text><text x="28" y="140">[notice] …</text></g><rect x="28" y="160" width="8" height="15" fill="#6e9bff" class="blink"/>
+        <path d="M330 140 C 280 140, 260 132, 212 132" stroke="#6e9bff" stroke-width="5" fill="none"/></g>
+      <g data-step="1" style="transition-delay:1s"><text x="28" y="130" fill="#3ccf7f" font-size="18" font-family="JetBrains Mono,monospace">$ <tspan fill="#eef2fb">▌</tspan></text>
+        <text x="110" y="236" text-anchor="middle" fill="#3ccf7f" font-size="17" font-weight="700" font-family="Inter,sans-serif" class="en">✓ prompt is back</text>
+        <text x="110" y="236" text-anchor="middle" fill="#3ccf7f" font-size="18" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">✓ prompt برگشت</text></g>
+      <g transform="translate(330 70)"><use href="#cubeoff" x="0" y="0" width="140" height="140"/><g data-only="0"><use href="#cube" x="0" y="0" width="140" height="140"/></g></g>
+      <text x="400" y="250" text-anchor="middle" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">web</text>
+      <g data-step="1" style="transition-delay:1s"><text x="400" y="276" text-anchor="middle" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">Exited</text></g>
+      <g transform="translate(120 330)" font-family="JetBrains Mono,monospace" font-weight="700">
+        <g data-step="1" class="pop-in"><rect x="0" y="0" width="120" height="76" rx="14" fill="#0d1426" stroke="#ffb54d" stroke-width="3"/><text x="60" y="48" text-anchor="middle" fill="#ffb54d" font-size="26">Ctrl</text>
+        <text x="150" y="50" text-anchor="middle" fill="#93a0bb" font-size="28">+</text>
+        <rect x="180" y="0" width="76" height="76" rx="14" fill="#0d1426" stroke="#ffb54d" stroke-width="3"/><text x="218" y="50" text-anchor="middle" fill="#ffb54d" font-size="32">C</text></g>
+      </g>
+    </svg>
   </div>
 </section>
 
-<!-- ================= 4 BACKGROUND ================= -->
-<section class="card step" id="s4">
-  <h2><span class="num">4</span>
-    <span class="en">Now run it in the background with <code>-d</code></span><span class="fa">حالا اجرا در پس‌زمینه با <code>-d</code></span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Same command, plus <code>-d</code> (<b>detached</b>):</p>
-  <p class="fa">همان دستور، به‌اضافه‌ی <code>-d</code> (<b>detached</b>، یعنی جدا شده):</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name web nginx</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>1c76533ac4cbf87fdbd0e208968f0b8bb201b670a2777d22770de41178d25b03   <span class="c"># the new container's full ID</span>
-<span class="c">$   ← prompt back right away</span></code></pre></div>
-  <p class="en">Docker prints the container's ID and gives you your terminal back. nginx keeps running in the background:</p>
-  <p class="fa">Docker شناسه‌ی کانتینر را چاپ می‌کند و ترمینال را به شما برمی‌گرداند. nginx در پس‌زمینه اجرا می‌ماند:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS     NAMES
-1c76533ac4cb   nginx     "/docker-entrypoint.…"   9 seconds ago   Up 3 seconds   80/tcp    web</code></pre></div>
-  <div class="table-wrap">
-  <table>
-    <thead><tr>
-      <th></th>
-      <th><span class="en">Without <code>-d</code> (foreground)</span><span class="fa">بدون <code>-d</code> (پیش‌زمینه)</span></th>
-      <th><span class="en">With <code>-d</code> (background)</span><span class="fa">با <code>-d</code> (پس‌زمینه)</span></th>
-    </tr></thead>
-    <tbody>
-      <tr><td><span class="en">Terminal</span><span class="fa">ترمینال</span></td><td><span class="en">Busy, shows the log</span><span class="fa">مشغول، لاگ را نشان می‌دهد</span></td><td><span class="en">Free right away</span><span class="fa">بلافاصله آزاد</span></td></tr>
-      <tr><td><span class="en">How to stop</span><span class="fa">روش توقف</span></td><td><kbd>Ctrl</kbd>+<kbd>C</kbd></td><td><code>docker stop web</code></td></tr>
-    </tbody>
-  </table>
+<!-- ======================= 6 · STOPPED, NOT DELETED ======================= -->
+<section class="slide" data-scene="burst" data-burst="4" data-burst-xy="370,170" data-title-en="Stopped, not deleted" data-title-fa="متوقف، نه حذف‌شده">
+  <div class="kicker a"><span class="en">Step 3 · Stopped, not deleted</span><span class="fa">قدم ۳ · متوقف، نه حذف‌شده</span></div>
+  <h2><span class="en split">It's only <span class="hl">stopped</span></span><span class="fa split">فقط <span class="hl">متوقف</span> شده</span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px;font-size:21px"><span class="en">It wasn't deleted, only stopped. Use the switch that shows <b>all</b> containers, including stopped ones (you learned it in Lesson 2):</span><span class="fa">حذف نشده، فقط متوقف شده. از سوئیچی استفاده کنید که <b>همه‌ی</b> کانتینرها، حتی متوقف‌شده‌ها، را نشان می‌دهد (آن را در درس ۲ یاد گرفتید):</span></p>
+  <div class="term xs a" style="--d:.5;margin-top:16px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Show all containers, including stopped ones." data-task-fa="👉 همه‌ی کانتینرها را، حتی متوقف‌شده‌ها، نشان دهید."><div class="cmd">docker ps -a</div><pre class="out">
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS                    PORTS     NAMES
+17dcab6b72b6   nginx     "/docker-entrypoint.…"   5 seconds ago   Exited (0) 1 second ago             web</pre></div>
+      <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Delete the web container, so the name web is free for the next step." data-task-fa="👉 کانتینر web را حذف کنید تا نام web برای قدم بعد آزاد شود."><div class="cmd">docker rm web</div><pre class="out">
+web</pre></div>
+    </div>
   </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s4-1"><span><span class="en">I got my prompt back right away</span><span class="fa">prompt بلافاصله به من برگشت</span></span></label>
-    <label><input type="checkbox" data-id="s4-2"><span><span class="en"><code>docker ps</code> shows <code>web</code> as <code>Up</code> in the same terminal</span><span class="fa"><code>docker ps</code> در همان ترمینال <code>web</code> را با وضعیت <code>Up</code> نشان می‌دهد</span></span></label>
+  <div style="display:grid;grid-template-columns:1fr 560px;gap:28px;margin-top:14px;align-items:center;direction:ltr">
+    <div class="card" data-step="2" style="direction:inherit"><div class="n">Exited (0)</div><p class="dirauto"><span class="en">There it is: stopped (<code>Exited</code>), but still there. <code>docker ps</code> hides it; <code>docker ps -a</code> shows it.</span><span class="fa">اینجاست: متوقف شده (<code>Exited</code>)، ولی هنوز وجود دارد. <code>docker ps</code> نشانش نمی‌دهد؛ <code>docker ps -a</code> نشان می‌دهد.</span></p></div>
+    <svg viewBox="0 0 560 240" style="width:560px;height:240px;overflow:visible" class="a fade">
+      <g class="bx sv vis"><use href="#cubeoff" x="300" y="70" width="140" height="140"/>
+      <text x="370" y="236" text-anchor="middle" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">web</text></g>
+      <g class="bparts"></g>
+      <g data-step="2" font-family="JetBrains Mono,monospace" font-size="16" font-weight="600">
+        <text x="20" y="110" fill="#ff8a8a">docker ps    ✕</text>
+        <text x="20" y="150" fill="#3ccf7f">docker ps -a ✓</text>
+      </g>
+    </svg>
   </div>
 </section>
 
-<!-- ================= 5 STOP AND DELETE ================= -->
-<section class="card step" id="s5">
-  <h2><span class="num">5</span>
-    <span class="en">Stop and delete it</span><span class="fa">توقف و حذف</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <h3><span class="en">5.1 · Stop it</span><span class="fa">۵.۱ · متوقفش کنید</span></h3>
-  <p class="en">This time the terminal is <b>not stuck</b>, so there is nothing to press <kbd>Ctrl</kbd>+<kbd>C</kbd> on. Stop the container with a command instead (you saw it in the table above):</p>
-  <p class="fa">این بار ترمینال <b>گیر نکرده</b> است، پس <kbd>Ctrl</kbd>+<kbd>C</kbd> اینجا کاری نمی‌کند. کانتینر را با یک دستور متوقف کنید (آن را در جدول بالا دیدید):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker stop web</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>web</code></pre></div>
-
-  <h3><span class="en">5.2 · Is it still running?</span><span class="fa">۵.۲ · هنوز در حال اجراست؟</span></h3>
-  <p class="en">List the <b>running</b> containers:</p>
-  <p class="fa">کانتینرهای <b>در حال اجرا</b> را فهرست کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</code></pre></div>
-  <p class="en">No <code>web</code>: it's not running.</p>
-  <p class="fa"><code>web</code> نیست: در حال اجرا نیست.</p>
-
-  <h3><span class="en">5.3 · Does it still exist?</span><span class="fa">۵.۳ · هنوز وجود دارد؟</span></h3>
-  <p class="en">List <b>all</b> containers, including stopped ones:</p>
-  <p class="fa"><b>همه‌ی</b> کانتینرها را، حتی متوقف‌شده‌ها، فهرست کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps -a</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS                              PORTS     NAMES
-1c76533ac4cb   nginx     "/docker-entrypoint.…"   9 seconds ago   Exited (0) Less than a second ago             web</code></pre></div>
-  <p class="en">There it is: stopped (<code>Exited</code>), but still there.</p>
-  <p class="fa">اینجاست: متوقف شده (<code>Exited</code>)، ولی هنوز وجود دارد.</p>
-
-  <h3><span class="en">5.4 · Delete it</span><span class="fa">۵.۴ · حذفش کنید</span></h3>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm web</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>web</code></pre></div>
-  <div class="note warn">
-    <p class="en">⚠ You can't <code>docker rm</code> a <b>running</b> container. Stop it first, or use <code>docker rm -f web</code> (force), which stops and deletes in one go.</p>
-    <p class="fa">⚠ کانتینر <b>در حال اجرا</b> را نمی‌توانید با <code>docker rm</code> حذف کنید. اول متوقفش کنید، یا از <code>docker rm -f web</code> (اجباری) استفاده کنید که در یک قدم متوقف و حذف می‌کند.</p>
+<!-- ======================= 7 · -d ======================= -->
+<section class="slide" data-title-en="Run it in the background with -d" data-title-fa="اجرا در پس‌زمینه با -d">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">Now run it in the background with <span class="hl">-d</span></span><span class="fa split">حالا اجرا در پس‌زمینه با <span class="hl">&#x2066;-d&#x2069;</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px;font-size:21px"><span class="en">Same command, plus <code>-d</code> (<b>detached</b>):</span><span class="fa">همان دستور، به‌اضافه‌ی <code>-d</code> (<b>detached</b>، یعنی جدا شده):</span></p>
+  <div class="term xs a" style="--d:.5;margin-top:14px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1"><div class="cmd">docker run -d --name web nginx</div><pre class="out">
+1c76533ac4cbf87fdbd0e208968f0b8bb201b670a2777d22770de41178d25b03   <span class="c"># the new container's full ID</span>
+<span class="c">$   ← prompt back right away</span></pre></div>
+      <div class="run recall" data-step="2" data-reveal="3" data-task-en="👉 Check it's running: list the running containers." data-task-fa="👉 بررسی کنید در حال اجراست: کانتینرهای در حال اجرا را فهرست کنید."><div class="cmd">docker ps</div><pre class="out">
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS     NAMES
+1c76533ac4cb   nginx     "/docker-entrypoint.…"   9 seconds ago   Up 3 seconds   80/tcp    web</pre></div>
+    </div>
   </div>
-
-  <h3><span class="en">5.5 · Check it's gone</span><span class="fa">۵.۵ · بررسی کنید حذف شده</span></h3>
-  <p class="en">Look at <b>all</b> containers again:</p>
-  <p class="fa">دوباره <b>همه‌ی</b> کانتینرها را ببینید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps -a</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</code></pre></div>
-  <p class="en">✅ <code>web</code> is gone for good, even from <code>-a</code>.</p>
-  <p class="fa">✅ <code>web</code> برای همیشه حذف شد، حتی در <code>-a</code> هم نیست.</p>
-
-  <h3><span class="en">5.6 · The image is still there</span><span class="fa">۵.۶ · ایمیج هنوز هست</span></h3>
-  <p class="en">Remember: we only removed the <b>container</b>. The <b>image</b> is still there. Check it:</p>
-  <p class="fa">یادتان باشد: فقط <b>کانتینر</b> را حذف کردیم. <b>ایمیج</b> هنوز سر جایش است. بررسی کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image ls nginx</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>IMAGE          ID             DISK USAGE   CONTENT SIZE   EXTRA
-nginx:latest   f9ea18bfa4fa        243MB         66.7MB</code></pre></div>
-  <div class="note key">
-    <p class="en">🔑 Keep this image. We need it in the next lessons.</p>
-    <p class="fa">🔑 این ایمیج را نگه دارید، چون در درس‌های بعد به آن نیاز داریم.</p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s5-1"><span><span class="en">I stopped <code>web</code> with <code>docker stop</code></span><span class="fa"><code>web</code> را با <code>docker stop</code> متوقف کردم</span></span></label>
-    <label><input type="checkbox" data-id="s5-3"><span><span class="en">After stopping: not in <code>docker ps</code>, but still in <code>docker ps -a</code></span><span class="fa">بعد از توقف: در <code>docker ps</code> نیست، ولی در <code>docker ps -a</code> هست</span></span></label>
-    <label><input type="checkbox" data-id="s5-2"><span><span class="en">After <code>docker rm</code>: gone from <code>docker ps -a</code> too</span><span class="fa">بعد از <code>docker rm</code>: از <code>docker ps -a</code> هم حذف شده</span></span></label>
-    <label><input type="checkbox" data-id="s5-img"><span><span class="en">The <code>nginx</code> image is still in <code>docker image ls</code></span><span class="fa">ایمیج <code>nginx</code> هنوز در <code>docker image ls</code> هست</span></span></label>
+  <div style="display:grid;grid-template-columns:460px 1fr;gap:28px;margin-top:16px;align-items:center;direction:ltr">
+    <svg viewBox="0 0 460 200" style="width:460px;height:200px;overflow:visible" class="a fade">
+      <use href="#tw" x="0" y="30" width="190" height="138"/>
+      <g data-step="1" style="transition-delay:1.2s">
+        <text x="16" y="100" fill="#3ccf7f" font-size="17" font-family="JetBrains Mono,monospace">$ <tspan fill="#eef2fb">▌</tspan></text>
+        <g transform="translate(300 40)"><use href="#cube" x="0" y="0" width="120" height="120"/><circle cx="110" cy="10" r="7" fill="#3ccf7f" class="pulse"/></g>
+        <path d="M200 100 H 290" stroke="#6e9bff" stroke-width="3" stroke-dasharray="4 8" opacity=".5"/>
+        <text x="245" y="88" text-anchor="middle" font-size="22">✂</text>
+        <text x="95" y="196" text-anchor="middle" fill="#3ccf7f" font-size="16" font-weight="700" font-family="Inter,sans-serif" class="en">✓ free</text>
+        <text x="95" y="196" text-anchor="middle" fill="#3ccf7f" font-size="17" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">✓ آزاد</text>
+        <text x="360" y="196" text-anchor="middle" fill="#3ccf7f" font-size="16" font-weight="700" font-family="Inter,sans-serif" class="en">running in the background</text>
+        <text x="360" y="196" text-anchor="middle" fill="#3ccf7f" font-size="17" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">در پس‌زمینه در حال اجرا</text>
+      </g>
+    </svg>
+    <div class="card sm" data-step="4" style="padding:12px 20px">
+      <table class="cmpt">
+        <tr><th></th><th><span class="en">Without <code>-d</code> (foreground)</span><span class="fa">بدون <code>-d</code> (پیش‌زمینه)</span></th><th><span class="en">With <code>-d</code> (background)</span><span class="fa">با <code>-d</code> (پس‌زمینه)</span></th></tr>
+        <tr><td><span class="en">Terminal</span><span class="fa">ترمینال</span></td><td><span class="en">Busy, shows the log</span><span class="fa">مشغول، لاگ را نشان می‌دهد</span></td><td><span class="en">Free right away</span><span class="fa">بلافاصله آزاد</span></td></tr>
+        <tr><td><span class="en">How to stop</span><span class="fa">روش توقف</span></td><td><code>Ctrl</code>+<code>C</code></td><td><code>docker stop web</code></td></tr>
+      </table>
+    </div>
   </div>
 </section>
 
-<!-- ================= SUMMARY ================= -->
-<section class="card" id="sum">
-  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><code>docker run --name NAME IMAGE</code></td><td><span class="en">Run in the foreground; stop with <kbd>Ctrl</kbd>+<kbd>C</kbd></span><span class="fa">اجرا در پیش‌زمینه؛ توقف با <kbd>Ctrl</kbd>+<kbd>C</kbd></span></td></tr>
-      <tr><td><code>docker run -d --name NAME IMAGE</code></td><td><span class="en">Run in the background</span><span class="fa">اجرا در پس‌زمینه</span></td></tr>
-      <tr><td><code>docker ps</code></td><td><span class="en">List <b>running</b> containers</span><span class="fa">فهرست کانتینرهای <b>در حال اجرا</b></span></td></tr>
-      <tr><td><code>docker stop NAME</code></td><td><span class="en">Stop a running container (it still exists)</span><span class="fa">متوقف کردن کانتینر (هنوز وجود دارد)</span></td></tr>
-      <tr><td><code>docker rm NAME</code></td><td><span class="en">Delete a stopped container</span><span class="fa">حذف کانتینر متوقف‌شده</span></td></tr>
-    </tbody>
-  </table>
+<!-- ======================= 8 · STOP ======================= -->
+<section class="slide" data-scene="life" data-life="0,0,1,1,1,1,1" data-title-en="Stop it" data-title-fa="متوقفش کنید">
+  <div class="kicker a"><span class="en">Step 5 · Stop it</span><span class="fa">قدم ۵ · متوقفش کنید</span></div>
+  <h2><span class="en split">Stop it with <span class="hl">a command</span></span><span class="fa split">توقف با <span class="hl">یک دستور</span></span></h2>
+  <svg viewBox="0 0 1420 150" style="width:1420px;height:150px;margin-top:10px;overflow:visible;direction:ltr" class="a fade lcsvg">
+    <g font-family="Inter,sans-serif" font-weight="700">
+      <rect x="120" y="20" width="300" height="90" rx="18" fill="rgba(60,207,127,.1)" stroke="#3ccf7f" stroke-width="2"/>
+      <text x="300" y="58" fill="#3ccf7f" font-size="21" class="en">Running</text><text x="300" y="58" fill="#3ccf7f" font-size="22" class="fa" direction="rtl" text-anchor="end">در حال اجرا</text>
+      <text x="300" y="86" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">Up</text>
+      <rect x="560" y="20" width="300" height="90" rx="18" fill="rgba(147,160,187,.1)" stroke="#93a0bb" stroke-width="2"/>
+      <text x="740" y="58" fill="#c9d1e3" font-size="21" class="en">Stopped</text><text x="740" y="58" fill="#c9d1e3" font-size="22" class="fa" direction="rtl" text-anchor="end">متوقف</text>
+      <text x="740" y="86" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">Exited</text>
+      <rect x="1000" y="20" width="300" height="90" rx="18" fill="rgba(255,107,107,.06)" stroke="#ff6b6b" stroke-width="2" stroke-dasharray="8 6"/>
+      <text x="1180" y="58" fill="#ff8a8a" font-size="21" class="en">Deleted</text><text x="1180" y="58" fill="#ff8a8a" font-size="22" class="fa" direction="rtl" text-anchor="end">حذف‌شده</text>
+      <text x="1180" y="86" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">—</text>
+    </g>
+    <g font-family="JetBrains Mono,monospace" font-size="16" fill="#a9c4ff">
+      <path d="M425 65 H 552" stroke="#6e9bff" stroke-width="3" class="flow"/><path d="M546 56l10 9-10 9" fill="none" stroke="#6e9bff" stroke-width="3"/><text x="488" y="135" text-anchor="middle">docker stop</text>
+      <path d="M865 65 H 992" stroke="#6e9bff" stroke-width="3" class="flow"/><path d="M986 56l10 9-10 9" fill="none" stroke="#6e9bff" stroke-width="3"/><text x="928" y="135" text-anchor="middle">docker rm</text>
+    </g>
+    <g class="lc-mk">
+      <g class="lc-st" data-st="0"><use href="#cube" x="150" y="25" width="80" height="80"/><circle cx="222" cy="32" r="6" fill="#3ccf7f" class="pulse"/></g>
+      <g class="lc-st" data-st="1"><use href="#cubeoff" x="150" y="25" width="80" height="80"/></g>
+    </g>
+  </svg>
+  <div class="term xxs a" style="--d:.5;margin-top:12px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Stop the web container with a command (the terminal isn't stuck, so Ctrl+C does nothing here)." data-task-fa="👉 کانتینر web را با یک دستور متوقف کنید (ترمینال گیر نکرده، پس Ctrl+C اینجا کاری نمی‌کند)."><div class="cmd">docker stop web</div><pre class="out">
+web</pre></div>
+      <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Is it still running? List the running containers." data-task-fa="👉 هنوز در حال اجراست؟ کانتینرهای در حال اجرا را فهرست کنید."><div class="cmd">docker ps</div><pre class="out">
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES     <span class="c"># no web: it's not running</span></pre></div>
+      <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 Does it still exist? List all containers, including stopped ones." data-task-fa="👉 هنوز وجود دارد؟ همه‌ی کانتینرها را، حتی متوقف‌شده‌ها، فهرست کنید."><div class="cmd">docker ps -a</div><pre class="out">
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS                              PORTS     NAMES
+1c76533ac4cb   nginx     "/docker-entrypoint.…"   9 seconds ago   Exited (0) Less than a second ago             web</pre></div>
+    </div>
+  </div>
+  <div class="card tip sm" data-step="7" style="margin-top:12px"><div class="n">✓</div><p><span class="en">There it is: stopped (<code>Exited</code>), but still there.</span><span class="fa">اینجاست: متوقف شده (<code>Exited</code>)، ولی هنوز وجود دارد.</span></p></div>
+</section>
+
+<!-- ======================= 9 · DELETE ======================= -->
+<section class="slide" data-scene="life" data-life="1,1,2,2,2,2,2" data-title-en="Delete it" data-title-fa="حذفش کنید">
+  <div class="kicker a"><span class="en">Step 5 · Delete it</span><span class="fa">قدم ۵ · حذفش کنید</span></div>
+  <h2><span class="en split">Delete it, <span class="hl">keep the image</span></span><span class="fa split">حذف کانتینر، <span class="hl">نگه داشتن ایمیج</span></span></h2>
+  <svg viewBox="0 0 1420 150" style="width:1420px;height:150px;margin-top:10px;overflow:visible;direction:ltr" class="a fade lcsvg">
+    <g font-family="Inter,sans-serif" font-weight="700">
+      <rect x="120" y="20" width="300" height="90" rx="18" fill="rgba(60,207,127,.1)" stroke="#3ccf7f" stroke-width="2"/>
+      <text x="300" y="58" fill="#3ccf7f" font-size="21" class="en">Running</text><text x="300" y="58" fill="#3ccf7f" font-size="22" class="fa" direction="rtl" text-anchor="end">در حال اجرا</text>
+      <text x="300" y="86" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">Up</text>
+      <rect x="560" y="20" width="300" height="90" rx="18" fill="rgba(147,160,187,.1)" stroke="#93a0bb" stroke-width="2"/>
+      <text x="740" y="58" fill="#c9d1e3" font-size="21" class="en">Stopped</text><text x="740" y="58" fill="#c9d1e3" font-size="22" class="fa" direction="rtl" text-anchor="end">متوقف</text>
+      <text x="740" y="86" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">Exited</text>
+      <rect x="1000" y="20" width="300" height="90" rx="18" fill="rgba(255,107,107,.06)" stroke="#ff6b6b" stroke-width="2" stroke-dasharray="8 6"/>
+      <text x="1180" y="58" fill="#ff8a8a" font-size="21" class="en">Deleted</text><text x="1180" y="58" fill="#ff8a8a" font-size="22" class="fa" direction="rtl" text-anchor="end">حذف‌شده</text>
+      <text x="1180" y="86" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">—</text>
+    </g>
+    <g font-family="JetBrains Mono,monospace" font-size="16" fill="#a9c4ff">
+      <path d="M425 65 H 552" stroke="#6e9bff" stroke-width="3" class="flow"/><path d="M546 56l10 9-10 9" fill="none" stroke="#6e9bff" stroke-width="3"/><text x="488" y="135" text-anchor="middle">docker stop</text>
+      <path d="M865 65 H 992" stroke="#6e9bff" stroke-width="3" class="flow"/><path d="M986 56l10 9-10 9" fill="none" stroke="#6e9bff" stroke-width="3"/><text x="928" y="135" text-anchor="middle">docker rm</text>
+    </g>
+    <g class="lc-mk">
+      <g class="lc-st" data-st="1"><use href="#cubeoff" x="150" y="25" width="80" height="80"/></g>
+      <g class="lc-st" data-st="2"><circle cx="190" cy="65" r="30" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-dasharray="4 6"/><text x="190" y="74" text-anchor="middle" font-size="26" fill="#ff6b6b">✕</text></g>
+    </g>
+  </svg>
+  <div style="display:grid;grid-template-columns:860px 1fr;gap:26px;margin-top:12px;direction:ltr">
+    <div class="term xxs a" style="--d:.5">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Delete the web container." data-task-fa="👉 کانتینر web را حذف کنید."><div class="cmd">docker rm web</div><pre class="out">
+web</pre></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Check it's gone: list all containers again." data-task-fa="👉 بررسی کنید حذف شده: دوباره همه‌ی کانتینرها را فهرست کنید."><div class="cmd">docker ps -a</div><pre class="out">
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+<span class="c"># ✅ web is gone for good, even from -a</span></pre></div>
+        <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 We only removed the container. Check the image: list only the nginx image." data-task-fa="👉 فقط کانتینر را حذف کردیم. ایمیج را بررسی کنید: فقط ایمیج nginx را فهرست کنید."><div class="cmd">docker image ls nginx</div><pre class="out">
+IMAGE          ID             DISK USAGE   CONTENT SIZE   EXTRA
+nginx:latest   f9ea18bfa4fa        243MB         66.7MB</pre></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px" class="dirauto">
+      <div class="card key sm" data-step="2"><div class="n">⚠ <span class="en">RUNNING?</span><span class="fa">در حال اجرا؟</span></div><p><span class="en">You can't <code>docker rm</code> a <b>running</b> container. Stop it first, or use <code>docker rm -f web</code> (force), which stops and deletes in one go.</span><span class="fa">کانتینر <b>در حال اجرا</b> را نمی‌توانید با <code>docker rm</code> حذف کنید. اول متوقفش کنید، یا از <code>docker rm -f web</code> (اجباری) استفاده کنید که در یک قدم متوقف و حذف می‌کند.</span></p></div>
+      <div class="card tip sm" data-step="6" style="display:flex;gap:18px;align-items:center">
+        <svg viewBox="0 0 100 100" style="width:84px;height:84px;flex:none" class="bob"><use href="#box3" x="8" y="12" width="84" height="78"/></svg>
+        <p><span class="en">🔑 The <b>image</b> is still there. Keep it: we need it in the next lessons.</span><span class="fa">🔑 <b>ایمیج</b> هنوز سر جایش است. نگهش دارید، چون در درس‌های بعد به آن نیاز داریم.</span></p>
+      </div>
+    </div>
   </div>
 </section>
 
-<div class="done-banner" id="doneBanner">
-  <h2>🎉 <span class="en">You ran a container in the background!</span><span class="fa">یک کانتینر را در پس‌زمینه اجرا کردید!</span></h2>
-  <p id="nextLine"></p>
+<!-- ======================= 10 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 You ran a container <span class="hl">in the background!</span></span><span class="fa split">🎉 یک کانتینر را <span class="hl">در پس‌زمینه</span> اجرا کردید!</span></h2>
+  <div class="sumgrid">
+    <div class="card a" style="--d:.4"><code>docker run --name NAME IMAGE</code><p><span class="en">Run in the foreground; stop with <code>Ctrl</code>+<code>C</code></span><span class="fa">اجرا در پیش‌زمینه؛ توقف با <code>Ctrl</code>+<code>C</code></span></p></div>
+    <div class="card a" style="--d:.5"><code>docker run -d --name NAME IMAGE</code><p><span class="en">Run in the background</span><span class="fa">اجرا در پس‌زمینه</span></p></div>
+    <div class="card a" style="--d:.6"><code>docker ps</code><p><span class="en">List <b>running</b> containers</span><span class="fa">فهرست کانتینرهای <b>در حال اجرا</b></span></p></div>
+    <div class="card a" style="--d:.7"><code>docker stop NAME</code><p><span class="en">Stop a running container (it still exists)</span><span class="fa">متوقف کردن کانتینر (هنوز وجود دارد)</span></p></div>
+    <div class="card a" style="--d:.8"><code>docker rm NAME</code><p><span class="en">Delete a stopped container</span><span class="fa">حذف کانتینر متوقف‌شده</span></p></div>
+  </div>
+  <div class="btnrow a" style="--d:1.1">
+    <a class="bigbtn primary" href="04-ports.html"><span class="en">Next: Lesson 4 · Open it in the browser →</span><span class="fa">بعدی: درس ۴ · باز کردن در مرورگر ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 10</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
 </div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
 
-<nav class="pager" id="pager"></nav>
+<script>
+/* ---------- lesson 3 scenes ---------- */
+const burstAt = (parts, cx, cy, cols) => {
+  for (let i = 0; i < 40; i++) {
+    const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    const x = cx + (Math.random() - .5) * 70, y = cy + (Math.random() - .5) * 60;
+    r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', 7); r.setAttribute('height', 7); r.setAttribute('fill', cols[i % cols.length]);
+    r.style.transition = `transform ${1 + Math.random()}s cubic-bezier(.2,.8,.2,1), opacity 1.4s`;
+    parts.appendChild(r);
+    requestAnimationFrame(() => requestAnimationFrame(() => { r.style.transform = `translate(${(Math.random() - .5) * 160}px, ${-60 - Math.random() * 140}px) rotate(${Math.random() * 360}deg)`; r.style.opacity = 0; }));
+  }
+};
+const GREY = ['#6b7489', '#3a4357', '#2a3142', '#93a0bb'];
 
-<footer>
-  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
-</footer>
+window.SCENES = {
+  /* highlight the column of the card that just appeared (cards carry data-col) */
+  cols(slide) {
+    const run = slide.querySelector('.colsrc'), out = run.querySelector('.out');
+    const lines = [...out.querySelectorAll('.ol')].map(l => l.textContent);
+    const header = lines[0], rows = lines.slice(1).map(l => l.replace(/#.*$/, ''));
+    const toks = rows.flatMap(r => [...r.matchAll(/\S+(?: \S+)*/g)].map(m => [m.index, m.index + m[0].length]));
+    const span = key => { let a = header.indexOf(key), b = a + key.length; toks.forEach(([x, y]) => { if (x < b && y > a) { a = Math.min(a, x); b = Math.max(b, y); } }); return [a, b]; };
+    let hl = out.querySelector('.colhl');
+    if (!hl) { hl = document.createElement('div'); hl.className = 'colhl'; out.appendChild(hl); }
+    hl.style.opacity = 0; hl.style.height = (lines.length * 1.65) + 'em';
+    const cards = [...slide.querySelectorAll('[data-col]')];
+    return {
+      step(k) {
+        const c = cards.find(c => +c.dataset.step === k);
+        cards.forEach(x => x.classList.toggle('on', x === c));
+        if (c) { const [a, b] = span(c.dataset.col); hl.style.left = `calc(${a}ch - 4px)`; hl.style.width = `calc(${b - a}ch + 8px)`; hl.style.opacity = 1; }
+        else hl.style.opacity = 0;
+      },
+      stop() { hl.style.opacity = 0; }
+    };
+  },
 
-</main>
+  /* the .bx element bursts when the slide reaches data-burst */
+  burst(slide, api) {
+    const k0 = +slide.dataset.burst, el = slide.querySelector('.bx'), parts = slide.querySelector('.bparts');
+    const [cx, cy] = slide.dataset.burstXy.split(',').map(Number);
+    return {
+      step(k, instant) {
+        parts.innerHTML = '';
+        if (k < k0) { el.classList.add('vis'); return; }
+        if (k === k0 && !instant) { el.classList.add('vis'); api.later(() => { el.classList.remove('vis'); burstAt(parts, cx, cy, GREY); }, .6); }
+        else el.classList.remove('vis');
+      }
+    };
+  },
 
-</div>
+  /* lifecycle: running → stopped → deleted; data-life lists the station for each step */
+  life(slide) {
+    const st = slide.dataset.life.split(',').map(Number), X = [0, 440, 880];
+    const mk = slide.querySelector('.lc-mk'), looks = [...slide.querySelectorAll('.lc-st')];
+    const set = s => { mk.style.transform = `translateX(${X[s]}px)`; looks.forEach(g => g.style.opacity = +g.dataset.st === s ? 1 : 0); };
+    mk.style.transition = 'none'; set(st[0]); void mk.getBoundingClientRect(); mk.style.transition = '';
+    return { step(k) { set(st[Math.min(k, st.length - 1)]); } };
+  },
 
+  /* nginx loop: listen → find → send back. Steps 1–3 play one phase each; step 4 loops forever */
+  nginx(slide, api) {
+    const q = s => slide.querySelector(s);
+    const req = q('.ng-req'), res = q('.ng-res'), dot = q('.ng-dot'), file = q('.ng-file'), page = q('.ng-page'), wait = q('.ng-wait');
+    const lines = [...slide.querySelectorAll('.ng-code .ln')], sts = [...slide.querySelectorAll('.ng-st')];
+    const ease = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2, lerp = (a, b, f) => a + (b - a) * f;
+    const DUR = 1.5;
+    let stopLoop = null;
+    function render(ph, f) {                       // ph: -1 idle, 0 listen, 1 find, 2 send back; f: 0..1
+      lines.forEach((l, i) => l.classList.toggle('on', i === ph));
+      sts.forEach((s, i) => s.classList.toggle('on', i === ph));
+      const a = (-90 + 120 * (ph < 0 ? 0 : ph - 1 + Math.min(1, f * 2.5))) * Math.PI / 180;
+      dot.setAttribute('cx', 637 + 88 * Math.cos(a)); dot.setAttribute('cy', 170 + 88 * Math.sin(a));
+      const e = ease(Math.min(1, f / .8));
+      req.setAttribute('opacity', ph === 0 && f < .95 ? 1 : 0);
+      req.setAttribute('transform', `translate(${lerp(180, 530, e)} 212)`);
+      file.setAttribute('fill', ph === 1 && f > .3 || ph === 2 && f < .2 ? 'rgba(60,207,127,.25)' : 'rgba(60,207,127,0)');
+      res.setAttribute('opacity', ph === 2 && f > .1 && f < .95 ? 1 : 0);
+      res.setAttribute('transform', `translate(${lerp(560, 150, ease(Math.min(1, Math.max(0, f - .1) / .8)))} 262)`);
+      const shown = ph === 2 && f >= .9;
+      page.setAttribute('opacity', shown ? 1 : 0); wait.setAttribute('opacity', shown || ph < 0 ? 0 : 1);
+    }
+    const halt = () => { if (stopLoop) { stopLoop(); stopLoop = null; } };
+    render(-1, 0);
+    return {
+      step(k, instant) {
+        halt();
+        if (k === 0) { render(-1, 0); return; }
+        if (k <= 3) {
+          if (instant) { render(k - 1, 1); return; }
+          stopLoop = api.loop(t => { const f = Math.min(1, t / DUR); render(k - 1, f); if (f >= 1) halt(); });
+          return;
+        }
+        stopLoop = api.loop(t => { const c = t / DUR; render(Math.floor(c) % 3, c % 1); });
+      },
+      stop: halt
+    };
+  },
+
+  /* confetti */
+  sum(slide, api) {
+    const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+    const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+    const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+    const stop = api.loop(t => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of P) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+        if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+      }
+    });
+    return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+  }
+};
+</script>
 <script src="tips.js"></script>
-<script src="course.js"></script>
+<script src="deck.js"></script>
 </body>
 </html>

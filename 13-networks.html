@@ -1,306 +1,580 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 13 · Networks</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 13 · Networks (motion)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="course.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- shared lesson bits ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  svg [data-step].pop-in,svg [data-only].pop-in{transform-box:fill-box;transform-origin:center}
+  [data-until]{transition:opacity .6s,filter .6s}
+  [data-until].gone{opacity:0!important;filter:blur(8px)}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:280px}
+  .goal svg{width:96px;height:96px}
+  .goal h3{font-size:25px}
+  .term.sm .body{font-size:17px}
+  .term.xs .body{font-size:15px;padding:16px 20px 18px}
+  .btnrow{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px;padding:20px 24px}
+  .sumgrid code{font-size:20px;flex:none;min-width:360px;text-align:left}
+  .sumgrid p{font-size:18px}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .browser{border-radius:14px;overflow:hidden;background:#f3f5fa;color:#1b2333;box-shadow:0 26px 60px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .browser .bar{display:flex;align-items:center;gap:7px;padding:9px 14px;background:#dde3ee}
+  .browser .bar i{width:11px;height:11px;border-radius:50%;background:#c3cad8}
+  .browser .bar .url{flex:1;margin-left:8px;background:#fff;border-radius:8px;padding:4px 12px;font:500 14px var(--mono);color:#556}
+  .browser .page{padding:14px 20px 16px;font-family:Tahoma,Verdana,sans-serif}
+  .browser .page h1{font:700 26px Tahoma,Verdana,sans-serif;letter-spacing:0;color:#1b2333;margin-bottom:6px}
+  .browser .page p{font:14px/1.5 Tahoma,Verdana,sans-serif;color:#34405a}
+  .browser.err .page p{color:#a3202c;background:#fde8ea;border-left:4px solid #e04050;padding:7px 10px;border-radius:6px}
+  .browser .page .crumb{color:#2f62b8}
+  .lead.sm{font-size:21px}
+  .vs{display:block;margin-top:8px}
+  code{font-variant-ligatures:none} /* JetBrains Mono's -- ligature breaks inside RTL text */
+  /* ---- lesson 13 ---- */
+  .form{display:grid;grid-template-columns:120px 1fr;gap:7px 14px;align-items:center;direction:ltr;text-align:left;margin-top:6px}
+  .form b{font:600 16px var(--font);color:var(--muted)}
+  .form code{font-size:17px}
+  .form small{font:600 15px var(--font);color:var(--amber);margin-left:8px}
+  body.lang-fa .form small{font-family:Vazirmatn,sans-serif}
+  .form .empty{font-style:italic;color:var(--muted);font-size:16px}
+  .ipline{position:absolute;left:0;right:0;height:1.65em;border-radius:6px;background:rgba(255,181,77,.16);outline:2px solid rgba(255,181,77,.7);pointer-events:none}
+  .rowhl{position:relative}
+  .note-sm{font-size:16px;color:var(--muted);margin-top:10px}
+</style>
 </head>
-<body class="lang-en" data-lesson="13">
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
 
-<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
-<header class="topbar">
-  <div class="topbar-inner">
-    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
-      <span class="title-text" id="brandTitle"></span>
-    </a>
-    <div class="progress-wrap">
-      <div class="progress"><div id="bar"></div></div>
-      <span class="progress-label" id="plabel">0 / 0</span>
-    </div>
-    <span id="navSlot"></span>
-    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
-    <button class="btn" id="themeBtn" title="Theme">◐</button>
-    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
-  </div>
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="cubec" viewBox="-62 -32 124 124" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V90L-60 60Z"/><path class="r-slab" d="M0 30L60 0V60L0 90Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="monitor" viewBox="0 0 200 170"><rect x="4" y="4" width="192" height="122" rx="14" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M80 126l-8 30h56l-8-30" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M56 158h88" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="index.html"><img src="docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
 </header>
 
-<div class="layout">
+<div id="viewport"><div id="stage">
 
-<!-- ================= TABLE OF CONTENTS ================= -->
-<nav class="toc">
-  <ol>
-    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Start a database and an app</span><span class="fa">۱ · اجرای دیتابیس و برنامه</span></a></li>
-    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Connect by name</span><span class="fa">۲ · اتصال با نام</span></a></li>
-    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Connect by IP</span><span class="fa">۳ · اتصال با IP</span></a></li>
-    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · IPs change</span><span class="fa">۴ · IPها عوض می‌شوند</span></a></li>
-    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Create a network</span><span class="fa">۵ · ساختن شبکه</span></a></li>
-    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Join the network</span><span class="fa">۶ · پیوستن به شبکه</span></a></li>
-    <li><a href="#s7"><span class="tick">✓</span><span class="en">7 · Connect by name again</span><span class="fa">۷ · اتصال دوباره با نام</span></a></li>
-    <li><a href="#s8"><span class="tick">✓</span><span class="en">8 · Clean up</span><span class="fa">۸ · تمیزکاری</span></a></li>
-  </ol>
-</nav>
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 13 — Networks" data-title-fa="درس ۱۳ — شبکه‌ها" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 13</span><span class="fa">دوره‌ی Docker · درس ۱۳</span></div>
+    <h1 style="font-size:120px;line-height:1.05;margin:26px 0 26px">
+      <span class="en split"><span class="hl">Networks</span></span><span class="fa split"><span class="hl">شبکه‌ها</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en">Real apps are made of <b>several containers</b>: an app and its database. The app must reach the database, ideally <b>by name</b>.</span><span class="fa">برنامه‌های واقعی از <b>چند کانتینر</b> ساخته می‌شوند: یک برنامه و دیتابیسش. برنامه باید به دیتابیس دسترسی داشته باشد، ترجیحاً <b>با نام</b>.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:700px;height:620px;overflow:visible;direction:ltr" viewBox="0 0 700 620">
+    <circle cx="350" cy="320" r="290" fill="none" stroke="rgba(110,155,255,.14)" stroke-dasharray="4 10"/>
+    <!-- the wire -->
+    <path id="t13wire" d="M80 420 H620" stroke="#6e9bff" stroke-width="8" stroke-linecap="round" opacity=".35"/>
+    <path d="M80 420 H620" stroke="#a9c4ff" stroke-width="3" class="flow"/>
+    <path d="M190 330 V420 M510 330 V420" stroke="#6e9bff" stroke-width="5"/>
+    <rect x="285" y="440" width="130" height="40" rx="12" fill="#0d1426" stroke="#6e9bff"/>
+    <text x="350" y="467" text-anchor="middle" fill="#a9c4ff" font-size="19" font-family="JetBrains Mono,monospace">mynet</text>
+    <g class="bob"><use href="#cube" x="115" y="190" width="150" height="150"/></g>
+    <g class="bob" style="animation-delay:-2s"><use href="#cubec" x="435" y="190" width="150" height="150" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/></g>
+    <text x="190" y="160" text-anchor="middle" fill="#eef2fb" font-size="24" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text>
+    <text x="510" y="160" text-anchor="middle" fill="#eef2fb" font-size="24" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+    <!-- packets: by name -->
+    <g>
+      <rect x="-22" y="-14" width="44" height="28" rx="8" fill="#3ccf7f"/><text x="0" y="6" text-anchor="middle" fill="#05200f" font-size="15" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+      <animateMotion dur="2.6s" repeatCount="indefinite" path="M190 330 V420 H510 V330" keyPoints="0;1" keyTimes="0;1" calcMode="linear"/>
+    </g>
+    <g>
+      <circle r="8" fill="#6e9bff"/>
+      <animateMotion dur="2.6s" begin="1.3s" repeatCount="indefinite" path="M510 330 V420 H190 V330"/>
+    </g>
+    <text x="350" y="560" text-anchor="middle" fill="#93a0bb" font-size="18" letter-spacing="3" font-family="JetBrains Mono,monospace" class="en">NAME = ADDRESS</text>
+    <text x="350" y="560" text-anchor="middle" fill="#93a0bb" font-size="22" font-family="Vazirmatn,sans-serif" class="fa">نام = آدرس</text>
+  </svg>
+</section>
 
-<main>
-
-<!-- ================= HERO ================= -->
-<section class="hero">
-  <h1>
-    <span class="en">Lesson 13 — Networks: containers talking to each other</span>
-    <span class="fa">درس ۱۳ — شبکه‌ها: صحبت کانتینرها با هم</span>
-  </h1>
-  <p class="en">Real apps are made of <b>several containers</b>: an app and its database. The app must reach the database, ideally <b>by name</b>. You'll run a <b>PostgreSQL</b> database (Lesson 11) and <b>Adminer</b>, a ready-made web app for looking inside databases, and connect them.</p>
-  <p class="fa">برنامه‌های واقعی از <b>چند کانتینر</b> ساخته می‌شوند: یک برنامه و دیتابیسش. برنامه باید به دیتابیس دسترسی داشته باشد، ترجیحاً <b>با نام</b>. یک دیتابیس <b>PostgreSQL</b> (درس ۱۱) و <b>Adminer</b> را اجرا می‌کنید (یک برنامه‌ی وب آماده برای دیدن داخل دیتابیس‌ها) و آن‌ها را به هم وصل می‌کنید.</p>
-  <div class="flow">
-    <div class="box"><b><span class="en">Your browser</span><span class="fa">مرورگر شما</span></b><small><code>localhost:8080</code></small></div>
-    <div class="arrow"><small><code>-p 8080:8080</code></small></div>
-    <div class="row">
-      <div class="box ctr"><b><code>adminer</code></b><small><span class="en">web app</span><span class="fa">برنامه‌ی وب</span></small></div>
-      <div class="box ctr"><b><code>db</code></b><small>PostgreSQL</small></div>
+<!-- ======================= 3 · START DB + ADMINER ======================= -->
+<section class="slide" data-title-en="Start a database and an app" data-title-fa="اجرای دیتابیس و برنامه">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Start a database <span class="hl">and an app</span></span><span class="fa split">اجرای یک دیتابیس <span class="hl">و یک برنامه</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Start PostgreSQL in the background, named db, with the password secret (Lesson 11)." data-task-fa="👉 PostgreSQL را در پس‌زمینه با نام db و رمز secret اجرا کنید (درس ۱۱)."><div class="cmd">docker run -d --name db -e POSTGRES_PASSWORD=secret postgres:alpine</div></div>
+      <div class="run" data-step="3" style="margin-bottom:0"><div class="cmd">docker run -d --name adminer -p 8080:8080 adminer</div></div>
     </div>
-    <p style="margin:6px 0 0"><small><span class="en"><code>adminer</code> → <code>db</code>: by name?</span><span class="fa"><code>adminer</code> ← <code>db</code>: با نام؟</span></small></p>
   </div>
-  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
-  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+  <p class="lead sm" data-step="3" style="margin-top:14px"><span class="en">Adminer listens on port 8080 inside its container, so publish it on 8080.</span><span class="fa">Adminer داخل کانتینرش روی پورت 8080 گوش می‌دهد، پس آن را روی 8080 منتشر کنید.</span></p>
+  <svg viewBox="0 0 1420 290" style="width:1420px;height:290px;margin-top:6px;overflow:visible;direction:ltr">
+    <g data-step="3">
+      <use href="#monitor" x="90" y="60" width="200" height="170"/>
+      <text x="190" y="128" text-anchor="middle" fill="#a9c4ff" font-size="17" font-family="JetBrains Mono,monospace">localhost:8080</text>
+      <text x="190" y="270" text-anchor="middle" fill="#eef2fb" font-size="21" font-weight="700" font-family="Inter,sans-serif" class="en">Your browser</text>
+      <text x="190" y="270" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">مرورگر شما</text>
+      <path id="p13a" d="M300 125 H560" stroke="#6e9bff" stroke-width="3" class="flow" fill="none"/>
+      <rect x="365" y="88" width="130" height="34" rx="9" fill="#0d1426" stroke="#ffb54d"/>
+      <text x="430" y="111" text-anchor="middle" fill="#ffb54d" font-size="16" font-family="JetBrains Mono,monospace">-p 8080:8080</text>
+      <circle r="6" fill="#3ccf7f"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#p13a"/></animateMotion></circle>
+    </g>
+    <g data-step="3" class="pop-in"><use href="#cube" x="580" y="60" width="140" height="140"/></g>
+    <g data-step="3">
+      <text x="650" y="250" text-anchor="middle" fill="#eef2fb" font-size="24" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text>
+      <text x="650" y="278" text-anchor="middle" fill="#93a0bb" font-size="17" font-family="Inter,sans-serif" class="en">web app</text>
+      <text x="650" y="278" text-anchor="middle" fill="#93a0bb" font-size="18" font-family="Vazirmatn,sans-serif" class="fa">برنامه‌ی وب</text>
+    </g>
+    <g data-step="2" class="pop-in"><use href="#cubec" x="1060" y="60" width="140" height="140" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/></g>
+    <g data-step="2">
+      <text x="1130" y="250" text-anchor="middle" fill="#eef2fb" font-size="24" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+      <text x="1130" y="278" text-anchor="middle" fill="#93a0bb" font-size="17" font-family="Inter,sans-serif">PostgreSQL</text>
+    </g>
+    <g data-step="4">
+      <path d="M760 130 H1030" stroke="#ffb54d" stroke-width="3" stroke-dasharray="8 8" fill="none"/>
+      <path d="M1020 120l12 10-12 10" stroke="#ffb54d" stroke-width="3" fill="none"/>
+      <circle cx="895" cy="130" r="26" fill="#0d1426" stroke="#ffb54d" stroke-width="2"/>
+      <text x="895" y="141" text-anchor="middle" fill="#ffb54d" font-size="30" font-weight="700" font-family="Space Grotesk,sans-serif">?</text>
+      <text x="895" y="84" text-anchor="middle" fill="#ffb54d" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en">by name?</text>
+      <text x="895" y="84" text-anchor="middle" fill="#ffb54d" font-size="21" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">با نام؟</text>
+    </g>
+  </svg>
 </section>
 
-<!-- ================= 1 START ================= -->
-<section class="card step" id="s1">
-  <h2><span class="num">1</span>
-    <span class="en">Start a database and an app</span><span class="fa">اجرای یک دیتابیس و یک برنامه</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Start PostgreSQL in the background, named <code>db</code>, with the password <code>secret</code> (Lesson 11):</p>
-  <p class="fa">PostgreSQL را در پس‌زمینه با نام <code>db</code> و رمز <code>secret</code> اجرا کنید (درس ۱۱):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name db -e POSTGRES_PASSWORD=secret postgres:alpine</code></pre></div>
-  <p class="en">Start Adminer, named <code>adminer</code>. It listens on port 8080 inside its container, so publish it on 8080:</p>
-  <p class="fa">Adminer را با نام <code>adminer</code> اجرا کنید. داخل کانتینرش روی پورت 8080 گوش می‌دهد، پس آن را روی 8080 منتشر کنید:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name adminer -p 8080:8080 adminer</code></pre></div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>db</code> and <code>adminer</code> are both <code>Up</code></span><span class="fa"><code>db</code> و <code>adminer</code> هر دو <code>Up</code> هستند</span></span></label>
+<!-- ======================= 4 · BY NAME (FAILS) ======================= -->
+<section class="slide" data-title-en="Connect by name" data-title-fa="اتصال با نام">
+  <div class="kicker a"><span class="en">Step 2</span><span class="fa">قدم ۲</span></div>
+  <h2><span class="en split">Adminer connects to <span class="hl">db by name</span></span><span class="fa split">Adminer با <span class="hl">نام</span> به db وصل می‌شود</span></h2>
+  <div style="display:grid;grid-template-columns:600px 1fr;gap:30px;margin-top:22px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="card a" style="--d:.4;padding:20px 24px">
+        <div class="n"><span class="en">OPEN localhost:8080 · LOGIN FORM</span><span class="fa">localhost:8080 را باز کنید · فرم ورود</span></div>
+        <div class="form">
+          <b>System</b><span><code>PostgreSQL</code></span>
+          <b>Server</b><span><code>db</code><small><span class="en">← the container's name</span><span class="fa">← نام کانتینر</span></small></span>
+          <b>Username</b><span><code>postgres</code><small style="color:var(--muted)"><span class="en">(the default user)</span><span class="fa">(کاربر پیش‌فرض)</span></small></span>
+          <b>Password</b><span><code>secret</code></span>
+          <b>Database</b><span class="empty"><span class="en">leave empty</span><span class="fa">خالی بگذارید</span></span>
+        </div>
+      </div>
+      <div class="browser err" data-step="1">
+        <div class="bar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+        <div class="page"><h1>Login</h1><p>SQLSTATE[08006] [7] could not translate host name "db" to address: Name does not resolve</p></div>
+      </div>
+    </div>
+    <div>
+      <svg viewBox="0 0 760 330" style="width:760px;height:330px;overflow:visible;direction:ltr" class="a fade">
+        <path d="M40 270 H720" stroke="#6e9bff" stroke-width="8" stroke-linecap="round" opacity=".35"/>
+        <path d="M40 270 H720" stroke="#a9c4ff" stroke-width="3" class="flow"/>
+        <path d="M200 200 V270 M560 200 V270" stroke="#6e9bff" stroke-width="5"/>
+        <use href="#cube" x="140" y="70" width="120" height="120"/>
+        <use href="#cubec" x="500" y="70" width="120" height="120" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+        <text x="200" y="46" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text>
+        <text x="560" y="46" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+        <rect x="290" y="288" width="180" height="36" rx="10" fill="#0d1426" stroke="#6e9bff"/>
+        <text x="380" y="312" text-anchor="middle" fill="#a9c4ff" font-size="18" font-family="JetBrains Mono,monospace">bridge</text>
+        <g data-step="1">
+          <g>
+            <rect x="-24" y="-14" width="48" height="28" rx="8" fill="#ffb54d"/><text x="0" y="6" text-anchor="middle" fill="#2a1a00" font-size="15" font-weight="700" font-family="JetBrains Mono,monospace">db?</text>
+            <animateMotion dur="2.4s" repeatCount="indefinite" path="M200 200 V270 H380" keyPoints="0;1;1" keyTimes="0;.6;1" calcMode="linear"/>
+            <animate attributeName="opacity" values="1;1;0" keyTimes="0;.75;1" dur="2.4s" repeatCount="indefinite"/>
+          </g>
+          <circle cx="380" cy="200" r="30" fill="#2a0d12" stroke="#ff6b6b" stroke-width="3"/>
+          <path d="M366 186l28 28M394 186l-28 28" stroke="#ff6b6b" stroke-width="5" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <div class="card" data-step="2" style="border-color:rgba(255,107,107,.45);margin-top:6px"><p><span class="en">❌ Adminer doesn't know who <code>db</code> is. By default, containers run on Docker's default network, called <code>bridge</code>, where <b>names don't work</b>.</span><span class="fa">❌ Adminer نمی‌داند <code>db</code> کیست. به‌طور پیش‌فرض کانتینرها روی شبکه‌ی پیش‌فرض Docker به نام <code>bridge</code> اجرا می‌شوند، جایی که <b>نام‌ها کار نمی‌کنند</b>.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 2 CONNECT BY NAME ================= -->
-<section class="card step" id="s2">
-  <h2><span class="num">2</span>
-    <span class="en">Adminer connects to <code>db</code> by name</span><span class="fa">Adminer با نام به <code>db</code> وصل می‌شود</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> and fill in the login form:</p>
-  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را باز کنید و فرم ورود را پر کنید:</p>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><b>System</b></td><td><code>PostgreSQL</code></td></tr>
-      <tr><td><b>Server</b></td><td><code>db</code> <span class="en">← the container's name</span><span class="fa">← نام کانتینر</span></td></tr>
-      <tr><td><b>Username</b></td><td><code>postgres</code> <span class="en">(the default user)</span><span class="fa">(کاربر پیش‌فرض)</span></td></tr>
-      <tr><td><b>Password</b></td><td><code>secret</code></td></tr>
-      <tr><td><b>Database</b></td><td><span class="en">leave empty</span><span class="fa">خالی بگذارید</span></td></tr>
-    </tbody>
-  </table>
-  </div>
-  <p class="en">Click <b>Login</b>:</p>
-  <p class="fa">روی <b>Login</b> کلیک کنید:</p>
-  <div class="browser err">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Login</h1><p>SQLSTATE[08006] [7] could not translate host name "db" to address: Name does not resolve</p></div>
-  </div>
-  <p class="en">❌ Adminer doesn't know who <code>db</code> is. By default, containers run on Docker's default network, called <code>bridge</code>, where <b>names don't work</b>.</p>
-  <p class="fa">❌ Adminer نمی‌داند <code>db</code> کیست. به‌طور پیش‌فرض کانتینرها روی شبکه‌ی پیش‌فرض Docker به نام <code>bridge</code> اجرا می‌شوند، جایی که <b>نام‌ها کار نمی‌کنند</b>.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s2-1"><span><span class="en">Adminer said <code>could not translate host name "db"</code></span><span class="fa">Adminer گفت <code>could not translate host name "db"</code></span></span></label>
-  </div>
-</section>
-
-<!-- ================= 3 CONNECT BY IP ================= -->
-<section class="card step" id="s3">
-  <h2><span class="num">3</span>
-    <span class="en">Find <code>db</code>'s IP address, and connect by IP</span><span class="fa">پیدا کردن آدرس IP دیتابیس و اتصال با IP</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Every container gets its own <b>IP address</b> on Docker's network. Find <code>db</code>'s: inspect the container and look for <code>"IPAddress"</code> in its long output (like <code>"Mounts"</code> in Lesson 9):</p>
-  <p class="fa">هر کانتینر روی شبکه‌ی Docker <b>آدرس IP</b> خودش را می‌گیرد. آدرس <code>db</code> را پیدا کنید: کانتینر را inspect کنید و در خروجی طولانی‌اش دنبال <code>"IPAddress"</code> بگردید (مثل <code>"Mounts"</code> در درس ۹):</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker inspect db</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>            "Networks": {
+<!-- ======================= 5 · BY IP ======================= -->
+<section class="slide" data-scene="ip" data-title-en="Connect by IP" data-title-fa="اتصال با IP">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Find db's <span class="hl">IP address</span></span><span class="fa split">پیدا کردن <span class="hl">آدرس IP</span> دیتابیس</span></h2>
+  <p class="lead sm a" style="--d:.4;margin-top:8px"><span class="en">Every container gets its own <b>IP address</b> on Docker's network. Inspect <code>db</code> and look for <code>"IPAddress"</code> in its long output (like <code>"Mounts"</code> in Lesson 9).</span><span class="fa">هر کانتینر روی شبکه‌ی Docker <b>آدرس IP</b> خودش را می‌گیرد. <code>db</code> را inspect کنید و در خروجی طولانی‌اش دنبال <code>"IPAddress"</code> بگردید (مثل <code>"Mounts"</code> در درس ۹).</span></p>
+  <div style="display:grid;grid-template-columns:900px 1fr;gap:28px;margin-top:18px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="term xs a" style="--d:.5">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run" data-step="1" style="margin-bottom:0"><div class="cmd">docker inspect db</div><pre class="out">
+            "Networks": {
                 "bridge": {                         <span class="c"># the default network</span>
                     "Gateway": "172.17.0.1",
                     "IPAddress": "172.17.0.5",      <span class="c"># ← db's address (yours will likely differ)</span>
-                    ...</code></pre></div>
-  <p class="en">Back in Adminer, log in with the same form, but this time put <b>the IP</b> in <b>Server</b> (e.g. <code>172.17.0.5</code>, use <b>yours</b>):</p>
-  <p class="fa">به Adminer برگردید و با همان فرم وارد شوید، ولی این بار در <b>Server</b> <b>آدرس IP</b> را بنویسید (مثلاً <code>172.17.0.5</code>؛ از آدرس <b>خودتان</b> استفاده کنید):</p>
-  <div class="browser">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Select database</h1><p>PostgreSQL » 172.17.0.5 · Logged in as: <b>postgres</b></p></div>
-  </div>
-  <p class="en">✅ It works! Containers on the default network <b>can</b> reach each other, just not by name.</p>
-  <p class="fa">✅ کار کرد! کانتینرهای روی شبکه‌ی پیش‌فرض <b>می‌توانند</b> به هم دسترسی داشته باشند، فقط نه با نام.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I found <code>db</code>'s <code>"IPAddress"</code> with <code>docker inspect</code></span><span class="fa"><code>"IPAddress"</code> دیتابیس را با <code>docker inspect</code> پیدا کردم</span></span></label>
-    <label><input type="checkbox" data-id="s3-2"><span><span class="en">Adminer logged in with the IP as Server</span><span class="fa">Adminer با IP به‌عنوان Server وارد شد</span></span></label>
-  </div>
-</section>
-
-<!-- ================= 4 IPS CHANGE ================= -->
-<section class="card step" id="s4">
-  <h2><span class="num">4</span>
-    <span class="en">But IP addresses change</span><span class="fa">ولی آدرس‌های IP عوض می‌شوند</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Containers get recreated all the time: updates, crashes, restarts. Let's see what happens to the IP. Delete <code>db</code> in one command:</p>
-  <p class="fa">کانتینرها مدام دوباره ساخته می‌شوند: به‌روزرسانی، crash، ری‌استارت. ببینیم برای IP چه اتفاقی می‌افتد. <code>db</code> را با یک دستور حذف کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f db</code></pre></div>
-  <p class="en">Meanwhile another container starts. Run any nginx in the background, named <code>other</code>:</p>
-  <p class="fa">در همین حین یک کانتینر دیگر اجرا می‌شود. یک nginx در پس‌زمینه با نام <code>other</code> اجرا کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name other nginx</code></pre></div>
-  <p class="en">Now start <code>db</code> again, exactly like in step 1, and look at its <code>"IPAddress"</code> again:</p>
-  <p class="fa">حالا <code>db</code> را دقیقاً مثل قدم ۱ دوباره اجرا کنید و دوباره به <code>"IPAddress"</code> آن نگاه کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name db -e POSTGRES_PASSWORD=secret postgres:alpine
-docker inspect db</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>                    "IPAddress": "172.17.0.7",      <span class="c"># ← a NEW address</span></code></pre></div>
-  <p class="en"><code>other</code> took <code>db</code>'s old address. Log in to Adminer with the <b>old</b> IP:</p>
-  <p class="fa"><code>other</code> آدرس قبلی <code>db</code> را گرفت. با IP <b>قبلی</b> در Adminer وارد شوید:</p>
-  <div class="browser err">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Login</h1><p>SQLSTATE[08006] [7] connection to server at "172.17.0.5", port 5432 failed: Connection refused</p></div>
-  </div>
-  <p class="en">❌ The old IP now points to <code>other</code>, which is not a database. Your app would break every time the IP changes. Delete <code>other</code>:</p>
-  <p class="fa">❌ IP قبلی حالا به <code>other</code> اشاره می‌کند که دیتابیس نیست. برنامه‌ی شما هر بار که IP عوض شود خراب می‌شود. <code>other</code> را حذف کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f other</code></pre></div>
-  <div class="note key">
-    <p class="en">🔑 Never rely on a container's IP address. You want a <b>name</b> that always points to the right container.</p>
-    <p class="fa">🔑 هرگز به آدرس IP یک کانتینر تکیه نکنید. چیزی که می‌خواهید یک <b>نام</b> است که همیشه به کانتینر درست اشاره کند.</p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s4-1"><span><span class="en">The new <code>db</code> got a different IP, and the old IP failed</span><span class="fa"><code>db</code> جدید IP متفاوتی گرفت و IP قبلی کار نکرد</span></span></label>
+                    ...</pre></div>
+        </div>
+      </div>
+      <div class="browser" data-step="3">
+        <div class="bar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+        <div class="page"><h1>Select database</h1><p><span class="crumb">PostgreSQL » 172.17.0.5</span> · Logged in as: <b>postgres</b></p></div>
+      </div>
+    </div>
+    <div>
+      <svg viewBox="0 0 490 300" style="width:490px;height:300px;overflow:visible;direction:ltr">
+        <path d="M20 250 H470" stroke="#6e9bff" stroke-width="8" stroke-linecap="round" opacity=".35"/>
+        <path d="M20 250 H470" stroke="#a9c4ff" stroke-width="3" class="flow"/>
+        <path d="M120 180 V250 M370 180 V250" stroke="#6e9bff" stroke-width="5"/>
+        <use href="#cube" x="65" y="65" width="110" height="110"/>
+        <use href="#cubec" x="315" y="65" width="110" height="110" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+        <text x="120" y="42" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text>
+        <text x="370" y="42" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+        <g data-step="2" class="pop-in"><rect x="300" y="262" width="140" height="32" rx="9" fill="#2a1d05" stroke="#ffb54d"/><text x="370" y="284" text-anchor="middle" fill="#ffb54d" font-size="16" font-family="JetBrains Mono,monospace">172.17.0.5</text></g>
+        <g data-step="3">
+          <g><rect x="-50" y="-13" width="100" height="26" rx="8" fill="#3ccf7f"/><text x="0" y="5" text-anchor="middle" fill="#05200f" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace">172.17.0.5</text>
+            <animateMotion dur="2.4s" repeatCount="indefinite" path="M120 180 V250 H370 V180"/></g>
+          <circle cx="440" cy="110" r="22" fill="#0b2a1a" stroke="#3ccf7f" stroke-width="3"/><path d="M430 110l7 7 13-14" stroke="#3ccf7f" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <div class="card" data-step="3" style="margin-top:6px"><p style="font-size:18px"><span class="en">Log in with the same form, but put <b>the IP</b> in <b>Server</b> (use <b>yours</b>).</span><span class="fa">با همان فرم وارد شوید، ولی در <b>Server</b> <b>آدرس IP</b> را بنویسید (از آدرس <b>خودتان</b> استفاده کنید).</span></p></div>
+      <div class="card tip" data-step="4" style="margin-top:14px"><p style="font-size:18px"><span class="en">✅ It works! Containers on the default network <b>can</b> reach each other, just not by name.</span><span class="fa">✅ کار کرد! کانتینرهای روی شبکه‌ی پیش‌فرض <b>می‌توانند</b> به هم دسترسی داشته باشند، فقط نه با نام.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 5 CREATE NETWORK ================= -->
-<section class="card step" id="s5">
-  <h2><span class="num">5</span>
-    <span class="en">Create your own network</span><span class="fa">ساختن شبکه‌ی خودتان</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker network create mynet</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>5b4d6d66cf605254a3c5ac34bf922fa6a80f702ce4903c5e642dcad025424499   <span class="c"># the new network's ID</span></code></pre></div>
-  <p class="en">Networks have their own list, like images, containers and volumes:</p>
-  <p class="fa">شبکه‌ها هم مثل ایمیج‌ها، کانتینرها و volumeها فهرست خودشان را دارند:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker network ls</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>NETWORK ID     NAME      DRIVER    SCOPE
+<!-- ======================= 6 · IPs CHANGE ======================= -->
+<section class="slide" data-scene="until" data-title-en="But IP addresses change" data-title-fa="ولی IPها عوض می‌شوند">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">But IP addresses <span class="hl">change</span></span><span class="fa split">ولی آدرس‌های IP <span class="hl">عوض می‌شوند</span></span></h2>
+  <p class="lead sm a" style="--d:.4;margin-top:8px"><span class="en">Containers get recreated all the time: updates, crashes, restarts. Let's see what happens to the IP.</span><span class="fa">کانتینرها مدام دوباره ساخته می‌شوند: به‌روزرسانی، crash، ری‌استارت. ببینیم برای IP چه اتفاقی می‌افتد.</span></p>
+  <div style="display:grid;grid-template-columns:880px 1fr;gap:26px;margin-top:16px">
+    <div class="term xs a" style="--d:.5;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Delete db in one command (it's running)." data-task-fa="👉 db را با یک دستور حذف کنید (در حال اجراست)."><div class="cmd">docker rm -f db</div></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Meanwhile another container starts: run nginx in the background, named other." data-task-fa="👉 در همین حین یک کانتینر دیگر اجرا می‌شود: یک nginx در پس‌زمینه با نام other اجرا کنید."><div class="cmd">docker run -d --name other nginx</div></div>
+        <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 Start db again, exactly like in step 1." data-task-fa="👉 db را دقیقاً مثل قدم ۱ دوباره اجرا کنید."><div class="cmd">docker run -d --name db -e POSTGRES_PASSWORD=secret postgres:alpine</div></div>
+        <div class="run recall" data-step="7" data-reveal="8" data-task-en="👉 Look at db's &quot;IPAddress&quot; again." data-task-fa="👉 دوباره به &quot;IPAddress&quot; دیتابیس نگاه کنید." style="margin-bottom:0"><div class="cmd">docker inspect db</div><pre class="out">
+                    "IPAddress": "172.17.0.7",      <span class="c"># ← a NEW address</span></pre></div>
+      </div>
+    </div>
+    <div>
+      <svg viewBox="0 0 520 360" style="width:520px;height:360px;overflow:visible;direction:ltr">
+        <path d="M20 280 H500" stroke="#6e9bff" stroke-width="8" stroke-linecap="round" opacity=".35"/>
+        <path d="M20 280 H500" stroke="#a9c4ff" stroke-width="3" class="flow"/>
+        <text x="30" y="318" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">bridge</text>
+        <!-- slot A: .5 -->
+        <path d="M240 220 V280" stroke="#6e9bff" stroke-width="4" stroke-dasharray="5 5"/>
+        <rect x="175" y="292" width="130" height="30" rx="9" fill="#0d1426" stroke="#ffb54d"/><text x="240" y="313" text-anchor="middle" fill="#ffb54d" font-size="15" font-family="JetBrains Mono,monospace">172.17.0.5</text>
+        <!-- slot B: .7 -->
+        <path d="M420 220 V280" stroke="#6e9bff" stroke-width="4" stroke-dasharray="5 5"/>
+        <rect x="355" y="292" width="130" height="30" rx="9" fill="#0d1426" stroke="rgba(110,155,255,.6)"/><text x="420" y="313" text-anchor="middle" fill="#a9c4ff" font-size="15" font-family="JetBrains Mono,monospace">172.17.0.7</text>
+        <g data-until="2">
+          <use href="#cubec" x="185" y="105" width="110" height="110" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+          <text x="240" y="85" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+        </g>
+        <g data-step="4" class="pop-in"><use href="#cubec" x="185" y="105" width="110" height="110" style="--t:#ffcf6b;--l:#d79a22;--r:#a8740f"/></g>
+        <g data-step="4"><text x="240" y="85" text-anchor="middle" fill="#ffcf6b" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">other</text></g>
+        <g data-step="6" class="pop-in"><use href="#cubec" x="365" y="105" width="110" height="110" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/></g>
+        <g data-step="6"><text x="420" y="85" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">db</text></g>
+      </svg>
+      <div class="card key" data-step="8" style="margin-top:4px"><p style="font-size:19px"><span class="en"><code>other</code> took <code>db</code>'s old address. <code>db</code> got a new one.</span><span class="fa"><code>other</code> آدرس قبلی <code>db</code> را گرفت. <code>db</code> یک آدرس جدید گرفت.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 7 · OLD IP BREAKS ======================= -->
+<section class="slide" data-scene="until" data-title-en="The old IP breaks" data-title-fa="IP قبلی کار نمی‌کند">
+  <div class="kicker a"><span class="en">Step 4 · Log in with the old IP</span><span class="fa">قدم ۴ · ورود با IP قبلی</span></div>
+  <h2><span class="en split">The old IP now points to <span class="hl">other</span></span><span class="fa split">IP قبلی حالا به <span class="hl">other</span> اشاره می‌کند</span></h2>
+  <div style="display:grid;grid-template-columns:760px 1fr;gap:30px;margin-top:22px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="browser err a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+        <div class="page"><h1>Login</h1><p>SQLSTATE[08006] [7] connection to server at "172.17.0.5", port 5432 failed: Connection refused</p></div>
+      </div>
+      <div class="card" data-step="1" style="border-color:rgba(255,107,107,.45)"><p><span class="en">❌ The old IP now points to <code>other</code>, which is not a database. Your app would break every time the IP changes.</span><span class="fa">❌ IP قبلی حالا به <code>other</code> اشاره می‌کند که دیتابیس نیست. برنامه‌ی شما هر بار که IP عوض شود خراب می‌شود.</span></p></div>
+      <div class="term sm" data-step="2">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run recall" data-step="2" data-reveal="3" data-task-en="👉 Delete other (it's running)." data-task-fa="👉 other را حذف کنید (در حال اجراست)." style="margin-bottom:0"><div class="cmd">docker rm -f other</div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <svg viewBox="0 0 620 340" class="a fade" style="--d:.5;width:620px;height:340px;overflow:visible;direction:ltr">
+        <path d="M20 270 H600" stroke="#6e9bff" stroke-width="8" stroke-linecap="round" opacity=".35"/>
+        <path d="M100 200 V270 M320 200 V270 M500 200 V270" stroke="#6e9bff" stroke-width="5"/>
+        <use href="#cube" x="50" y="85" width="100" height="100"/>
+        <text x="100" y="66" text-anchor="middle" fill="#eef2fb" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text>
+        <g data-until="3">
+          <use href="#cubec" x="270" y="85" width="100" height="100" style="--t:#ffcf6b;--l:#d79a22;--r:#a8740f"/>
+          <text x="320" y="66" text-anchor="middle" fill="#ffcf6b" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">other</text>
+        </g>
+        <use href="#cubec" x="450" y="85" width="100" height="100" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+        <text x="500" y="66" text-anchor="middle" fill="#eef2fb" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+        <rect x="255" y="284" width="130" height="30" rx="9" fill="#0d1426" stroke="#ffb54d"/><text x="320" y="305" text-anchor="middle" fill="#ffb54d" font-size="15" font-family="JetBrains Mono,monospace">172.17.0.5</text>
+        <rect x="435" y="284" width="130" height="30" rx="9" fill="#0d1426" stroke="rgba(110,155,255,.6)"/><text x="500" y="305" text-anchor="middle" fill="#a9c4ff" font-size="15" font-family="JetBrains Mono,monospace">172.17.0.7</text>
+        <g data-until="3">
+          <g><rect x="-50" y="-13" width="100" height="26" rx="8" fill="#ffb54d"/><text x="0" y="5" text-anchor="middle" fill="#2a1a00" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace">172.17.0.5</text>
+            <animateMotion dur="2.4s" repeatCount="indefinite" path="M100 200 V270 H320 V205" keyPoints="0;1;1" keyTimes="0;.7;1" calcMode="linear"/>
+            <animate attributeName="opacity" values="1;1;0" keyTimes="0;.8;1" dur="2.4s" repeatCount="indefinite"/></g>
+          <circle cx="390" cy="140" r="24" fill="#2a0d12" stroke="#ff6b6b" stroke-width="3"/>
+          <path d="M379 129l22 22M401 129l-22 22" stroke="#ff6b6b" stroke-width="4" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <div class="card key" data-step="4" style="margin-top:10px"><p><span class="en">🔑 Never rely on a container's IP address. You want a <b>name</b> that always points to the right container.</span><span class="fa">🔑 هرگز به آدرس IP یک کانتینر تکیه نکنید. چیزی که می‌خواهید یک <b>نام</b> است که همیشه به کانتینر درست اشاره کند.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 8 · CREATE NETWORK ======================= -->
+<section class="slide" data-title-en="Create your own network" data-title-fa="ساختن شبکه‌ی خودتان">
+  <div class="kicker a"><span class="en">Step 5</span><span class="fa">قدم ۵</span></div>
+  <h2><span class="en split">Create <span class="hl">your own network</span></span><span class="fa split">ساختن <span class="hl">شبکه‌ی خودتان</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1"><div class="cmd">docker network create mynet</div><pre class="out">
+5b4d6d66cf605254a3c5ac34bf922fa6a80f702ce4903c5e642dcad025424499   <span class="c"># the new network's ID</span></pre></div>
+      <div class="run" data-step="3" style="margin-bottom:0"><div class="cmd">docker network ls</div><pre class="out">
+NETWORK ID     NAME      DRIVER    SCOPE
 ea6d89a95e5f   bridge    bridge    local      <span class="c"># the default network from step 2</span>
 e9fc7164ebde   host      host      local
 5b4d6d66cf60   mynet     bridge    local      <span class="c"># yours</span>
-e1ecff10f049   none      null      local</code></pre></div>
-  <p class="en">You may see more, created by other projects on your PC.</p>
-  <p class="fa">ممکن است شبکه‌های بیشتری ببینید که پروژه‌های دیگر روی کامپیوتر شما ساخته‌اند.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s5-1"><span><span class="en"><code>docker network ls</code> shows <code>mynet</code></span><span class="fa"><code>docker network ls</code> نام <code>mynet</code> را نشان می‌دهد</span></span></label>
+e1ecff10f049   none      null      local</pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px;align-items:center">
+    <svg viewBox="0 0 680 110" data-step="2" style="width:680px;height:110px;overflow:visible;direction:ltr">
+      <path d="M30 60 H650" stroke="#3ccf7f" stroke-width="10" stroke-linecap="round" class="draw" style="--len:640" opacity=".5"/>
+      <path d="M30 60 H650" stroke="#b8f5d2" stroke-width="3" class="flow"/>
+      <rect x="270" y="10" width="140" height="36" rx="10" fill="#0b2a1a" stroke="#3ccf7f"/>
+      <text x="340" y="35" text-anchor="middle" fill="#3ccf7f" font-size="19" font-weight="600" font-family="JetBrains Mono,monospace">mynet</text>
+    </svg>
+    <div class="card" data-step="4"><p style="font-size:19px"><span class="en">Networks have their own list, like images, containers and volumes. You may see more, created by other projects on your PC.</span><span class="fa">شبکه‌ها هم مثل ایمیج‌ها، کانتینرها و volumeها فهرست خودشان را دارند. ممکن است شبکه‌های بیشتری ببینید که پروژه‌های دیگر روی کامپیوتر شما ساخته‌اند.</span></p></div>
   </div>
 </section>
 
-<!-- ================= 6 JOIN ================= -->
-<section class="card step" id="s6">
-  <h2><span class="num">6</span>
-    <span class="en">Put both containers on the network</span><span class="fa">قرار دادن هر دو کانتینر روی شبکه</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Delete both containers with one command:</p>
-  <p class="fa">هر دو کانتینر را با یک دستور حذف کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f db adminer</code></pre></div>
-  <p class="en">Start them again, plus <code>--network mynet</code>:</p>
-  <p class="fa">دوباره اجرایشان کنید، به‌اضافه‌ی <code>--network mynet</code>:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name db --network mynet -e POSTGRES_PASSWORD=secret postgres:alpine
-docker run -d --name adminer --network mynet -p 8080:8080 adminer</code></pre></div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s6-1"><span><span class="en">Both containers run with <code>--network mynet</code></span><span class="fa">هر دو کانتینر با <code>--network mynet</code> اجرا شده‌اند</span></span></label>
+<!-- ======================= 9 · JOIN NETWORK ======================= -->
+<section class="slide" data-scene="until" data-title-en="Put both containers on the network" data-title-fa="قرار دادن کانتینرها روی شبکه">
+  <div class="kicker a"><span class="en">Step 6</span><span class="fa">قدم ۶</span></div>
+  <h2><span class="en split">Put both containers <span class="hl">on the network</span></span><span class="fa split">هر دو کانتینر <span class="hl">روی شبکه</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Delete both containers, db and adminer, with one command." data-task-fa="👉 هر دو کانتینر db و adminer را با یک دستور حذف کنید."><div class="cmd">docker rm -f db adminer</div></div>
+      <div class="run" data-step="3"><div class="cmd">docker run -d --name db --network mynet -e POSTGRES_PASSWORD=secret postgres:alpine</div></div>
+      <div class="run" data-step="4" style="margin-bottom:0"><div class="cmd">docker run -d --name adminer --network mynet -p 8080:8080 adminer</div></div>
+    </div>
+  </div>
+  <p class="lead sm" data-step="3" style="margin-top:12px"><span class="en">Start them again, plus <code>--network mynet</code>:</span><span class="fa">دوباره اجرایشان کنید، به‌اضافه‌ی <code>--network mynet</code>:</span></p>
+  <svg viewBox="0 0 1420 250" style="width:1420px;height:250px;margin-top:4px;overflow:visible;direction:ltr">
+    <g data-until="2">
+      <path d="M120 200 H520" stroke="#6e9bff" stroke-width="8" stroke-linecap="round" opacity=".35"/>
+      <text x="320" y="238" text-anchor="middle" fill="#a9c4ff" font-size="17" font-family="JetBrains Mono,monospace">bridge</text>
+      <use href="#cube" x="150" y="60" width="100" height="100"/>
+      <use href="#cubec" x="390" y="60" width="100" height="100" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+      <path d="M200 165V200M440 165V200" stroke="#6e9bff" stroke-width="4"/>
+    </g>
+    <path d="M700 200 H1360" stroke="#3ccf7f" stroke-width="10" stroke-linecap="round" opacity=".5"/>
+    <path d="M700 200 H1360" stroke="#b8f5d2" stroke-width="3" class="flow"/>
+    <text x="1030" y="238" text-anchor="middle" fill="#3ccf7f" font-size="18" font-weight="600" font-family="JetBrains Mono,monospace">mynet</text>
+    <g data-step="3" class="pop-in"><use href="#cubec" x="1120" y="40" width="120" height="120" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/></g>
+    <g data-step="3"><path d="M1180 160V200" stroke="#3ccf7f" stroke-width="5"/><text x="1180" y="26" text-anchor="middle" fill="#eef2fb" font-size="21" font-weight="700" font-family="JetBrains Mono,monospace">db</text></g>
+    <g data-step="4" class="pop-in"><use href="#cube" x="820" y="40" width="120" height="120"/></g>
+    <g data-step="4"><path d="M880 160V200" stroke="#3ccf7f" stroke-width="5"/><text x="880" y="26" text-anchor="middle" fill="#eef2fb" font-size="21" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text></g>
+  </svg>
+</section>
+
+<!-- ======================= 10 · CONNECT AGAIN ======================= -->
+<section class="slide" data-title-en="Connect by name again" data-title-fa="اتصال دوباره با نام">
+  <div class="kicker a"><span class="en">Step 7</span><span class="fa">قدم ۷</span></div>
+  <h2><span class="en split">Connect <span class="hl">by name</span> again</span><span class="fa split">اتصال دوباره <span class="hl">با نام</span></span></h2>
+  <p class="lead sm a" style="--d:.4;margin-top:8px"><span class="en">Reload <code>localhost:8080</code> and log in with exactly the same form as in step 2 (Server: <code>db</code>):</span><span class="fa"><code>localhost:8080</code> را reload کنید و دقیقاً با همان فرم قدم ۲ وارد شوید (Server: <code>db</code>):</span></p>
+  <div style="display:grid;grid-template-columns:640px 1fr;gap:30px;margin-top:18px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="browser a" style="--d:.5">
+        <div class="bar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+        <div class="page"><h1>Select database</h1><p><span class="crumb">PostgreSQL » db</span> · Logged in as: <b>postgres</b></p><p>Database: postgres</p></div>
+      </div>
+      <div class="card tip" data-step="1"><p><span class="en">✅ <b>You're in!</b> On your own network, Docker lets containers find each other <b>by their names</b>. You are now looking inside the PostgreSQL database through Adminer.</span><span class="fa">✅ <b>وارد شدید!</b> روی شبکه‌ی خودتان، Docker اجازه می‌دهد کانتینرها همدیگر را <b>با نامشان</b> پیدا کنند. حالا از طریق Adminer داخل دیتابیس PostgreSQL را می‌بینید.</span></p></div>
+    </div>
+    <svg viewBox="0 0 640 380" class="a fade" style="--d:.5;width:640px;height:380px;overflow:visible;direction:ltr">
+      <path d="M20 300 H620" stroke="#3ccf7f" stroke-width="10" stroke-linecap="round" opacity=".5"/>
+      <path d="M20 300 H620" stroke="#b8f5d2" stroke-width="3" class="flow"/>
+      <text x="320" y="345" text-anchor="middle" fill="#3ccf7f" font-size="18" font-weight="600" font-family="JetBrains Mono,monospace">mynet</text>
+      <path d="M140 230 V300 M500 230 V300" stroke="#3ccf7f" stroke-width="5"/>
+      <use href="#cube" x="80" y="100" width="120" height="120"/>
+      <use href="#cubec" x="440" y="100" width="120" height="120" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+      <text x="140" y="76" text-anchor="middle" fill="#eef2fb" font-size="21" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text>
+      <text x="500" y="76" text-anchor="middle" fill="#eef2fb" font-size="21" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+      <g><rect x="-24" y="-14" width="48" height="28" rx="8" fill="#3ccf7f"/><text x="0" y="6" text-anchor="middle" fill="#05200f" font-size="15" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+        <animateMotion dur="2.4s" repeatCount="indefinite" path="M140 230 V300 H500 V230"/></g>
+      <g><circle r="7" fill="#6e9bff"/><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite" path="M500 230 V300 H140 V230"/></g>
+      <circle cx="580" cy="130" r="24" fill="#0b2a1a" stroke="#3ccf7f" stroke-width="3"/><path d="M569 130l8 8 14-15" stroke="#3ccf7f" stroke-width="4" fill="none" stroke-linecap="round"/>
+    </svg>
   </div>
 </section>
 
-<!-- ================= 7 CONNECT AGAIN ================= -->
-<section class="card step" id="s7">
-  <h2><span class="num">7</span>
-    <span class="en">Connect again</span><span class="fa">اتصال دوباره</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Reload <a href="http://localhost:8080" target="_blank">localhost:8080</a> and log in with exactly the same form as in step 2 (Server: <code>db</code>):</p>
-  <p class="fa"><a href="http://localhost:8080" target="_blank">localhost:8080</a> را reload کنید و دقیقاً با همان فرم قدم ۲ وارد شوید (Server: <code>db</code>):</p>
-  <div class="browser">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Select database</h1><p>PostgreSQL » db · Logged in as: <b>postgres</b></p><p>Database: postgres</p></div>
-  </div>
-  <p class="en">✅ <b>You're in!</b> On your own network, Docker lets containers find each other <b>by their names</b>. You are now looking inside the PostgreSQL database through Adminer.</p>
-  <p class="fa">✅ <b>وارد شدید!</b> روی شبکه‌ی خودتان، Docker اجازه می‌دهد کانتینرها همدیگر را <b>با نامشان</b> پیدا کنند. حالا از طریق Adminer داخل دیتابیس PostgreSQL را می‌بینید.</p>
-  <div class="note key">
-    <p class="en">🔑 Notice: <code>db</code> has <b>no <code>-p</code></b>! <code>-p</code> (Lesson 4) is only for reaching a container <b>from your PC</b>. Your browser needs Adminer, so Adminer has <code>-p</code>. But Adminer reaches <code>db</code> directly over <code>mynet</code>. The database isn't exposed to your PC at all, which is also safer.</p>
-    <p class="fa">🔑 دقت کنید: <code>db</code> <b><code>-p</code> ندارد</b>! <code>-p</code> (درس ۴) فقط برای دسترسی به کانتینر <b>از کامپیوتر شما</b> است. مرورگر شما به Adminer نیاز دارد، پس Adminer <code>-p</code> دارد. ولی Adminer مستقیماً از طریق <code>mynet</code> به <code>db</code> می‌رسد. دیتابیس اصلاً روی کامپیوتر شما باز نیست، که امن‌تر هم هست.</p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s7-1"><span><span class="en">Adminer logged in to <code>db</code> and shows <b>Select database</b></span><span class="fa">Adminer به <code>db</code> وارد شد و <b>Select database</b> را نشان می‌دهد</span></span></label>
-  </div>
-</section>
-
-<!-- ================= 8 CLEAN UP ================= -->
-<section class="card step" id="s8">
-  <h2><span class="num">8</span>
-    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Delete both containers first, with one command:</p>
-  <p class="fa">اول هر دو کانتینر را با یک دستور حذف کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f db adminer</code></pre></div>
-  <p class="en">Then delete the network:</p>
-  <p class="fa">بعد شبکه را حذف کنید:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker network rm mynet</code></pre></div>
-  <p class="en">Like a volume (Lesson 9), a network can't be deleted while containers still use it. You'd get <code>network mynet has active endpoints</code>. That's why the containers go first.</p>
-  <p class="fa">مثل volume (درس ۹)، شبکه را تا وقتی کانتینرها از آن استفاده می‌کنند نمی‌شود حذف کرد. خطای <code>network mynet has active endpoints</code> می‌گیرید. برای همین اول کانتینرها حذف می‌شوند.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s8-1"><span><span class="en"><code>mynet</code> is gone from <code>docker network ls</code></span><span class="fa"><code>mynet</code> از <code>docker network ls</code> حذف شده</span></span></label>
-  </div>
-</section>
-
-<!-- ================= SUMMARY ================= -->
-<section class="card" id="sum">
-  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><code>docker network create NAME</code></td><td><span class="en">Create a network</span><span class="fa">ساختن یک شبکه</span></td></tr>
-      <tr><td><code>docker run --network NAME …</code></td><td><span class="en">Start a container on that network</span><span class="fa">اجرای کانتینر روی آن شبکه</span></td></tr>
-      <tr><td><span class="en">Container name = address</span><span class="fa">نام کانتینر = آدرس</span></td><td><span class="en">On the same network, containers reach each other by name; no <code>-p</code> needed</span><span class="fa">روی یک شبکه، کانتینرها با نام به هم دسترسی دارند؛ <code>-p</code> لازم نیست</span></td></tr>
-      <tr><td><code>docker network ls</code></td><td><span class="en">List networks</span><span class="fa">فهرست شبکه‌ها</span></td></tr>
-      <tr><td><code>docker network rm NAME</code></td><td><span class="en">Delete a network (not while containers use it)</span><span class="fa">حذف شبکه (نه وقتی کانتینرها از آن استفاده می‌کنند)</span></td></tr>
-    </tbody>
-  </table>
+<!-- ======================= 11 · NO -p ON db ======================= -->
+<section class="slide" data-title-en="db has no -p" data-title-fa="db پورت منتشرشده ندارد">
+  <div class="kicker a"><span class="en">Step 7 · Notice</span><span class="fa">قدم ۷ · دقت کنید</span></div>
+  <h2><span class="en split">🔑 db has <span class="hl">no -p</span></span><span class="fa split">🔑 db هیچ <span class="hl">-p</span> ندارد</span></h2>
+  <svg viewBox="0 0 1420 380" style="width:1420px;height:380px;margin-top:18px;overflow:visible;direction:ltr">
+    <!-- your PC -->
+    <rect x="10" y="20" width="1400" height="350" rx="26" fill="rgba(110,155,255,.04)" stroke="rgba(110,155,255,.3)" stroke-dasharray="6 8"/>
+    <text x="40" y="58" fill="#93a0bb" font-size="18" font-weight="700" font-family="Inter,sans-serif" class="en">YOUR PC</text>
+    <text x="40" y="58" fill="#93a0bb" font-size="20" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">کامپیوتر شما</text>
+    <use href="#monitor" x="60" y="110" width="200" height="170"/>
+    <text x="160" y="178" text-anchor="middle" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">localhost:8080</text>
+    <text x="160" y="320" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en">Your browser</text>
+    <text x="160" y="320" text-anchor="middle" fill="#eef2fb" font-size="21" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">مرورگر شما</text>
+    <!-- docker area -->
+    <rect x="430" y="70" width="950" height="280" rx="22" fill="rgba(13,20,38,.7)" stroke="#3ccf7f" stroke-opacity=".5" stroke-width="2"/>
+    <path d="M500 290 H1320" stroke="#3ccf7f" stroke-width="8" stroke-linecap="round" opacity=".5"/>
+    <path d="M500 290 H1320" stroke="#b8f5d2" stroke-width="3" class="flow"/>
+    <text x="910" y="333" text-anchor="middle" fill="#3ccf7f" font-size="18" font-weight="600" font-family="JetBrains Mono,monospace">mynet</text>
+    <path d="M640 230 V290 M1160 230 V290" stroke="#3ccf7f" stroke-width="5"/>
+    <use href="#cube" x="585" y="105" width="110" height="110"/>
+    <use href="#cubec" x="1105" y="105" width="110" height="110" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+    <text x="640" y="98" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text>
+    <text x="1160" y="98" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+    <!-- -p plug on adminer -->
+    <g data-step="1">
+      <path id="p13b" d="M270 180 H580" stroke="#ffb54d" stroke-width="3" class="flow" fill="none"/>
+      <rect x="380" y="140" width="130" height="32" rx="9" fill="#2a1d05" stroke="#ffb54d"/>
+      <text x="445" y="162" text-anchor="middle" fill="#ffb54d" font-size="15" font-family="JetBrains Mono,monospace">-p 8080:8080</text>
+      <circle r="6" fill="#ffb54d"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#p13b"/></animateMotion></circle>
+    </g>
+    <!-- adminer → db over mynet -->
+    <g data-step="2">
+      <g><circle r="7" fill="#3ccf7f"/><animateMotion dur="2.2s" repeatCount="indefinite" path="M640 230 V290 H1160 V230"/></g>
+    </g>
+    <!-- no -p on db -->
+    <g data-step="3">
+      <rect x="1235" y="135" width="120" height="58" rx="12" fill="#0b2a1a" stroke="#3ccf7f"/>
+      <text x="1295" y="160" text-anchor="middle" fill="#3ccf7f" font-size="15" font-weight="700" font-family="JetBrains Mono,monospace">no -p</text>
+      <text x="1295" y="183" text-anchor="middle" font-size="18">🔒</text>
+    </g>
+  </svg>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:10px">
+    <div class="card" data-step="1"><p style="font-size:18px"><span class="en"><code>-p</code> (Lesson 4) is only for reaching a container <b>from your PC</b>. Your browser needs Adminer, so Adminer has <code>-p</code>.</span><span class="fa"><code>-p</code> (درس ۴) فقط برای دسترسی به کانتینر <b>از کامپیوتر شما</b> است. مرورگر شما به Adminer نیاز دارد، پس Adminer <code>-p</code> دارد.</span></p></div>
+    <div class="card" data-step="2"><p style="font-size:18px"><span class="en">But Adminer reaches <code>db</code> directly over <code>mynet</code>.</span><span class="fa">ولی Adminer مستقیماً از طریق <code>mynet</code> به <code>db</code> می‌رسد.</span></p></div>
+    <div class="card tip" data-step="3"><p style="font-size:18px"><span class="en">The database isn't exposed to your PC at all, which is also safer.</span><span class="fa">دیتابیس اصلاً روی کامپیوتر شما باز نیست، که امن‌تر هم هست.</span></p></div>
   </div>
 </section>
 
-<div class="done-banner" id="doneBanner">
-  <h2>🎉 <span class="en">Your app can talk to its database!</span><span class="fa">برنامه‌ی شما می‌تواند با دیتابیسش صحبت کند!</span></h2>
-  <p id="nextLine"></p>
+<!-- ======================= 12 · CLEAN UP ======================= -->
+<section class="slide" data-scene="until" data-title-en="Clean up" data-title-fa="تمیزکاری">
+  <div class="kicker a"><span class="en">Step 8</span><span class="fa">قدم ۸</span></div>
+  <h2><span class="en split">Clean <span class="hl">up</span></span><span class="fa split"><span class="hl">تمیزکاری</span></span></h2>
+  <div style="display:grid;grid-template-columns:820px 1fr;gap:30px;margin-top:24px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="term sm a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Delete both containers first, with one command." data-task-fa="👉 اول هر دو کانتینر را با یک دستور حذف کنید."><div class="cmd">docker rm -f db adminer</div></div>
+          <div class="run" data-step="3" style="margin-bottom:0"><div class="cmd">docker network rm mynet</div></div>
+        </div>
+      </div>
+      <div class="card key" data-step="4"><p><span class="en">Like a volume (Lesson 9), a network can't be deleted while containers still use it. You'd get <code>network mynet has active endpoints</code>. That's why the containers go first.</span><span class="fa">مثل volume (درس ۹)، شبکه را تا وقتی کانتینرها از آن استفاده می‌کنند نمی‌شود حذف کرد. خطای <code>network mynet has active endpoints</code> می‌گیرید. برای همین اول کانتینرها حذف می‌شوند.</span></p></div>
+    </div>
+    <svg viewBox="0 0 560 360" class="a fade" style="--d:.5;width:560px;height:360px;overflow:visible;direction:ltr">
+      <g data-until="3">
+        <path d="M20 280 H540" stroke="#3ccf7f" stroke-width="10" stroke-linecap="round" opacity=".5"/>
+        <path d="M20 280 H540" stroke="#b8f5d2" stroke-width="3" class="flow"/>
+        <text x="280" y="325" text-anchor="middle" fill="#3ccf7f" font-size="18" font-weight="600" font-family="JetBrains Mono,monospace">mynet</text>
+      </g>
+      <g data-until="2">
+        <path d="M140 220 V280 M420 220 V280" stroke="#3ccf7f" stroke-width="5"/>
+        <use href="#cube" x="85" y="95" width="110" height="110"/>
+        <use href="#cubec" x="365" y="95" width="110" height="110" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+        <text x="140" y="74" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text>
+        <text x="420" y="74" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+      </g>
+      <g data-step="3" class="pop-in">
+        <circle cx="280" cy="180" r="56" fill="#0b2a1a" stroke="#3ccf7f" stroke-width="4"/><path d="M252 180l20 20 34-38" stroke="#3ccf7f" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================= 13 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 Your app can talk to <span class="hl">its database!</span></span><span class="fa split">🎉 برنامه‌ی شما می‌تواند با <span class="hl">دیتابیسش صحبت کند!</span></span></h2>
+  <div class="sumgrid">
+    <div class="card a" style="--d:.4"><code>docker network create NAME</code><p><span class="en">Create a network</span><span class="fa">ساختن یک شبکه</span></p></div>
+    <div class="card a" style="--d:.5"><code>docker run --network NAME …</code><p><span class="en">Start a container on that network</span><span class="fa">اجرای کانتینر روی آن شبکه</span></p></div>
+    <div class="card a" style="--d:.6"><code>docker network ls</code><p><span class="en">List networks</span><span class="fa">فهرست شبکه‌ها</span></p></div>
+    <div class="card a" style="--d:.7"><code>docker network rm NAME</code><p><span class="en">Delete a network (not while containers use it)</span><span class="fa">حذف شبکه (نه وقتی کانتینرها از آن استفاده می‌کنند)</span></p></div>
+  </div>
+  <div class="card key a" style="--d:.85;margin-top:16px"><p><span class="en"><b>Container name = address.</b> On the same network, containers reach each other by name; no <code>-p</code> needed.</span><span class="fa"><b>نام کانتینر = آدرس.</b> روی یک شبکه، کانتینرها با نام به هم دسترسی دارند؛ <code>-p</code> لازم نیست.</span></p></div>
+  <div class="btnrow a" style="--d:1.1">
+    <a class="bigbtn primary" href="14-compose.html"><span class="en">Next: Lesson 14 · Docker Compose →</span><span class="fa">بعدی: درس ۱۴ · Docker Compose ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 13</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
 </div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
 
-<nav class="pager" id="pager"></nav>
-
-<footer>
-  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
-</footer>
-
-</main>
-
-</div>
-
+<script>
+/* ---------- lesson 13 scenes ---------- */
+(() => {
+  /* [data-until="k"]: visible until the slide reaches step k */
+  const until = (slide) => ({ step(k) { slide.querySelectorAll('[data-until]').forEach(el => el.classList.toggle('gone', k >= +el.dataset.until)); } });
+  window.SCENES = {
+    until,
+    /* highlight the "IPAddress" line of docker inspect at step 2 */
+    ip(slide) {
+      const out = slide.querySelector('.run .out');
+      let hl = out.querySelector('.ipline');
+      if (!hl) { hl = document.createElement('div'); hl.className = 'ipline'; out.appendChild(hl); }
+      const line = [...out.querySelectorAll('.ol')].find(l => l.textContent.includes('IPAddress'));
+      return { step(k) { hl.style.top = line ? line.offsetTop + 'px' : '0'; hl.style.opacity = k >= 2 ? 1 : 0; hl.style.transition = 'opacity .4s'; } };
+    },
+    sum(slide, api) {
+      const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+      const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+      const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+      const stop = api.loop(t => {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of P) {
+          p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+          if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+        }
+      });
+      return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+    }
+  };
+})();
+</script>
 <script src="tips.js"></script>
-<script src="course.js"></script>
+<script src="deck.js"></script>
 </body>
 </html>

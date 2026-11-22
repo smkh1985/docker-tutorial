@@ -70,7 +70,7 @@ function countUp(el) {
   requestAnimationFrame(f);
 }
 
-/* ---------- tooltips (dictionary from ../tips.js, same lookup as the text lessons) ---------- */
+/* ---------- tooltips (dictionary from tips.js, same lookup as the text lessons) ---------- */
 const G = window.TIPS_G || {}, T = window.TIPS_T || {};
 function lookup(tok, words) {
   const c1 = words[0] || '', c2 = c1 + ' ' + (words[1] || '');

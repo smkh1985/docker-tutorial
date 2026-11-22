@@ -1,137 +1,301 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 19 · Package your own program</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 19 · Package your own program (motion)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="course.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- shared bits (same as lesson 1) ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:280px}
+  .goal svg{width:96px;height:96px}
+  .goal h3{font-size:26px}
+  .term.sm .body{font-size:17px}
+  .btnrow{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:30px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px}
+  .sumgrid code{font-size:22px;flex:none;min-width:330px;text-align:left}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .svgfa{font-family:Vazirmatn,sans-serif}
+  kbd{font:600 .85em var(--mono);padding:2px 8px;border-radius:6px;border:1px solid rgba(238,242,251,.3);background:rgba(238,242,251,.08);color:var(--text)}
+  .caps{position:relative}
+  .caps>div{position:absolute;inset:0}
+  .caps .n{font:600 14px var(--mono);color:var(--blue2);letter-spacing:.1em;margin-bottom:8px}
+  body.lang-fa .caps .n{font-family:var(--font);letter-spacing:0;font-size:16px}
+  .caps h3{font:700 30px/1.2 var(--display);margin:0 0 10px}
+  .caps p{font-size:21px;line-height:1.55;color:rgba(238,242,251,.84)}
+  /* ---- code editor (a file) ---- */
+  .editor{border-radius:18px;overflow:hidden;background:#0a1020;border:1px solid rgba(110,155,255,.22);box-shadow:0 30px 80px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .editor .bar{display:flex;align-items:center;gap:10px;padding:11px 16px;background:linear-gradient(180deg,#18213a,#111a30);border-bottom:1px solid rgba(110,155,255,.14);font:600 14px var(--mono);color:var(--sky)}
+  .editor .bar::before{content:"📄"}
+  .editor .body{padding:14px 0 16px;font:500 21px/1.75 var(--mono);color:#dfe6f5;counter-reset:ln}
+  .editor .ln{display:block;white-space:pre;padding-right:20px;transition:background .4s,box-shadow .4s,opacity .6s var(--ease),transform .7s var(--ease),filter .6s}
+  .editor .ln::before{counter-increment:ln;content:counter(ln);display:inline-block;width:50px;padding-right:18px;text-align:right;color:#4b5873}
+  .editor .ln.hot{background:rgba(110,155,255,.16);box-shadow:inset 4px 0 0 var(--blue2)}
+  .kw{color:#ff7aa8;font-weight:600}.pa{color:#7fd8a6}.sv{color:#ffcf6b}
+  /* ---- browser ---- */
+  .browser{border-radius:14px;overflow:hidden;background:#fbfcff;box-shadow:0 30px 70px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .browser .bar{display:flex;align-items:center;gap:7px;padding:10px 14px;background:#e3e7f0}
+  .browser .bar i{width:11px;height:11px;border-radius:50%;background:#ff5f57}.browser .bar i:nth-child(2){background:#febc2e}.browser .bar i:nth-child(3){background:#28c840}
+  .browser .bar span{margin-left:10px;flex:1;padding:5px 12px;border-radius:8px;background:#fff;font:500 15px var(--mono);color:#3a4256}
+  .browser .page{position:relative;height:120px;padding:24px 28px;color:#111}
+  .browser .page h1{font:700 38px/1.2 "Times New Roman",Times,serif}
+  .browser .page>[data-only]{position:absolute;left:28px;top:24px}
+  .stamp2{display:inline-block;font:800 30px var(--display);color:var(--red);border:4px solid var(--red);border-radius:12px;padding:4px 16px;transform:rotate(-6deg)}
+  .stamp2[data-step]{transform:scale(2) rotate(-14deg);filter:none}
+  .stamp2[data-step].in{transform:rotate(-6deg);transition:transform .45s cubic-bezier(.5,1.8,.6,1),opacity .2s}
+  /* ---- lesson 19 ---- */
+  :not(pre)>code{white-space:nowrap}
+  .drop[data-step]{transform:translateY(-140px)}
+  .drop[data-step].in{transform:none;transition:transform .8s cubic-bezier(.34,1.4,.64,1),opacity .4s,filter .4s}
+  .newb{display:inline-block;font:700 13px var(--font);letter-spacing:.08em;color:#0b1224;background:var(--green);border-radius:6px;padding:2px 8px;margin-inline-end:8px;vertical-align:middle}
+  .qbig{font:700 34px/1.3 var(--display);color:var(--text)}
+  .bubble{fill:#f6f2e8}
+  /* layer rows (cache) */
+  .lrows{display:flex;flex-direction:column;gap:12px;direction:ltr}
+  .lrow{display:grid;grid-template-columns:64px 1fr 220px;align-items:center;gap:16px;padding:12px 18px;border-radius:14px;background:rgba(20,30,56,.85);border:1px solid var(--line);font:500 20px var(--mono);transition:border-color .5s,background .5s,box-shadow .5s,transform .7s var(--ease)}
+  .lrow .no{color:var(--muted);font-size:16px}
+  .lrow .st{position:relative;height:32px}
+  .lrow .st>span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:8px;font:700 15px var(--font);letter-spacing:.06em}
+  body.lang-fa .lrow .st>span{font-family:Vazirmatn,sans-serif;letter-spacing:0;font-size:16px}
+  .lrow .ok{background:rgba(60,207,127,.15);color:var(--green);border:1px solid rgba(60,207,127,.4)}
+  .lrow .chg{background:rgba(255,181,77,.15);color:var(--amber);border:1px solid rgba(255,181,77,.5)}
+  .lrow .re{background:rgba(255,107,107,.15);color:var(--red);border:1px solid rgba(255,107,107,.5)}
+  .lrow.amber{border-color:rgba(255,181,77,.7);box-shadow:0 0 30px rgba(255,181,77,.2)}
+  .lrow.red{border-color:rgba(255,107,107,.7);box-shadow:0 0 30px rgba(255,107,107,.2);animation:shake .5s}
+  @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .lrow.green{border-color:rgba(60,207,127,.45)}
+  .swapA,.swapB{transition:transform 1.1s cubic-bezier(.5,0,.3,1),background .4s,box-shadow .4s}
+  .tbar{display:grid;grid-template-columns:140px 1fr 70px;align-items:center;gap:14px;font:600 18px var(--mono);direction:ltr;margin-top:10px}
+  .tbar .b{height:26px;border-radius:8px;background:rgba(110,155,255,.1);overflow:hidden}
+  .tbar .b i{display:block;height:100%;width:0;border-radius:8px;transition:width 1.6s var(--ease) .3s}
+  .in .tbar .b i{width:var(--w)}
+  body.lang-fa .tbar .lbl{font-family:Vazirmatn,sans-serif}
+  .cmdline{font:600 18px var(--mono)}
+  .swapA.moved::before{content:"4"}.swapB.moved::before{content:"3"}
+</style>
 </head>
-<body class="lang-en" data-lesson="19">
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
 
-<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
-<header class="topbar">
-  <div class="topbar-inner">
-    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
-      <span class="title-text" id="brandTitle"></span>
-    </a>
-    <div class="progress-wrap">
-      <div class="progress"><div id="bar"></div></div>
-      <span class="progress-label" id="plabel">0 / 0</span>
-    </div>
-    <span id="navSlot"></span>
-    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
-    <button class="btn" id="themeBtn" title="Theme">◐</button>
-    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
-  </div>
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="folder" viewBox="0 0 120 96" overflow="visible">
+      <path d="M4 14a8 8 0 0 1 8-8h30l10 10h56a8 8 0 0 1 8 8v8H4z" fill="#d79a22"/>
+      <rect x="4" y="26" width="112" height="66" rx="8" fill="#ffcf6b"/>
+    </symbol>
+    <symbol id="file" viewBox="0 0 60 76" overflow="visible">
+      <path d="M4 4h36l16 16v52H4z" fill="#eef2fb"/><path d="M40 4v16h16" fill="#b9c4dc"/>
+      <path d="M14 34h32M14 44h32M14 54h22" stroke="#93a0bb" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="monitor" viewBox="0 0 200 170"><rect x="4" y="4" width="192" height="122" rx="14" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M80 126l-8 30h56l-8-30" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M56 158h88" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"/></symbol>
+
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="index.html"><img src="docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
 </header>
 
-<div class="layout">
+<div id="viewport"><div id="stage">
 
-<!-- ================= TABLE OF CONTENTS ================= -->
-<nav class="toc">
-  <ol>
-    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Write a program</span><span class="fa">۱ · نوشتن یک برنامه</span></a></li>
-    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Write the Dockerfile</span><span class="fa">۲ · نوشتن Dockerfile</span></a></li>
-    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Build and run</span><span class="fa">۳ · ساخت و اجرا</span></a></li>
-    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Change and rebuild</span><span class="fa">۴ · تغییر و ساخت دوباره</span></a></li>
-    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Fix the order</span><span class="fa">۵ · درست کردن ترتیب</span></a></li>
-    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Clean up</span><span class="fa">۶ · تمیزکاری</span></a></li>
-  </ol>
-</nav>
-
-<main>
-
-<!-- ================= HERO ================= -->
-<section class="hero">
-  <h1>
-    <span class="en">Lesson 19 — Package your own program</span>
-    <span class="fa">درس ۱۹ — بسته‌بندی برنامه‌ی خودتان</span>
-  </h1>
-  <p class="en">In Lesson 17 your image only served a file. Real images <b>run a program</b>, and that program needs things installed. You'll package a small Python program with three new Dockerfile instructions: <code>WORKDIR</code>, <code>RUN</code> and <code>CMD</code>. Then it runs on any PC with Docker, even with no Python installed.</p>
-  <p class="fa">در درس ۱۷ ایمیج شما فقط یک فایل را سرو می‌کرد. ایمیج‌های واقعی <b>یک برنامه اجرا می‌کنند</b>، و آن برنامه به چیزهای نصب‌شده نیاز دارد. یک برنامه‌ی کوچک Python را با سه دستور جدید Dockerfile بسته‌بندی می‌کنید: <code>WORKDIR</code>، <code>RUN</code> و <code>CMD</code>. بعد روی هر کامپیوتری که Docker دارد اجرا می‌شود، حتی بدون نصب Python.</p>
-  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
-  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 19 — Package your own program" data-title-fa="درس ۱۹ — بسته‌بندی برنامه‌ی خودتان" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 19</span><span class="fa">دوره‌ی Docker · درس ۱۹</span></div>
+    <h1 style="font-size:104px;line-height:1.05;margin:26px 0 26px">
+      <span class="en split">Package your <span class="hl">own program</span></span><span class="fa split">بسته‌بندی <span class="hl">برنامه‌ی خودتان</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en">Real images <b>run a program</b>. You'll package a small Python program, and it runs on any PC with Docker, even with no Python installed.</span><span class="fa">ایمیج‌های واقعی <b>یک برنامه اجرا می‌کنند</b>. یک برنامه‌ی کوچک Python را بسته‌بندی می‌کنید و روی هر کامپیوتری که Docker دارد اجرا می‌شود، حتی بدون نصب Python.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:700px;height:660px;overflow:visible;direction:ltr" viewBox="0 0 700 660">
+    <circle cx="350" cy="330" r="300" fill="none" stroke="rgba(110,155,255,.14)" stroke-dasharray="4 10"/>
+    <g class="bob"><g transform="translate(220 420) scale(1.6)">
+      <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+      <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#5fe39a;--l:#22a35d;--r:#167a45"/>
+      <use href="#slab" x="-62" y="-58" width="124" height="86" style="--t:#ffcf6b;--l:#d79a22;--r:#a8740f"/>
+    </g></g>
+    <g font-family="JetBrains Mono,monospace" font-size="17" fill="#93a0bb">
+      <text x="40" y="560">python:3.13-slim</text>
+    </g>
+    <g transform="translate(220 270)"><circle r="34" fill="#1D63ED"/><path d="M-10-16L18 0L-10 16Z" fill="#fff"/><circle r="34" fill="none" stroke="#6e9bff" stroke-width="3" class="ripple"/></g>
+    <text x="220" y="222" text-anchor="middle" fill="#a9c4ff" font-size="18" font-family="JetBrains Mono,monospace">CMD</text>
+    <path id="tRun19" d="M260 290 C 340 320, 400 360, 460 400" fill="none" stroke="#3ccf7f" stroke-width="3" class="flow"/>
+    <circle r="7" fill="#3ccf7f"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#tRun19"/></animateMotion></circle>
+    <g transform="translate(540 450)"><use href="#cube" x="-70" y="-80" width="140" height="140"/><circle cx="52" cy="-66" r="8" fill="#3ccf7f" class="pulse"/></g>
+    <g class="pop-in a" style="--d:1.1;--an:pop">
+      <path d="M380 110h280a20 20 0 0 1 20 20v70a20 20 0 0 1-20 20H560l-20 40-10-40H380a20 20 0 0 1-20-20v-70a20 20 0 0 1 20-20z" class="bubble"/>
+      <text x="520" y="160" text-anchor="middle" fill="#1a1d28" font-size="21" font-weight="700" font-family="Inter,sans-serif">🐄 Hello from my</text>
+      <text x="520" y="192" text-anchor="middle" fill="#1a1d28" font-size="21" font-weight="700" font-family="Inter,sans-serif">own image!</text>
+    </g>
+  </svg>
 </section>
 
-<!-- ================= 1 PROGRAM ================= -->
-<section class="card step" id="s1">
-  <h2><span class="num">1</span>
-    <span class="en">Write a small program</span><span class="fa">نوشتن یک برنامه‌ی کوچک</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Make a project folder called <code>hello-app</code> in your home folder and go into it:</p>
-  <p class="fa">یک پوشه‌ی پروژه به نام <code>hello-app</code> در پوشه‌ی خانه‌تان بسازید و واردش شوید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>mkdir ~/hello-app
-cd ~/hello-app</code></pre></div>
-  <p class="en">Create <code>app.py</code> with <code>nano</code>:</p>
-  <p class="fa">با <code>nano</code> فایل <code>app.py</code> را بسازید:</p>
-  <div class="code"><span class="lbl">app.py</span><pre><code>import cowsay
-
-cowsay.cow("Hello from my own image!")</code></pre></div>
-  <p class="en">It uses <code>cowsay</code>, a small Python library that draws a talking cow. It is <b>not</b> part of Python, so it must be installed first. That's the job of the Dockerfile.</p>
-  <p class="fa">از <code>cowsay</code> استفاده می‌کند، یک کتابخانه‌ی کوچک Python که یک گاو سخنگو می‌کشد. جزو Python <b>نیست</b>، پس اول باید نصب شود. این کار Dockerfile است.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>app.py</code> is saved in <code>~/hello-app</code></span><span class="fa"><code>app.py</code> در <code>~/hello-app</code> ذخیره شد</span></span></label>
-  </div>
-</section>
-
-<!-- ================= 2 DOCKERFILE ================= -->
-<section class="card step" id="s2">
-  <h2><span class="num">2</span>
-    <span class="en">Write the Dockerfile</span><span class="fa">نوشتن Dockerfile</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">In the same folder, create <code>Dockerfile</code> with <code>nano</code>:</p>
-  <p class="fa">در همان پوشه، با <code>nano</code> فایل <code>Dockerfile</code> را بسازید:</p>
-  <div class="code"><span class="lbl">Dockerfile</span><pre><code>FROM python:3.13-slim
-WORKDIR /app
-COPY app.py .
-RUN pip install cowsay
-CMD ["python", "app.py"]</code></pre></div>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><code>FROM python:3.13-slim</code></td><td><span class="en">Start from the official Python image, a <b>slim</b> (smaller) version with Python 3.13 already installed</span><span class="fa">از ایمیج رسمی Python شروع کن، نسخه‌ی <b>slim</b> (کوچک‌تر) که Python 3.13 از قبل رویش نصب است</span></td></tr>
-      <tr><td><code>WORKDIR /app</code></td><td><span class="en"><b>New:</b> create the folder <code>/app</code> in the image and work there from now on, like <code>mkdir</code> + <code>cd</code></span><span class="fa"><b>جدید:</b> پوشه‌ی <code>/app</code> را در ایمیج بساز و از این به بعد همان‌جا کار کن، مثل <code>mkdir</code> + <code>cd</code></span></td></tr>
-      <tr><td><code>COPY app.py .</code></td><td><span class="en">Copy your program in (Lesson 17). <code>.</code> means “here”, the <code>WORKDIR</code>: <code>/app</code></span><span class="fa">برنامه‌تان را کپی کن (درس ۱۷). <code>.</code> یعنی «همین‌جا»، یعنی <code>WORKDIR</code>: <code>/app</code></span></td></tr>
-      <tr><td><code>RUN pip install cowsay</code></td><td><span class="en"><b>New:</b> run a command <b>while building</b>. Here: install <code>cowsay</code> into the image</span><span class="fa"><b>جدید:</b> یک دستور را <b>هنگام ساختن</b> اجرا کن. اینجا: <code>cowsay</code> را داخل ایمیج نصب کن</span></td></tr>
-      <tr><td><code>CMD ["python", "app.py"]</code></td><td><span class="en"><b>New:</b> the command a container runs <b>when it starts</b>. You saw nginx's <code>CMD</code> in <code>docker history</code> (Lesson 16)</span><span class="fa"><b>جدید:</b> دستوری که کانتینر <b>هنگام شروع</b> اجرا می‌کند. <code>CMD</code> مربوط به nginx را در <code>docker history</code> دیدید (درس ۱۶)</span></td></tr>
-    </tbody>
-  </table>
-  </div>
-  <div class="note key">
-    <p class="en">🔑 <code>RUN</code> happens <b>once, when you build</b> the image. <code>CMD</code> happens <b>every time a container starts</b>.</p>
-    <p class="fa">🔑 <code>RUN</code> <b>یک بار، هنگام ساختن</b> ایمیج اجرا می‌شود. <code>CMD</code> <b>هر بار که یک کانتینر شروع می‌شود</b> اجرا می‌شود.</p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s2-1"><span><span class="en"><code>Dockerfile</code> is saved next to <code>app.py</code></span><span class="fa"><code>Dockerfile</code> کنار <code>app.py</code> ذخیره شد</span></span></label>
-    <label><input type="checkbox" data-id="s2-2"><span><span class="en">I know the difference between <code>RUN</code> and <code>CMD</code></span><span class="fa">فرق <code>RUN</code> و <code>CMD</code> را می‌دانم</span></span></label>
+<!-- ======================= 3 · PROGRAM ======================= -->
+<section class="slide" data-title-en="Write a small program" data-title-fa="نوشتن یک برنامه‌ی کوچک">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Write a <span class="hl">small program</span></span><span class="fa split">نوشتن یک <span class="hl">برنامه‌ی کوچک</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:26px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="term sm a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Make a project folder called hello-app in your home folder." data-task-fa="👉 یک پوشه‌ی پروژه به نام hello-app در پوشه‌ی خانه‌تان بسازید."><div class="cmd">mkdir ~/hello-app</div></div>
+          <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Go into it." data-task-fa="👉 واردش شوید."><div class="cmd">cd ~/hello-app</div></div>
+          <div class="run" data-step="5" style="margin:0"><div class="cmd">nano app.py</div></div>
+        </div>
+      </div>
+      <div class="editor" data-step="6">
+        <div class="bar">app.py</div>
+        <div class="body">
+          <div class="ln"><span class="kw">import</span> cowsay</div>
+          <div class="ln">cowsay.cow(<span class="sv">"Hello from my own image!"</span>)</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="card" data-step="7" style="display:flex;gap:22px;align-items:center">
+        <svg viewBox="0 0 140 120" style="width:140px;height:120px;flex:none;direction:ltr"><text x="70" y="80" text-anchor="middle" font-size="76">🐄</text><path d="M96 10h36a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6h-20l-8 10-2-10h-6a6 6 0 0 1-6-6V16a6 6 0 0 1 6-6z" fill="#f6f2e8"/><text x="114" y="32" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d28">moo</text></svg>
+        <p><span class="en">It uses <code>cowsay</code>, a small Python library that draws a talking cow.</span><span class="fa">از <code>cowsay</code> استفاده می‌کند، یک کتابخانه‌ی کوچک Python که یک گاو سخنگو می‌کشد.</span></p>
+      </div>
+      <div class="card key" data-step="8"><div class="n">🔑</div><p><span class="en"><code>cowsay</code> is <b>not</b> part of Python, so it must be installed first. That's the job of the Dockerfile.</span><span class="fa"><code>cowsay</code> جزو Python <b>نیست</b>، پس اول باید نصب شود. این کار Dockerfile است.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 3 BUILD RUN ================= -->
-<section class="card step" id="s3">
-  <h2><span class="num">3</span>
-    <span class="en">Build and run</span><span class="fa">ساخت و اجرا</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Build the image and call it <code>hello-app</code> (Lesson 17):</p>
-  <p class="fa">ایمیج را بسازید و نامش را <code>hello-app</code> بگذارید (درس ۱۷):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t hello-app .</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code> => [1/4] FROM docker.io/library/python:3.13-slim@sha256:70729b46c69b4f1e
+<!-- ======================= 4 · DOCKERFILE ======================= -->
+<section class="slide" data-scene="hot" data-title-en="Write the Dockerfile" data-title-fa="نوشتن Dockerfile">
+  <div class="kicker a"><span class="en">Step 2</span><span class="fa">قدم ۲</span></div>
+  <h2><span class="en split">Write the <span class="hl">Dockerfile</span></span><span class="fa split">نوشتن <span class="hl">Dockerfile</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:8px;font-size:21px"><span class="en">In the same folder, create <code>Dockerfile</code> with <code>nano</code>:</span><span class="fa">در همان پوشه، با <code>nano</code> فایل <code>Dockerfile</code> را بسازید:</span></p>
+  <div style="display:grid;grid-template-columns:1fr 520px;gap:26px;margin-top:16px">
+    <div style="display:flex;flex-direction:column;gap:22px">
+      <div class="editor a" style="--d:.5">
+        <div class="bar">Dockerfile</div>
+        <div class="body">
+          <div class="ln" data-step="1" data-hot="1"><span class="kw">FROM</span> python:3.13-slim</div>
+          <div class="ln" data-step="2" data-hot="2"><span class="kw">WORKDIR</span> <span class="pa">/app</span></div>
+          <div class="ln" data-step="3" data-hot="3"><span class="kw">COPY</span> app.py .</div>
+          <div class="ln" data-step="4" data-hot="4"><span class="kw">RUN</span> pip install cowsay</div>
+          <div class="ln" data-step="5" data-hot="5"><span class="kw">CMD</span> [<span class="sv">"python"</span>, <span class="sv">"app.py"</span>]</div>
+        </div>
+      </div>
+      <div class="caps" style="height:170px">
+        <div data-only="1"><div class="n"><span dir="ltr">FROM python:3.13-slim</span></div><p><span class="en">Start from the official Python image, a <b>slim</b> (smaller) version with Python 3.13 already installed.</span><span class="fa">از ایمیج رسمی Python شروع کن، نسخه‌ی <b>slim</b> (کوچک‌تر) که Python 3.13 از قبل رویش نصب است.</span></p></div>
+        <div data-only="2"><div class="n"><span dir="ltr">WORKDIR /app</span></div><p><span class="newb"><span class="en">NEW</span><span class="fa">جدید</span></span><span class="en">Create the folder <code>/app</code> in the image and work there from now on, like <code>mkdir</code> + <code>cd</code>.</span><span class="fa">پوشه‌ی <code>/app</code> را در ایمیج بساز و از این به بعد همان‌جا کار کن، مثل <code>mkdir</code> + <code>cd</code>.</span></p></div>
+        <div data-only="3"><div class="n"><span dir="ltr">COPY app.py .</span></div><p><span class="en">Copy your program in (Lesson 17). <code>.</code> means “here”, the <code>WORKDIR</code>: <code>/app</code>.</span><span class="fa">برنامه‌تان را کپی کن (درس ۱۷). <code>.</code> یعنی «همین‌جا»، یعنی <code>WORKDIR</code>: <code>/app</code>.</span></p></div>
+        <div data-only="4"><div class="n"><span dir="ltr">RUN pip install cowsay</span></div><p><span class="newb"><span class="en">NEW</span><span class="fa">جدید</span></span><span class="en">Run a command <b>while building</b>. Here: install <code>cowsay</code> into the image.</span><span class="fa">یک دستور را <b>هنگام ساختن</b> اجرا کن. اینجا: <code>cowsay</code> را داخل ایمیج نصب کن.</span></p></div>
+        <div data-only="5"><div class="n"><span dir="ltr">CMD ["python", "app.py"]</span></div><p><span class="newb"><span class="en">NEW</span><span class="fa">جدید</span></span><span class="en">The command a container runs <b>when it starts</b>. You saw nginx's <code>CMD</code> in <code>docker history</code> (Lesson 16).</span><span class="fa">دستوری که کانتینر <b>هنگام شروع</b> اجرا می‌کند. <code>CMD</code> مربوط به nginx را در <code>docker history</code> دیدید (درس ۱۶).</span></p></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 520 540" style="width:520px;height:540px;overflow:visible;direction:ltr">
+      <path d="M40 500H480" stroke="rgba(110,155,255,.2)" stroke-width="2"/>
+      <g class="drop" data-step="1"><use href="#slab" x="90" y="360" width="200" height="139" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+        <text x="305" y="452" fill="#a9c4ff" font-size="17" font-family="JetBrains Mono,monospace">python 3.13</text></g>
+      <g class="drop" data-step="2"><use href="#slab" x="90" y="326" width="200" height="139" style="--t:#8a96b0;--l:#5b6b88;--r:#3a4760"/>
+        <text x="305" y="418" fill="#c9d2e3" font-size="17" font-family="JetBrains Mono,monospace">📁 /app</text></g>
+      <g class="drop" data-step="3"><use href="#slab" x="90" y="292" width="200" height="139" style="--t:#ffcf6b;--l:#d79a22;--r:#a8740f"/>
+        <text x="305" y="384" fill="#ffcf6b" font-size="17" font-family="JetBrains Mono,monospace">📄 app.py</text></g>
+      <g class="drop" data-step="4"><use href="#slab" x="90" y="258" width="200" height="139" style="--t:#5fe39a;--l:#22a35d;--r:#167a45"/>
+        <text x="305" y="350" fill="#7fd8a6" font-size="17" font-family="JetBrains Mono,monospace">🐄 cowsay</text></g>
+      <g data-step="5" class="pop-in"><g transform="translate(190 200)"><circle r="34" fill="#1D63ED"/><path d="M-10-16L18 0L-10 16Z" fill="#fff"/><circle r="34" fill="none" stroke="#6e9bff" stroke-width="3" class="ripple"/></g>
+        <text x="240" y="194" fill="#a9c4ff" font-size="17" font-family="JetBrains Mono,monospace">CMD: python app.py</text>
+        <text x="240" y="220" fill="#93a0bb" font-size="15" font-family="Inter,sans-serif" class="en">runs when a container starts</text>
+        <text x="240" y="220" fill="#93a0bb" font-size="16" class="fa svgfa" direction="rtl" text-anchor="end">هنگام شروع کانتینر اجرا می‌شود</text></g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================= 5 · RUN vs CMD ======================= -->
+<section class="slide" data-title-en="RUN vs CMD" data-title-fa="RUN و CMD">
+  <div class="kicker a"><span class="en">Step 2 · Two different times</span><span class="fa">قدم ۲ · دو زمان متفاوت</span></div>
+  <h2><span class="en split"><span class="hl">RUN</span> or <span class="hl">CMD</span>: when?</span><span class="fa split"><span class="hl">RUN</span> یا <span class="hl">CMD</span>: کِی؟</span></h2>
+  <svg viewBox="0 0 1420 460" style="width:1420px;height:460px;margin-top:20px;overflow:visible;direction:ltr">
+    <g data-step="1">
+      <rect x="0" y="20" width="1420" height="180" rx="20" fill="rgba(255,181,77,.06)" stroke="rgba(255,181,77,.35)"/>
+      <text x="30" y="62" fill="#ffb54d" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">docker build</text>
+      <text x="30" y="92" fill="#93a0bb" font-size="17" font-family="Inter,sans-serif" class="en">once</text>
+      <text x="30" y="92" fill="#93a0bb" font-size="18" class="svgfa fa">یک بار</text>
+      <g transform="translate(300 110)"><rect x="-120" y="-34" width="240" height="68" rx="14" fill="#0d1426" stroke="#ffb54d" stroke-width="2"/><text x="0" y="8" text-anchor="middle" fill="#ffcf6b" font-size="19" font-family="JetBrains Mono,monospace">RUN pip install</text></g>
+      <path d="M430 110H620" stroke="#ffb54d" stroke-width="3" class="flow"/>
+      <circle r="7" fill="#ffb54d"><animateMotion dur="1.4s" repeatCount="indefinite" path="M430 110H620"/></circle>
+      <g transform="translate(720 96)"><use href="#slab" x="-70" y="-6" width="140" height="97" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/><use href="#slab" x="-70" y="-38" width="140" height="97" style="--t:#5fe39a;--l:#22a35d;--r:#167a45"/></g>
+      <text x="860" y="100" fill="#eef2fb" font-size="20" font-family="Inter,sans-serif" class="en"><tspan font-family="JetBrains Mono,monospace" fill="#7fd8a6">cowsay</tspan> is now inside the image</text>
+      <text x="860" y="100" fill="#eef2fb" font-size="21" class="svgfa fa" text-anchor="end" direction="rtl"><tspan font-family="JetBrains Mono,monospace" fill="#7fd8a6">cowsay</tspan> حالا داخل ایمیج است</text>
+    </g>
+    <g data-step="2">
+      <rect x="0" y="240" width="1420" height="200" rx="20" fill="rgba(60,207,127,.05)" stroke="rgba(60,207,127,.35)"/>
+      <text x="30" y="282" fill="#3ccf7f" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">docker run</text>
+      <text x="30" y="312" fill="#93a0bb" font-size="17" font-family="Inter,sans-serif" class="en">every time</text>
+      <text x="30" y="312" fill="#93a0bb" font-size="18" class="svgfa fa">هر بار</text>
+      <g transform="translate(420 350)"><use href="#cube" x="-50" y="-60" width="100" height="100"/><g transform="translate(70 -40)"><rect x="0" y="0" width="200" height="40" rx="10" fill="#0d1426" stroke="#3ccf7f"/><text x="100" y="27" text-anchor="middle" fill="#7fd8a6" font-size="16" font-family="JetBrains Mono,monospace">▶ python app.py</text><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.7;1" dur="3s" repeatCount="indefinite"/></g></g>
+      <g transform="translate(760 350)"><use href="#cube" x="-50" y="-60" width="100" height="100"/><g transform="translate(70 -40)"><rect x="0" y="0" width="200" height="40" rx="10" fill="#0d1426" stroke="#3ccf7f"/><text x="100" y="27" text-anchor="middle" fill="#7fd8a6" font-size="16" font-family="JetBrains Mono,monospace">▶ python app.py</text><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.7;1" dur="3s" begin="1s" repeatCount="indefinite"/></g></g>
+      <g transform="translate(1100 350)"><use href="#cube" x="-50" y="-60" width="100" height="100"/><g transform="translate(70 -40)"><rect x="0" y="0" width="200" height="40" rx="10" fill="#0d1426" stroke="#3ccf7f"/><text x="100" y="27" text-anchor="middle" fill="#7fd8a6" font-size="16" font-family="JetBrains Mono,monospace">▶ python app.py</text><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.7;1" dur="3s" begin="2s" repeatCount="indefinite"/></g></g>
+      <text x="300" y="362" text-anchor="middle" fill="#a9c4ff" font-size="20" font-family="JetBrains Mono,monospace">CMD</text>
+    </g>
+  </svg>
+  <div class="card key" data-step="3" style="margin-top:14px"><div class="n">🔑</div><p><span class="en"><code>RUN</code> happens <b>once, when you build</b> the image. <code>CMD</code> happens <b>every time a container starts</b>.</span><span class="fa"><code>RUN</code> <b>یک بار، هنگام ساختن</b> ایمیج اجرا می‌شود. <code>CMD</code> <b>هر بار که یک کانتینر شروع می‌شود</b> اجرا می‌شود.</span></p></div>
+</section>
+
+<!-- ======================= 6 · BUILD ======================= -->
+<section class="slide" data-title-en="Build it" data-title-fa="ساخت">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Build <span class="hl">hello-app</span></span><span class="fa split">ساختن <span class="hl">hello-app</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 400px;gap:26px;margin-top:24px;direction:ltr">
+    <div class="term sm a" style="--d:.4;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash · ~/hello-app</span></div>
+      <div class="body" style="font-size:16px">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Build the image and call it hello-app (Lesson 17)." data-task-fa="👉 ایمیج را بسازید و نامش را hello-app بگذارید (درس ۱۷)." style="margin:0"><div class="cmd">docker build -t hello-app .</div><pre class="out">
+ => [1/4] FROM docker.io/library/python:3.13-slim@sha256:70729b46c69b4f1e
  => [2/4] WORKDIR /app
  => [3/4] COPY app.py .
  => [4/4] RUN pip install cowsay          <span class="c"># installing, at build time</span>
  ...
- => => naming to docker.io/library/hello-app:latest</code></pre></div>
-  <p class="en">Now run it in a new container, and delete the container when it's done (Lesson 7):</p>
-  <p class="fa">حالا آن را در یک کانتینر جدید اجرا کنید و وقتی تمام شد کانتینر را حذف کنید (درس ۷):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run --rm hello-app</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>  ________________________
+ => => naming to docker.io/library/hello-app:latest</pre></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 400 420" style="width:400px;height:420px;overflow:visible" data-step="3">
+      <path d="M30 380H370" stroke="rgba(110,155,255,.2)" stroke-width="2"/>
+      <g class="drop" data-step="3"><use href="#slab" x="60" y="240" width="180" height="125" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/><text x="250" y="318" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">[1/4] FROM</text></g>
+      <g class="drop" data-step="3" style="transition-delay:.3s"><use href="#slab" x="60" y="214" width="180" height="125" style="--t:#8a96b0;--l:#5b6b88;--r:#3a4760"/><text x="250" y="288" fill="#93a0bb" font-size="16" font-family="JetBrains Mono,monospace">[2/4] WORKDIR</text></g>
+      <g class="drop" data-step="3" style="transition-delay:.6s"><use href="#slab" x="60" y="188" width="180" height="125" style="--t:#ffcf6b;--l:#d79a22;--r:#a8740f"/><text x="250" y="258" fill="#ffcf6b" font-size="16" font-family="JetBrains Mono,monospace">[3/4] COPY</text></g>
+      <g class="drop" data-step="3" style="transition-delay:.9s"><use href="#slab" x="60" y="162" width="180" height="125" style="--t:#5fe39a;--l:#22a35d;--r:#167a45"/><text x="250" y="228" fill="#7fd8a6" font-size="16" font-family="JetBrains Mono,monospace">[4/4] RUN</text></g>
+      <g data-step="3" class="pop-in" style="transition-delay:1.3s"><rect x="60" y="100" width="180" height="40" rx="10" fill="#1D63ED"/><text x="150" y="126" text-anchor="middle" fill="#fff" font-size="17" font-weight="700" font-family="JetBrains Mono,monospace">hello-app:latest</text></g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================= 7 · RUN ======================= -->
+<section class="slide" data-title-en="Run it" data-title-fa="اجرا">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Run it: <span class="hl">🐄 moo!</span></span><span class="fa split">اجرایش کنید: <span class="hl">🐄 ماااع!</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 460px;gap:28px;margin-top:22px">
+    <div class="term sm a" style="--d:.4;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Run hello-app in a new container, and delete the container when it's done (Lesson 7)." data-task-fa="👉 hello-app را در یک کانتینر جدید اجرا کنید و وقتی تمام شد کانتینر را حذف کنید (درس ۷)." style="margin:0"><div class="cmd">docker run --rm hello-app</div><pre class="out">
+  ________________________
 | Hello from my own image! |
   ========================
                         \
@@ -140,132 +304,224 @@ CMD ["python", "app.py"]</code></pre></div>
                            (oo)\_______
                            (__)\       )\/\
                                ||----w |
-                               ||     ||</code></pre></div>
-  <p class="en">🐄 The container ran your <code>CMD</code>: <code>python app.py</code>. Python and <code>cowsay</code> were already inside the image.</p>
-  <p class="fa">🐄 کانتینر <code>CMD</code> شما را اجرا کرد: <code>python app.py</code>. Python و <code>cowsay</code> از قبل داخل ایمیج بودند.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s3-1"><span><span class="en">The cow said “Hello from my own image!”</span><span class="fa">گاو گفت «Hello from my own image!»</span></span></label>
+                               ||     ||</pre></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="card tip" data-step="3"><div class="n">▶ CMD</div><p><span class="en">🐄 The container ran your <code>CMD</code>: <code>python app.py</code>.</span><span class="fa">🐄 کانتینر <code>CMD</code> شما را اجرا کرد: <code>python app.py</code>.</span></p></div>
+      <div class="card key" data-step="4"><div class="n">🔑</div><p><span class="en">Python and <code>cowsay</code> were already inside the image. No Python needed on your PC.</span><span class="fa">Python و <code>cowsay</code> از قبل داخل ایمیج بودند. روی کامپیوتر شما Python لازم نیست.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 4 CHANGE REBUILD ================= -->
-<section class="card step" id="s4">
-  <h2><span class="num">4</span>
-    <span class="en">Change the program and rebuild</span><span class="fa">تغییر برنامه و ساخت دوباره</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Open <code>app.py</code> with <code>nano</code> and change the text to <code>"Version 2 of my app!"</code>. Then build again, the same way as in step 3:</p>
-  <p class="fa"><code>app.py</code> را با <code>nano</code> باز کنید و متن را به <code>"Version 2 of my app!"</code> تغییر دهید. بعد دوباره، مثل قدم ۳، بسازید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t hello-app .</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>[+] Building 12.4s (9/9) FINISHED
+<!-- ======================= 8 · CHANGE + REBUILD ======================= -->
+<section class="slide" data-title-en="Change the program and rebuild" data-title-fa="تغییر برنامه و ساخت دوباره">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">Change the program and <span class="hl">rebuild</span></span><span class="fa split">تغییر برنامه و <span class="hl">ساخت دوباره</span></span></h2>
+  <div style="display:grid;grid-template-columns:520px 1fr;gap:26px;margin-top:22px">
+    <div class="editor a" style="--d:.4;align-self:start">
+      <div class="bar">app.py · nano</div>
+      <div class="body" style="font-size:19px">
+        <div class="ln"><span class="kw">import</span> cowsay</div>
+        <div class="ln"><span style="position:relative;display:inline-block;width:380px;height:1.7em;vertical-align:top"><span data-only="0" style="position:absolute;left:0;top:0">cowsay.cow(<span class="sv">"Hello from my own image!"</span>)</span><span data-only="1 2 3 4" style="position:absolute;left:0;top:0">cowsay.cow(<span style="color:var(--green)">"Version 2 of my app!"</span>)</span></span></div>
+      </div>
+    </div>
+    <p class="lead a" style="--d:.5;font-size:21px;align-self:center"><span class="en">Open <code>app.py</code> with <code>nano</code> and change the text to <code>"Version 2 of my app!"</code>. Then build again, the same way as in step 3:</span><span class="fa"><code>app.py</code> را با <code>nano</code> باز کنید و متن را به <code>"Version 2 of my app!"</code> تغییر دهید. بعد دوباره، مثل قدم ۳، بسازید:</span></p>
+  </div>
+  <div class="term sm a" style="--d:.6;margin-top:20px">
+    <div class="bar"><i></i><i></i><i></i><span>bash · ~/hello-app</span></div>
+    <div class="body">
+      <div class="run recall" data-step="2" data-reveal="3" data-task-en="👉 Build the image again, the same way as in step 3." data-task-fa="👉 دوباره، مثل قدم ۳، ایمیج را بسازید." style="margin:0"><div class="cmd">docker build -t hello-app .</div><pre class="out">
+[+] Building 12.4s (9/9) FINISHED
  => [1/4] FROM docker.io/library/python:3.13-slim@sha256:70729b46c69b4f1e
  => CACHED [2/4] WORKDIR /app
  => [3/4] COPY app.py .                   <span class="c"># your code changed</span>
- => [4/4] RUN pip install cowsay          <span class="c"># ← installing AGAIN?!</span></code></pre></div>
-  <p class="en">You only changed one line of <b>your code</b>, so why did Docker install <code>cowsay</code> <b>again</b>?</p>
-  <p class="fa">شما فقط یک خط از <b>کدتان</b> را عوض کردید، پس چرا Docker دوباره <code>cowsay</code> را نصب کرد؟</p>
-  <p class="en">Each line of the Dockerfile makes one <b>layer</b>. Docker reuses (<code>CACHED</code>) a layer if nothing it depends on changed. But once one layer changes, <b>every layer after it is rebuilt</b>. <code>app.py</code> changed, so the <code>COPY</code> layer changed, so the <code>RUN</code> layer after it was redone, even though <code>cowsay</code> didn't change at all.</p>
-  <p class="fa">هر خط Dockerfile یک <b>لایه</b> می‌سازد. Docker لایه‌ای را که هیچ چیزِ وابسته‌اش تغییر نکرده دوباره استفاده می‌کند (<code>CACHED</code>). ولی وقتی یک لایه تغییر کند، <b>همه‌ی لایه‌های بعد از آن دوباره ساخته می‌شوند</b>. <code>app.py</code> عوض شد، پس لایه‌ی <code>COPY</code> عوض شد، پس لایه‌ی <code>RUN</code> بعد از آن دوباره انجام شد، با اینکه <code>cowsay</code> اصلاً تغییری نکرده بود.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s4-1"><span><span class="en"><code>RUN pip install cowsay</code> ran again after a code change</span><span class="fa"><code>RUN pip install cowsay</code> بعد از تغییر کد دوباره اجرا شد</span></span></label>
+ => [4/4] RUN pip install cowsay          <span class="c"># ← installing AGAIN?!</span></pre></div>
+    </div>
+  </div>
+  <div class="qbig" data-step="4" style="margin-top:20px"><span class="en">❓ You only changed one line of <b>your code</b>, so why did Docker install <code>cowsay</code> <b>again</b>?</span><span class="fa">❓ شما فقط یک خط از <b>کدتان</b> را عوض کردید، پس چرا Docker دوباره <code>cowsay</code> را نصب کرد؟</span></div>
+</section>
+
+<!-- ======================= 9 · WHY: CACHE ======================= -->
+<section class="slide" data-scene="chain1" data-title-en="Layers and the cache" data-title-fa="لایه‌ها و cache">
+  <div class="kicker a"><span class="en">Step 4 · Why?</span><span class="fa">قدم ۴ · چرا؟</span></div>
+  <h2><span class="en split">One line = <span class="hl">one layer</span></span><span class="fa split">هر خط = <span class="hl">یک لایه</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 520px;gap:30px;margin-top:26px">
+    <div class="lrows a" style="--d:.4">
+      <div class="lrow" data-r="0"><span class="no">[1/4]</span><span>FROM python:3.13-slim</span><span class="st"><span class="ok" data-only="1 2 3">CACHED ✓</span></span></div>
+      <div class="lrow" data-r="1"><span class="no">[2/4]</span><span>WORKDIR /app</span><span class="st"><span class="ok" data-only="1 2 3">CACHED ✓</span></span></div>
+      <div class="lrow" data-r="2"><span class="no">[3/4]</span><span>COPY app.py .</span><span class="st"><span class="chg" data-only="2 3"><span class="en">CHANGED ✎</span><span class="fa">تغییر کرد ✎</span></span></span></div>
+      <div class="lrow" data-r="3"><span class="no">[4/4]</span><span>RUN pip install cowsay</span><span class="st"><span class="re" data-only="3"><span class="en">REBUILT ↻</span><span class="fa">دوباره ساخته شد ↻</span></span></span></div>
+    </div>
+    <div class="caps" style="height:420px">
+      <div data-only="0 1"><h3><span class="en">Each line makes a layer</span><span class="fa">هر خط یک لایه می‌سازد</span></h3><p><span class="en">Each line of the Dockerfile makes one <b>layer</b>. Docker reuses (<code>CACHED</code>) a layer if nothing it depends on changed.</span><span class="fa">هر خط Dockerfile یک <b>لایه</b> می‌سازد. Docker لایه‌ای را که هیچ چیزِ وابسته‌اش تغییر نکرده دوباره استفاده می‌کند (<code>CACHED</code>).</span></p></div>
+      <div data-only="2"><h3><span class="en"><code>app.py</code> changed</span><span class="fa"><code>app.py</code> عوض شد</span></h3><p><span class="en"><code>app.py</code> changed, so the <code>COPY</code> layer changed.</span><span class="fa"><code>app.py</code> عوض شد، پس لایه‌ی <code>COPY</code> عوض شد.</span></p></div>
+      <div data-only="3"><h3><span class="en">…and everything after it</span><span class="fa">…و همه‌ی لایه‌های بعد از آن</span></h3><p><span class="en">Once one layer changes, <b>every layer after it is rebuilt</b>. So the <code>RUN</code> layer after it was redone, even though <code>cowsay</code> didn't change at all.</span><span class="fa">وقتی یک لایه تغییر کند، <b>همه‌ی لایه‌های بعد از آن دوباره ساخته می‌شوند</b>. پس لایه‌ی <code>RUN</code> بعد از آن دوباره انجام شد، با اینکه <code>cowsay</code> اصلاً تغییری نکرده بود.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 5 FIX ORDER ================= -->
-<section class="card step" id="s5">
-  <h2><span class="num">5</span>
-    <span class="en">Fix the order</span><span class="fa">درست کردن ترتیب</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Open <code>Dockerfile</code> and move <code>COPY app.py .</code> to the line <b>after</b> <code>RUN pip install cowsay</code>:</p>
-  <p class="fa"><code>Dockerfile</code> را باز کنید و <code>COPY app.py .</code> را به خط <b>بعد از</b> <code>RUN pip install cowsay</code> ببرید:</p>
-  <div class="code"><span class="lbl">Dockerfile</span><pre><code>FROM python:3.13-slim
-WORKDIR /app
-RUN pip install cowsay
-COPY app.py .
-CMD ["python", "app.py"]</code></pre></div>
-  <p class="en">Build once to apply the new order. <code>pip install</code> runs one last time, because its position changed:</p>
-  <p class="fa">یک بار بسازید تا ترتیب جدید اعمال شود. <code>pip install</code> یک بار دیگر اجرا می‌شود، چون جایش عوض شد:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t hello-app .</code></pre></div>
-  <p class="en">Now change <code>app.py</code> again, to <code>"Version 3 of my app!"</code>, and build again:</p>
-  <p class="fa">حالا دوباره <code>app.py</code> را تغییر دهید، به <code>"Version 3 of my app!"</code>، و دوباره بسازید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t hello-app .</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>[+] Building 5.6s (9/9) FINISHED
+<!-- ======================= 10 · FIX ORDER ======================= -->
+<section class="slide" data-scene="swap" data-title-en="Fix the order" data-title-fa="درست کردن ترتیب">
+  <div class="kicker a"><span class="en">Step 5</span><span class="fa">قدم ۵</span></div>
+  <h2><span class="en split">Fix <span class="hl">the order</span></span><span class="fa split">درست کردن <span class="hl">ترتیب</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:8px;font-size:21px"><span class="en">Open <code>Dockerfile</code> and move <code>COPY app.py .</code> to the line <b>after</b> <code>RUN pip install cowsay</code>:</span><span class="fa"><code>Dockerfile</code> را باز کنید و <code>COPY app.py .</code> را به خط <b>بعد از</b> <code>RUN pip install cowsay</code> ببرید:</span></p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:18px">
+    <div class="editor a" style="--d:.5;align-self:start">
+      <div class="bar">Dockerfile</div>
+      <div class="body">
+        <div class="ln"><span class="kw">FROM</span> python:3.13-slim</div>
+        <div class="ln"><span class="kw">WORKDIR</span> <span class="pa">/app</span></div>
+        <div class="ln swapA"><span class="kw">COPY</span> app.py .</div>
+        <div class="ln swapB"><span class="kw">RUN</span> pip install cowsay</div>
+        <div class="ln"><span class="kw">CMD</span> [<span class="sv">"python"</span>, <span class="sv">"app.py"</span>]</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <p data-step="2" style="font-size:20px"><span class="en">Build once to apply the new order. <code>pip install</code> runs one last time, because its position changed:</span><span class="fa">یک بار بسازید تا ترتیب جدید اعمال شود. <code>pip install</code> یک بار دیگر اجرا می‌شود، چون جایش عوض شد:</span></p>
+      <div class="term sm" data-step="2">
+        <div class="bar"><i></i><i></i><i></i><span>bash · ~/hello-app</span></div>
+        <div class="body">
+          <div class="run recall" data-step="2" data-reveal="3" data-task-en="👉 Build the image again, to apply the new order." data-task-fa="👉 ایمیج را دوباره بسازید تا ترتیب جدید اعمال شود." style="margin:0"><div class="cmd">docker build -t hello-app .</div></div>
+        </div>
+      </div>
+      <div class="card key" data-step="4"><div class="n">🔑</div><p><span class="en"><b>Order matters.</b> Put what changes <b>rarely</b> first (installing libraries), and what changes <b>often</b> last (your code).</span><span class="fa"><b>ترتیب مهم است.</b> چیزی را که <b>به‌ندرت</b> عوض می‌شود اول بگذارید (نصب کتابخانه‌ها) و چیزی را که <b>زیاد</b> عوض می‌شود آخر (کد شما).</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 11 · VERSION 3 ======================= -->
+<section class="slide" data-title-en="Now only your code is rebuilt" data-title-fa="حالا فقط کد شما دوباره ساخته می‌شود">
+  <div class="kicker a"><span class="en">Step 5 · Try it</span><span class="fa">قدم ۵ · امتحانش کنید</span></div>
+  <h2><span class="en split">Now <span class="hl">pip install</span> is cached</span><span class="fa split">حالا <span class="hl">pip install</span> در cache است</span></h2>
+  <p class="lead a" style="--d:.4;margin-top:8px;font-size:21px"><span class="en">Now change <code>app.py</code> again, to <code>"Version 3 of my app!"</code>, and build again:</span><span class="fa">حالا دوباره <code>app.py</code> را تغییر دهید، به <code>"Version 3 of my app!"</code>، و دوباره بسازید:</span></p>
+  <div style="display:grid;grid-template-columns:1fr 440px;gap:26px;margin-top:16px;direction:ltr">
+    <div class="term sm a" style="--d:.5;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash · ~/hello-app</span></div>
+      <div class="body" style="font-size:16px">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Build the image again." data-task-fa="👉 ایمیج را دوباره بسازید."><div class="cmd">docker build -t hello-app .</div><pre class="out">
+[+] Building 5.6s (9/9) FINISHED
  => [1/4] FROM docker.io/library/python:3.13-slim@sha256:70729b46c69b4f1e
  => CACHED [2/4] WORKDIR /app
  => CACHED [3/4] RUN pip install cowsay   <span class="c"># ← reused!</span>
- => [4/4] COPY app.py .                   <span class="c"># only your code</span></code></pre></div>
-  <p class="en">✅ <code>pip install</code> is <code>CACHED</code> now: only your code was copied. The build took 5.6 s instead of 12.4 s. With big projects, that's minutes saved on every build. Run it (same as step 3):</p>
-  <p class="fa">✅ حالا <code>pip install</code> در وضعیت <code>CACHED</code> است: فقط کد شما کپی شد. ساخت به‌جای ۱۲٫۴ ثانیه ۵٫۶ ثانیه طول کشید. در پروژه‌های بزرگ، این یعنی صرفه‌جویی چند دقیقه در هر ساخت. اجرایش کنید (مثل قدم ۳):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run --rm hello-app</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>  ____________________
+ => [4/4] COPY app.py .                   <span class="c"># only your code</span></pre></div>
+        <div class="run recall" data-step="4" data-reveal="5" data-task-en="👉 Run it, same as step 3." data-task-fa="👉 اجرایش کنید (مثل قدم ۳)." style="margin:0"><div class="cmd">docker run --rm hello-app</div><pre class="out">
+  ____________________
 | Version 3 of my app! |
   ====================
-  ...</code></pre></div>
-  <div class="note key">
-    <p class="en">🔑 <b>Order matters.</b> Put what changes <b>rarely</b> first (installing libraries), and what changes <b>often</b> last (your code).</p>
-    <p class="fa">🔑 <b>ترتیب مهم است.</b> چیزی را که <b>به‌ندرت</b> عوض می‌شود اول بگذارید (نصب کتابخانه‌ها) و چیزی را که <b>زیاد</b> عوض می‌شود آخر (کد شما).</p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s5-1"><span><span class="en">After the fix, a code change shows <code>CACHED</code> for <code>pip install</code></span><span class="fa">بعد از اصلاح، تغییر کد برای <code>pip install</code> عبارت <code>CACHED</code> را نشان می‌دهد</span></span></label>
-    <label><input type="checkbox" data-id="s5-2"><span><span class="en">The cow now says “Version 3 of my app!”</span><span class="fa">گاو حالا می‌گوید «Version 3 of my app!»</span></span></label>
-  </div>
-</section>
-
-<!-- ================= 6 CLEAN UP ================= -->
-<section class="card step" id="s6">
-  <h2><span class="num">6</span>
-    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Thanks to <code>--rm</code> there are no containers to delete. Delete the image if you like (Lesson 1):</p>
-  <p class="fa">به لطف <code>--rm</code> کانتینری برای حذف وجود ندارد. اگر خواستید ایمیج را حذف کنید (درس ۱):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image rm hello-app</code></pre></div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s6-1"><span><span class="en">I'm done with <code>hello-app</code></span><span class="fa">کارم با <code>hello-app</code> تمام شد</span></span></label>
+  ...</pre></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="card" data-step="3">
+        <div class="n">⏱</div>
+        <div class="tbar"><span class="lbl"><span class="en">before</span><span class="fa">قبل</span></span><span class="b"><i style="--w:100%;background:var(--red)"></i></span><span>12.4s</span></div>
+        <div class="tbar"><span class="lbl"><span class="en">now</span><span class="fa">حالا</span></span><span class="b"><i style="--w:45%;background:var(--green)"></i></span><span>5.6s</span></div>
+      </div>
+      <div class="card tip" data-step="3"><p style="font-size:18px"><span class="en">✅ <code>pip install</code> is <code>CACHED</code> now: only your code was copied. With big projects, that's minutes saved on every build.</span><span class="fa">✅ حالا <code>pip install</code> در وضعیت <code>CACHED</code> است: فقط کد شما کپی شد. در پروژه‌های بزرگ، این یعنی صرفه‌جویی چند دقیقه در هر ساخت.</span></p></div>
+    </div>
   </div>
 </section>
 
-<div class="note tip stuck">
-  <p class="en">📥 <b>Stuck?</b> The finished files of this lesson are in the course folder under <code>examples/19-own-program/</code>. Compare them with yours. Or try the finished version: go into that folder and run <code>docker build -t hello-app .</code>.</p>
-  <p class="fa">📥 <b>گیر کرده‌اید؟</b> فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/19-own-program/</code> هستند. آن‌ها را با فایل‌های خودتان مقایسه کنید. یا نسخه‌ی کامل را امتحان کنید: به همان پوشه بروید و <code>docker build -t hello-app .</code> را اجرا کنید.</p>
-</div>
+<!-- ======================= 12 · CLEAN UP ======================= -->
+<section class="slide" data-title-en="Clean up" data-title-fa="تمیزکاری">
+  <div class="kicker a"><span class="en">Step 6</span><span class="fa">قدم ۶</span></div>
+  <h2><span class="en split">Clean <span class="hl">up</span></span><span class="fa split"><span class="hl">تمیزکاری</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px"><span class="en">Thanks to <code>--rm</code> there are no containers to delete.</span><span class="fa">به لطف <code>--rm</code> کانتینری برای حذف وجود ندارد.</span></p>
+  <div class="term a" style="--d:.5;margin-top:24px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Delete the hello-app image, if you like (Lesson 1)." data-task-fa="👉 اگر خواستید ایمیج hello-app را حذف کنید (درس ۱)." style="margin:0"><div class="cmd">docker image rm hello-app</div></div>
+    </div>
+  </div>
+  <svg viewBox="0 0 1420 220" style="width:1420px;height:220px;margin-top:30px;overflow:visible;direction:ltr">
+    <g data-only="0 1"><g transform="translate(710 110)"><use href="#slab" x="-80" y="-10" width="160" height="111" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/><use href="#slab" x="-80" y="-46" width="160" height="111" style="--t:#5fe39a;--l:#22a35d;--r:#167a45"/></g>
+      <text x="710" y="215" text-anchor="middle" fill="#93a0bb" font-size="18" font-family="JetBrains Mono,monospace">hello-app</text></g>
+    <g data-step="2" style="transition-delay:.3s">
+      <text x="710" y="120" text-anchor="middle" fill="#3ccf7f" font-size="26" font-weight="700" font-family="Inter,sans-serif" class="en">✓ image deleted</text>
+      <text x="710" y="120" text-anchor="middle" fill="#3ccf7f" font-size="28" font-weight="700" class="fa svgfa">✓ ایمیج حذف شد</text>
+    </g>
+  </svg>
+</section>
 
-<!-- ================= SUMMARY ================= -->
-<section class="card" id="sum">
-  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><code>WORKDIR /path</code></td><td><span class="en">Create a folder in the image and work there</span><span class="fa">ساختن یک پوشه در ایمیج و کار کردن همان‌جا</span></td></tr>
-      <tr><td><code>RUN command</code></td><td><span class="en">Run a command at <b>build</b> time (e.g. install libraries)</span><span class="fa">اجرای یک دستور هنگام <b>ساخت</b> (مثلاً نصب کتابخانه‌ها)</span></td></tr>
-      <tr><td><code>CMD ["program", "arg"]</code></td><td><span class="en">The command a container runs when it <b>starts</b></span><span class="fa">دستوری که کانتینر هنگام <b>شروع</b> اجرا می‌کند</span></td></tr>
-      <tr><td><code>CACHED</code></td><td><span class="en">Unchanged layers are reused: put rarely-changing steps first</span><span class="fa">لایه‌های بدون تغییر دوباره استفاده می‌شوند: مراحلی که کمتر عوض می‌شوند را اول بگذارید</span></td></tr>
-    </tbody>
-  </table>
+<!-- ======================= 13 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 You packaged <span class="hl">your own program!</span></span><span class="fa split">🎉 <span class="hl">برنامه‌ی خودتان</span> را بسته‌بندی کردید!</span></h2>
+  <div class="sumgrid">
+    <div class="card a" style="--d:.4"><code>WORKDIR /path</code><p><span class="en">Create a folder in the image and work there</span><span class="fa">ساختن یک پوشه در ایمیج و کار کردن همان‌جا</span></p></div>
+    <div class="card a" style="--d:.55"><code>RUN command</code><p><span class="en">Run a command at <b>build</b> time (e.g. install libraries)</span><span class="fa">اجرای یک دستور هنگام <b>ساخت</b> (مثلاً نصب کتابخانه‌ها)</span></p></div>
+    <div class="card a" style="--d:.7"><code>CMD ["program", "arg"]</code><p><span class="en">The command a container runs when it <b>starts</b></span><span class="fa">دستوری که کانتینر هنگام <b>شروع</b> اجرا می‌کند</span></p></div>
+    <div class="card a" style="--d:.85"><code>CACHED</code><p><span class="en">Unchanged layers are reused: put rarely-changing steps first</span><span class="fa">لایه‌های بدون تغییر دوباره استفاده می‌شوند: مراحلی که کمتر عوض می‌شوند را اول بگذارید</span></p></div>
+  </div>
+  <div class="btnrow a" style="--d:1.1">
+    <a class="bigbtn primary" href="20-copy-project.html"><span class="en">Next: Lesson 20 · Copy a whole project →</span><span class="fa">بعدی: درس ۲۰ · کپی کل پروژه ←</span></a>
   </div>
 </section>
 
-<div class="done-banner" id="doneBanner">
-  <h2>🎉 <span class="en">You packaged your own program!</span><span class="fa">برنامه‌ی خودتان را بسته‌بندی کردید!</span></h2>
-  <p id="nextLine"></p>
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 13</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
 </div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
 
-<nav class="pager" id="pager"></nav>
+<script>
+/* ---------- lesson scenes ---------- */
+/* lines with data-hot="1 2" glow on those steps */
+const hotLines = slide => {
+  const els = [...slide.querySelectorAll('[data-hot]')];
+  return k => els.forEach(e => e.classList.toggle('hot', e.dataset.hot.split(' ').includes(String(k))));
+};
+window.SCENES = {
+  hot(slide) { const h = hotLines(slide); return { step(k) { h(k); } }; },
+  /* COPY changes, then every layer after it is rebuilt */
+  chain1(slide) {
+    const rows = [...slide.querySelectorAll('.lrow')];
+    return { step(k) {
+      rows.forEach((r, i) => {
+        r.classList.toggle('green', k >= 1 && i < 2);
+        r.classList.toggle('amber', k >= 2 && i === 2);
+        r.classList.toggle('red', k >= 3 && i === 3);
+      });
+    } };
+  },
+  /* move COPY below RUN */
+  swap(slide) {
+    const a = slide.querySelector('.swapA'), b = slide.querySelector('.swapB');
+    return { step(k, instant) {
+      const on = k >= 1;
+      [a, b].forEach(e => e.style.transition = instant ? 'none' : '');
+      a.style.transform = on ? 'translateY(100%)' : 'none';
+      b.style.transform = on ? 'translateY(-100%)' : 'none';
+      a.classList.toggle('hot', k === 1);
+      a.classList.toggle('moved', on); b.classList.toggle('moved', on);
+    } };
+  },
 
-<footer>
-  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
-</footer>
 
-</main>
-
-</div>
-
+  /* confetti */
+  sum(slide, api) {
+    const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+    const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+    const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+    const stop = api.loop(t => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of P) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+        if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+      }
+    });
+    return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+  }
+};
+</script>
 <script src="tips.js"></script>
-<script src="course.js"></script>
+<script src="deck.js"></script>
 </body>
 </html>

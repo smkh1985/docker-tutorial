@@ -1,297 +1,596 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 17 · Your first Dockerfile</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 17 · Your first Dockerfile (motion)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="course.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- shared bits (same as lesson 1) ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:280px}
+  .goal svg{width:96px;height:96px}
+  .goal h3{font-size:26px}
+  .term.sm .body{font-size:17px}
+  .btnrow{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:30px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px}
+  .sumgrid code{font-size:22px;flex:none;min-width:330px;text-align:left}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .svgfa{font-family:Vazirmatn,sans-serif}
+  kbd{font:600 .85em var(--mono);padding:2px 8px;border-radius:6px;border:1px solid rgba(238,242,251,.3);background:rgba(238,242,251,.08);color:var(--text)}
+  .caps{position:relative}
+  .caps>div{position:absolute;inset:0}
+  .caps .n{font:600 14px var(--mono);color:var(--blue2);letter-spacing:.1em;margin-bottom:8px}
+  body.lang-fa .caps .n{font-family:var(--font);letter-spacing:0;font-size:16px}
+  .caps h3{font:700 30px/1.2 var(--display);margin:0 0 10px}
+  .caps p{font-size:21px;line-height:1.55;color:rgba(238,242,251,.84)}
+  /* ---- code editor (a file) ---- */
+  .editor{border-radius:18px;overflow:hidden;background:#0a1020;border:1px solid rgba(110,155,255,.22);box-shadow:0 30px 80px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .editor .bar{display:flex;align-items:center;gap:10px;padding:11px 16px;background:linear-gradient(180deg,#18213a,#111a30);border-bottom:1px solid rgba(110,155,255,.14);font:600 14px var(--mono);color:var(--sky)}
+  .editor .bar::before{content:"📄"}
+  .editor .body{padding:14px 0 16px;font:500 21px/1.75 var(--mono);color:#dfe6f5;counter-reset:ln}
+  .editor .ln{display:block;white-space:pre;padding-right:20px;transition:background .4s,box-shadow .4s,opacity .6s var(--ease),transform .7s var(--ease),filter .6s}
+  .editor .ln::before{counter-increment:ln;content:counter(ln);display:inline-block;width:50px;padding-right:18px;text-align:right;color:#4b5873}
+  .editor .ln.hot{background:rgba(110,155,255,.16);box-shadow:inset 4px 0 0 var(--blue2)}
+  .kw{color:#ff7aa8;font-weight:600}.pa{color:#7fd8a6}.sv{color:#ffcf6b}
+  /* ---- browser ---- */
+  .browser{border-radius:14px;overflow:hidden;background:#fbfcff;box-shadow:0 30px 70px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .browser .bar{display:flex;align-items:center;gap:7px;padding:10px 14px;background:#e3e7f0}
+  .browser .bar i{width:11px;height:11px;border-radius:50%;background:#ff5f57}.browser .bar i:nth-child(2){background:#febc2e}.browser .bar i:nth-child(3){background:#28c840}
+  .browser .bar span{margin-left:10px;flex:1;padding:5px 12px;border-radius:8px;background:#fff;font:500 15px var(--mono);color:#3a4256}
+  .browser .page{position:relative;height:120px;padding:24px 28px;color:#111}
+  .browser .page h1{font:700 38px/1.2 "Times New Roman",Times,serif}
+  .browser .page>[data-only]{position:absolute;left:28px;top:24px}
+  .stamp2{display:inline-block;font:800 30px var(--display);color:var(--red);border:4px solid var(--red);border-radius:12px;padding:4px 16px;transform:rotate(-6deg)}
+  .stamp2[data-step]{transform:scale(2) rotate(-14deg);filter:none}
+  .stamp2[data-step].in{transform:rotate(-6deg);transition:transform .45s cubic-bezier(.5,1.8,.6,1),opacity .2s}
+  /* ---- lesson 17 ---- */
+  .recipe{border-radius:16px;background:#f6f1e4;color:#2a2418;box-shadow:0 30px 70px rgba(0,0,0,.5);overflow:hidden;transform:rotate(-.6deg)}
+  .recipe .rhead{padding:12px 18px;background:#e9dfc6;font:600 15px var(--mono);color:#6b5a35;direction:ltr;text-align:left}
+  .recipe .rl{padding:9px 20px;font:600 19px/1.4 var(--mono);direction:ltr;text-align:left;border-bottom:1px dashed rgba(107,90,53,.25);white-space:nowrap}
+  .recipe .rl b{color:#1D63ED}
+  .bigcmd{font:600 58px/1.3 var(--mono);direction:ltr;text-align:center;white-space:nowrap;margin-top:60px}
+  .bigcmd span{display:inline-block;padding:0 8px;border-radius:12px;transition:background .5s,color .5s,box-shadow .5s}
+  .bigcmd .p{color:var(--muted)}
+  .bigcmd .on{background:rgba(110,155,255,.18);box-shadow:0 0 0 2px rgba(110,155,255,.6);color:var(--text)}
+  .bigcmd .on2{background:rgba(60,207,127,.18);box-shadow:0 0 0 2px rgba(60,207,127,.6);color:var(--text)}
+  .drop[data-step]{transform:translateY(-140px)}
+  .drop[data-step].in{transform:none;transition:transform .8s cubic-bezier(.34,1.4,.64,1),opacity .4s,filter .4s}
+  .fly[data-step]{transform:translate(-330px,40px) scale(.8);filter:none}
+  .fly[data-step].in{transform:none;transition:transform 1.4s cubic-bezier(.5,0,.3,1) .2s,opacity .3s}
+  .cmp{display:grid;grid-template-columns:240px 1fr 1fr;gap:12px 18px;margin-top:10px;align-items:stretch}
+  .cmp .h{font:700 22px var(--display);padding:6px 4px}
+  .cmp .rh{font:600 17px var(--font);color:var(--muted);display:flex;align-items:center}
+  .cmp .c{padding:14px 18px;border-radius:14px;background:rgba(20,30,56,.8);border:1px solid var(--line);font-size:19px}
+  .cmp .c.v{border-color:rgba(255,181,77,.35)}.cmp .c.cp{border-color:rgba(60,207,127,.35)}
+  .cycle text{font-family:Inter,sans-serif}
+  :not(pre)>code{white-space:nowrap}
+  body.lang-fa .cycle text{font-family:Vazirmatn,sans-serif}
+</style>
 </head>
-<body class="lang-en" data-lesson="17">
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
 
-<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
-<header class="topbar">
-  <div class="topbar-inner">
-    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
-      <span class="title-text" id="brandTitle"></span>
-    </a>
-    <div class="progress-wrap">
-      <div class="progress"><div id="bar"></div></div>
-      <span class="progress-label" id="plabel">0 / 0</span>
-    </div>
-    <span id="navSlot"></span>
-    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
-    <button class="btn" id="themeBtn" title="Theme">◐</button>
-    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
-  </div>
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="folder" viewBox="0 0 120 96" overflow="visible">
+      <path d="M4 14a8 8 0 0 1 8-8h30l10 10h56a8 8 0 0 1 8 8v8H4z" fill="#d79a22"/>
+      <rect x="4" y="26" width="112" height="66" rx="8" fill="#ffcf6b"/>
+    </symbol>
+    <symbol id="file" viewBox="0 0 60 76" overflow="visible">
+      <path d="M4 4h36l16 16v52H4z" fill="#eef2fb"/><path d="M40 4v16h16" fill="#b9c4dc"/>
+      <path d="M14 34h32M14 44h32M14 54h22" stroke="#93a0bb" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="monitor" viewBox="0 0 200 170"><rect x="4" y="4" width="192" height="122" rx="14" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M80 126l-8 30h56l-8-30" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M56 158h88" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="index.html"><img src="docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
 </header>
 
-<div class="layout">
+<div id="viewport"><div id="stage">
 
-<!-- ================= TABLE OF CONTENTS ================= -->
-<nav class="toc">
-  <ol>
-    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Write a Dockerfile</span><span class="fa">۱ · نوشتن Dockerfile</span></a></li>
-    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Build your image</span><span class="fa">۲ · ساختن ایمیج</span></a></li>
-    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · See your image</span><span class="fa">۳ · دیدن ایمیج</span></a></li>
-    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Run it</span><span class="fa">۴ · اجرای آن</span></a></li>
-    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Edit the page?</span><span class="fa">۵ · ویرایش صفحه؟</span></a></li>
-    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · Rebuild to update</span><span class="fa">۶ · ساخت دوباره</span></a></li>
-    <li><a href="#s7"><span class="tick">✓</span><span class="en">7 · Clean up</span><span class="fa">۷ · تمیزکاری</span></a></li>
-  </ol>
-</nav>
-
-<main>
-
-<!-- ================= HERO ================= -->
-<section class="hero">
-  <h1>
-    <span class="en">Lesson 17 — Your first Dockerfile</span>
-    <span class="fa">درس ۱۷ — اولین Dockerfile شما</span>
-  </h1>
-  <p class="en">In Lesson 16 you made an image by hand with <code>commit</code>, but nobody could see what was inside or repeat it. A <b>Dockerfile</b> fixes that: you <b>write down</b> the steps, and Docker builds the image from them. Anyone can read it and build exactly the same image again.</p>
-  <p class="fa">در درس ۱۶ با <code>commit</code> یک ایمیج را با دست ساختید، ولی هیچ‌کس نمی‌توانست ببیند داخلش چیست یا آن را تکرار کند. <b>Dockerfile</b> این را حل می‌کند: مراحل را <b>می‌نویسید</b> و Docker ایمیج را از روی آن‌ها می‌سازد. هر کسی می‌تواند آن را بخواند و دقیقاً همان ایمیج را دوباره بسازد.</p>
-  <div class="flow">
-    <div class="box"><b>Dockerfile</b><small><span class="en">the recipe you write</span><span class="fa">دستور پختی که می‌نویسید</span></small></div>
-    <div class="arrow"><small><code>docker build</code></small></div>
-    <div class="box img"><b><span class="en">Your image</span><span class="fa">ایمیج شما</span></b><small><code>my-site</code></small></div>
-    <div class="arrow"><small><code>docker run</code></small></div>
-    <div class="box ctr"><b><span class="en">Container</span><span class="fa">کانتینر</span></b></div>
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 17 — Your first Dockerfile" data-title-fa="درس ۱۷ — اولین Dockerfile شما" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 17</span><span class="fa">دوره‌ی Docker · درس ۱۷</span></div>
+    <h1 style="font-size:108px;line-height:1.05;margin:26px 0 26px">
+      <span class="en split">Your first <span class="hl">Dockerfile</span></span><span class="fa split">اولین <span class="hl">Dockerfile</span> شما</span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en">You <b>write down</b> the steps, and Docker builds the image from them. Anyone can read it and build exactly the same image again.</span><span class="fa">مراحل را <b>می‌نویسید</b> و Docker ایمیج را از روی آن‌ها می‌سازد. هر کسی می‌تواند آن را بخواند و دقیقاً همان ایمیج را دوباره بسازد.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
   </div>
-  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
-  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+  <svg class="a blur" style="--d:.3;width:700px;height:700px;overflow:visible;direction:ltr" viewBox="0 0 700 700">
+    <circle cx="380" cy="360" r="300" fill="none" stroke="rgba(110,155,255,.14)" stroke-dasharray="4 10"/>
+    <!-- the Dockerfile -->
+    <g transform="rotate(-4 170 210)">
+      <rect x="40" y="90" width="270" height="230" rx="16" fill="#f6f1e4"/>
+      <rect x="40" y="90" width="270" height="44" rx="16" fill="#e9dfc6"/><rect x="40" y="118" width="270" height="16" fill="#e9dfc6"/>
+      <text x="62" y="119" fill="#6b5a35" font-size="17" font-weight="600" font-family="JetBrains Mono,monospace">📄 Dockerfile</text>
+      <text x="62" y="178" font-size="21" font-weight="600" font-family="JetBrains Mono,monospace"><tspan fill="#c2185b">FROM</tspan><tspan fill="#2a2418"> nginx</tspan></text>
+      <text x="62" y="222" font-size="21" font-weight="600" font-family="JetBrains Mono,monospace"><tspan fill="#c2185b">COPY</tspan><tspan fill="#2a2418"> index.html …</tspan></text>
+      <path d="M62 262h170M62 292h120" stroke="rgba(107,90,53,.2)" stroke-width="6" stroke-linecap="round"/>
+      <rect x="62" y="236" width="12" height="22" fill="#1D63ED"><animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/></rect>
+    </g>
+    <!-- build arrow -->
+    <path id="tBuild" d="M320 220 C 420 200, 470 230, 490 290" fill="none" stroke="#6e9bff" stroke-width="3" class="flow"/>
+    <rect x="365" y="160" width="150" height="34" rx="9" fill="#0d1426" stroke="rgba(110,155,255,.5)"/>
+    <text x="440" y="183" text-anchor="middle" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">docker build</text>
+    <circle r="7" fill="#3ccf7f"><animateMotion dur="1.6s" repeatCount="indefinite"><mpath href="#tBuild"/></animateMotion></circle>
+    <!-- image -->
+    <g class="bob"><g transform="translate(510 380) scale(1.5)">
+      <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#5fe39a;--l:#22a35d;--r:#167a45"/>
+      <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/>
+    </g></g>
+    <text x="510" y="500" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">my-site</text>
+    <!-- run arrow -->
+    <path id="tRun" d="M450 520 C 400 560, 330 570, 280 590" fill="none" stroke="#3ccf7f" stroke-width="3" class="flow"/>
+    <text x="400" y="610" text-anchor="middle" fill="#7fd8a6" font-size="16" font-family="JetBrains Mono,monospace">docker run</text>
+    <circle r="7" fill="#6e9bff"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#tRun"/></animateMotion></circle>
+    <g transform="translate(200 600)"><use href="#cube" x="-50" y="-60" width="100" height="100"/><circle cx="38" cy="-48" r="7" fill="#3ccf7f" class="pulse"/></g>
+  </svg>
 </section>
 
-<!-- ================= 1 WRITE ================= -->
-<section class="card step" id="s1">
-  <h2><span class="num">1</span>
-    <span class="en">Write a Dockerfile</span><span class="fa">نوشتن Dockerfile</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Go into your <code>my-site</code> folder from Lesson 10 and create a file named exactly <code>Dockerfile</code>:</p>
-  <p class="fa">به پوشه‌ی <code>my-site</code> از درس ۱۰ بروید و فایلی با نام دقیقاً <code>Dockerfile</code> بسازید:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>cd ~/my-site
-nano Dockerfile</code></pre></div>
-  <p class="en">Type these two lines:</p>
-  <p class="fa">این دو خط را تایپ کنید:</p>
-  <div class="code"><span class="lbl">Dockerfile</span><pre><code>FROM nginx
-COPY index.html /usr/share/nginx/html/index.html</code></pre></div>
-  <p class="en">Save with <kbd>Ctrl</kbd>+<kbd>O</kbd>, <kbd>Enter</kbd>, and exit with <kbd>Ctrl</kbd>+<kbd>X</kbd>.</p>
-  <p class="fa">با <kbd>Ctrl</kbd>+<kbd>O</kbd> و <kbd>Enter</kbd> ذخیره کنید و با <kbd>Ctrl</kbd>+<kbd>X</kbd> خارج شوید.</p>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><code>FROM nginx</code></td><td><span class="en">Start from the <code>nginx</code> image. Everything nginx has, your image has too</span><span class="fa">از ایمیج <code>nginx</code> شروع کن. هر چه nginx دارد، ایمیج شما هم دارد</span></td></tr>
-      <tr><td><code>COPY index.html …</code></td><td><span class="en">Copy <code>index.html</code> from this folder <b>into the image</b>, where nginx looks for its home page</span><span class="fa"><code>index.html</code> را از این پوشه <b>داخل ایمیج</b> کپی کن، جایی که nginx صفحه‌ی اصلی را پیدا می‌کند</span></td></tr>
-    </tbody>
-  </table>
+<!-- ======================= 3 · RECIPE ======================= -->
+<section class="slide" data-title-en="Write the steps down" data-title-fa="مراحل را بنویسید">
+  <div class="kicker a"><span class="en">Before we start</span><span class="fa">قبل از شروع</span></div>
+  <h2><span class="en split">The <span class="hl">recipe</span> is a file: <span class="hl">Dockerfile</span></span><span class="fa split"><span class="hl">دستور پخت</span> یک فایل است: <span class="hl">Dockerfile</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:30px">
+    <div class="card" data-step="1" style="display:flex;gap:24px;align-items:center">
+      <svg viewBox="0 0 160 140" style="width:160px;height:140px;flex:none;direction:ltr">
+        <use href="#slab" x="20" y="60" width="120" height="84" style="--t:#5b6b88;--l:#3a4760;--r:#2a3448"/>
+        <text x="80" y="58" text-anchor="middle" fill="#ffb54d" font-size="60" font-weight="700" font-family="Space Grotesk,sans-serif">?<animate attributeName="opacity" values="1;.3;1" dur="2s" repeatCount="indefinite"/></text>
+      </svg>
+      <div>
+        <div class="n"><span class="en">LESSON 16 · <code>commit</code></span><span class="fa">درس ۱۶ · <code>commit</code></span></div>
+        <p><span class="en">You made an image <b>by hand</b>. Nobody could see what was inside or repeat it.</span><span class="fa">یک ایمیج را <b>با دست</b> ساختید. هیچ‌کس نمی‌توانست ببیند داخلش چیست یا آن را تکرار کند.</span></p>
+      </div>
+    </div>
+    <div class="card tip" data-step="2" style="display:flex;gap:24px;align-items:center">
+      <div class="recipe" style="flex:none;width:200px">
+        <div class="rhead">📄 Dockerfile</div>
+        <div class="rl"><b>FROM</b> …</div><div class="rl"><b>COPY</b> …</div>
+      </div>
+      <div>
+        <div class="n"><span class="en">LESSON 17 · <code>Dockerfile</code></span><span class="fa">درس ۱۷ · <code>Dockerfile</code></span></div>
+        <p><span class="en">You <b>write down</b> the steps. Anyone can read it and build exactly the same image again.</span><span class="fa">مراحل را <b>می‌نویسید</b>. هر کسی می‌تواند آن را بخواند و دقیقاً همان ایمیج را دوباره بسازد.</span></p>
+      </div>
+    </div>
   </div>
-  <p class="en">Check the folder. You should see both files:</p>
-  <p class="fa">پوشه را بررسی کنید. باید هر دو فایل را ببینید:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>ls</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>Dockerfile  index.html</code></pre></div>
-  <div class="note tip">
-    <p class="en">No <code>index.html</code>? You skipped Lesson 10. Create it: <code>echo '&lt;h1&gt;Changed on my PC!&lt;/h1&gt;' &gt; index.html</code></p>
-    <p class="fa"><code>index.html</code> ندارید؟ درس ۱۰ را رد کرده‌اید. بسازیدش: <code>echo '&lt;h1&gt;Changed on my PC!&lt;/h1&gt;' &gt; index.html</code></p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>ls</code> shows <code>Dockerfile</code> and <code>index.html</code></span><span class="fa"><code>ls</code> فایل‌های <code>Dockerfile</code> و <code>index.html</code> را نشان می‌دهد</span></span></label>
+  <svg viewBox="0 0 1420 250" style="width:1420px;height:250px;margin-top:24px;overflow:visible;direction:ltr" data-step="3">
+    <rect x="40" y="60" width="250" height="120" rx="16" fill="#f6f1e4"/>
+    <text x="165" y="115" text-anchor="middle" fill="#2a2418" font-size="24" font-weight="700" font-family="JetBrains Mono,monospace">Dockerfile</text>
+    <text x="165" y="150" text-anchor="middle" fill="#6b5a35" font-size="17" font-family="Inter,sans-serif" class="en">the recipe you write</text>
+    <text x="165" y="150" text-anchor="middle" fill="#6b5a35" font-size="18" class="fa svgfa">دستور پختی که می‌نویسید</text>
+    <path id="rf1" d="M300 120H560" stroke="#6e9bff" stroke-width="3" class="flow"/><path d="M552 110l12 10-12 10" fill="none" stroke="#6e9bff" stroke-width="3"/>
+    <text x="430" y="100" text-anchor="middle" fill="#a9c4ff" font-size="19" font-family="JetBrains Mono,monospace">docker build</text>
+    <circle r="7" fill="#3ccf7f"><animateMotion dur="1.4s" repeatCount="indefinite" path="M300 120H560"/></circle>
+    <g transform="translate(700 120)"><g class="bob">
+      <use href="#slab" x="-70" y="-20" width="140" height="97" style="--t:#5fe39a;--l:#22a35d;--r:#167a45"/>
+      <use href="#slab" x="-70" y="-50" width="140" height="97" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/>
+    </g></g>
+    <text x="700" y="230" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en">Your image · <tspan font-family="JetBrains Mono,monospace" fill="#a9c4ff">my-site</tspan></text>
+    <text x="700" y="230" text-anchor="middle" fill="#eef2fb" font-size="21" font-weight="700" class="fa svgfa">ایمیج شما · <tspan font-family="JetBrains Mono,monospace" fill="#a9c4ff">my-site</tspan></text>
+    <path d="M840 120H1100" stroke="#3ccf7f" stroke-width="3" class="flow"/><path d="M1092 110l12 10-12 10" fill="none" stroke="#3ccf7f" stroke-width="3"/>
+    <text x="970" y="100" text-anchor="middle" fill="#7fd8a6" font-size="19" font-family="JetBrains Mono,monospace">docker run</text>
+    <circle r="7" fill="#6e9bff"><animateMotion dur="1.4s" repeatCount="indefinite" path="M840 120H1100"/></circle>
+    <g transform="translate(1230 110)"><use href="#cube" x="-60" y="-66" width="120" height="120"/><circle cx="46" cy="-54" r="8" fill="#3ccf7f" class="pulse"/></g>
+    <text x="1230" y="230" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en">Container</text>
+    <text x="1230" y="230" text-anchor="middle" fill="#eef2fb" font-size="21" font-weight="700" class="fa svgfa">کانتینر</text>
+  </svg>
+  <p class="lead" data-step="4" style="margin-top:6px;font-size:21px;color:var(--muted)"><span class="en">Remember the recipe from Lesson 1? In Docker, that recipe file is called a <code>Dockerfile</code>. Today you write one.</span><span class="fa">دستور پخت درس ۱ یادتان هست؟ در Docker به این فایل دستور پخت <code>Dockerfile</code> می‌گویند. امروز یکی می‌نویسید.</span></p>
+</section>
+
+<!-- ======================= 4 · WRITE ======================= -->
+<section class="slide" data-title-en="Write a Dockerfile" data-title-fa="نوشتن Dockerfile">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Write a <span class="hl">Dockerfile</span></span><span class="fa split">نوشتن <span class="hl">Dockerfile</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:8px;font-size:22px"><span class="en">Go into your <code>my-site</code> folder from Lesson 10 and create a file named exactly <code>Dockerfile</code>:</span><span class="fa">به پوشه‌ی <code>my-site</code> از درس ۱۰ بروید و فایلی با نام دقیقاً <code>Dockerfile</code> بسازید:</span></p>
+  <div style="display:grid;grid-template-columns:1fr 470px;gap:28px;margin-top:18px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="term sm a" style="--d:.5">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run" data-step="1"><div class="cmd">cd ~/my-site</div></div>
+          <div class="run" data-step="2" style="margin:0"><div class="cmd">nano Dockerfile</div></div>
+        </div>
+      </div>
+      <div class="editor" data-step="3">
+        <div class="bar">Dockerfile · nano</div>
+        <div class="body">
+          <div class="ln" data-step="4"><span class="kw">FROM</span> nginx</div>
+          <div class="ln" data-step="5"><span class="kw">COPY</span> index.html <span class="pa">/usr/share/nginx/html/index.html</span></div>
+        </div>
+      </div>
+      <p data-step="6" style="font-size:20px"><span class="en">Save with <kbd>Ctrl</kbd>+<kbd>O</kbd>, <kbd>Enter</kbd>, and exit with <kbd>Ctrl</kbd>+<kbd>X</kbd>.</span><span class="fa">با <kbd>Ctrl</kbd>+<kbd>O</kbd> و <kbd>Enter</kbd> ذخیره کنید و با <kbd>Ctrl</kbd>+<kbd>X</kbd> خارج شوید.</span></p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card a" style="--d:.6;padding:18px 22px">
+        <div class="n">~/my-site</div>
+        <svg viewBox="0 0 420 150" style="width:100%;height:150px;direction:ltr">
+          <g transform="translate(40 14)"><use href="#file" width="70" height="88"/><text x="35" y="118" text-anchor="middle" fill="#eef2fb" font-size="16" font-family="JetBrains Mono,monospace">index.html</text></g>
+          <g data-step="6" class="pop-in"><g transform="translate(230 14)"><use href="#file" width="70" height="88"/><rect x="10" y="40" width="50" height="12" rx="3" fill="#c2185b" opacity=".7"/><text x="35" y="118" text-anchor="middle" fill="#eef2fb" font-size="16" font-family="JetBrains Mono,monospace">Dockerfile</text></g>
+          <text x="330" y="40" fill="#3ccf7f" font-size="16" font-weight="700" font-family="Inter,sans-serif" class="en">new!</text><text x="330" y="40" fill="#3ccf7f" font-size="17" font-weight="700" class="fa svgfa" text-anchor="end" direction="rtl" dx="50">جدید!</text></g>
+        </svg>
+      </div>
+      <div class="term sm" data-step="7">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run" data-step="7" style="margin:0"><div class="cmd">ls</div><pre class="out">
+Dockerfile  index.html</pre></div>
+        </div>
+      </div>
+      <div class="card tip" data-step="7" style="padding:16px 20px"><p style="font-size:16px"><span class="en">No <code>index.html</code>? You skipped Lesson 10. Create it: <code>echo '&lt;h1&gt;Changed on my PC!&lt;/h1&gt;' &gt; index.html</code></span><span class="fa"><code>index.html</code> ندارید؟ درس ۱۰ را رد کرده‌اید. بسازیدش: <code>echo '&lt;h1&gt;Changed on my PC!&lt;/h1&gt;' &gt; index.html</code></span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 2 BUILD ================= -->
-<section class="card step" id="s2">
-  <h2><span class="num">2</span>
-    <span class="en">Build your image</span><span class="fa">ساختن ایمیج</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Still in <code>~/my-site</code>, run:</p>
-  <p class="fa">در همان <code>~/my-site</code> اجرا کنید:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker build -t my-site .</code></pre></div>
-  <dl class="flags">
-    <dt><code>-t my-site</code></dt>
-    <dd><span class="en"><b>Tag</b>: the name of your new image. No tag after it, so it becomes <code>my-site:latest</code>.</span><span class="fa"><b>Tag</b>: نام ایمیج جدید شما. تگی بعدش نیامده، پس <code>my-site:latest</code> می‌شود.</span></dd>
-    <dt><code>.</code></dt>
-    <dd><span class="en"><b>This folder</b>. Docker reads the <code>Dockerfile</code> here and can <code>COPY</code> files from here. Don't forget it!</span><span class="fa"><b>همین پوشه</b>. Docker فایل <code>Dockerfile</code> را اینجا می‌خواند و فایل‌ها را از اینجا <code>COPY</code> می‌کند. فراموشش نکنید!</span></dd>
-  </dl>
-  <div class="code"><span class="lbl">output</span><pre><code> => [internal] load build definition from Dockerfile
+<!-- ======================= 5 · WHAT THE LINES DO ======================= -->
+<section class="slide" data-scene="hot" data-title-en="FROM and COPY" data-title-fa="FROM و COPY">
+  <div class="kicker a"><span class="en">Step 1 · Two lines</span><span class="fa">قدم ۱ · دو خط</span></div>
+  <h2><span class="en split">What the <span class="hl">two lines</span> do</span><span class="fa split"><span class="hl">دو خط</span> چه می‌کنند</span></h2>
+  <div style="display:grid;grid-template-columns:1fr 600px;gap:30px;margin-top:26px">
+    <div style="display:flex;flex-direction:column;gap:26px">
+      <div class="editor a" style="--d:.4">
+        <div class="bar">Dockerfile</div>
+        <div class="body">
+          <div class="ln" data-hot="1"><span class="kw">FROM</span> nginx</div>
+          <div class="ln" data-hot="2"><span class="kw">COPY</span> index.html <span class="pa">/usr/share/nginx/html/index.html</span></div>
+        </div>
+      </div>
+      <div class="caps" style="height:260px">
+        <div data-only="1"><div class="n"><span dir="ltr">FROM nginx</span></div><h3><span class="en">Start from the <code>nginx</code> image</span><span class="fa">از ایمیج <code>nginx</code> شروع کن</span></h3><p><span class="en">Everything nginx has, your image has too.</span><span class="fa">هر چه nginx دارد، ایمیج شما هم دارد.</span></p></div>
+        <div data-only="2"><div class="n"><span dir="ltr">COPY index.html …</span></div><h3><span class="en">Copy your page <b>into the image</b></span><span class="fa">صفحه‌تان را <b>داخل ایمیج</b> کپی کن</span></h3><p><span class="en">Copy <code>index.html</code> from this folder <b>into the image</b>, where nginx looks for its home page.</span><span class="fa"><code>index.html</code> را از این پوشه <b>داخل ایمیج</b> کپی کن، جایی که nginx صفحه‌ی اصلی را پیدا می‌کند.</span></p></div>
+      </div>
+    </div>
+    <svg viewBox="0 0 600 560" style="width:600px;height:560px;overflow:visible;direction:ltr">
+      <!-- folder on the PC -->
+      <g class="a fade" style="--d:.5">
+        <use href="#folder" x="20" y="40" width="160" height="128"/>
+        <text x="100" y="200" text-anchor="middle" fill="#eef2fb" font-size="18" font-family="JetBrains Mono,monospace">~/my-site</text>
+        <g transform="translate(70 62)"><use href="#file" width="48" height="60" opacity=".45"/></g>
+      </g>
+      <path d="M100 230V470H400" stroke="rgba(110,155,255,.18)" stroke-width="2" fill="none"/>
+      <g class="drop" data-step="1">
+        <use href="#slab" x="280" y="300" width="240" height="166" style="--t:#5fe39a;--l:#22a35d;--r:#167a45"/>
+        <text x="400" y="510" text-anchor="middle" fill="#7fd8a6" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">nginx</text>
+      </g>
+      <g data-step="2" class="fly">
+        <g transform="translate(372 200)"><use href="#file" width="56" height="70"/></g>
+        <text x="400" y="190" text-anchor="middle" fill="#eef2fb" font-size="17" font-family="JetBrains Mono,monospace">index.html</text>
+      </g>
+      <g class="drop" data-step="2" style="transition-delay:1.2s">
+        <use href="#slab" x="280" y="262" width="240" height="166" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/>
+      </g>
+      <g data-step="2" style="transition-delay:1.6s">
+        <text x="400" y="140" text-anchor="middle" fill="#93a0bb" font-size="15" font-family="JetBrains Mono,monospace">/usr/share/nginx/html/index.html</text>
+        <path d="M400 150V180" stroke="#93a0bb" stroke-dasharray="3 4"/>
+      </g>
+      <g data-step="2" style="transition-delay:1.8s">
+        <rect x="300" y="540" width="200" height="0"/>
+        <text x="265" y="400" fill="#eef2fb" font-size="20" font-weight="700" font-family="Inter,sans-serif" class="en" text-anchor="end">your image →</text>
+        <text x="265" y="400" fill="#eef2fb" font-size="21" font-weight="700" class="fa svgfa" text-anchor="end">ایمیج شما →</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================= 6 · BUILD COMMAND ======================= -->
+<section class="slide" data-scene="bcmd" data-title-en="docker build -t my-site ." data-title-fa="docker build -t my-site ." data-steps="2">
+  <div class="kicker a"><span class="en">Step 2 · The command</span><span class="fa">قدم ۲ · دستور</span></div>
+  <h2><span class="en split">Build <span class="hl">your image</span></span><span class="fa split">ساختن <span class="hl">ایمیج</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:8px"><span class="en">Still in <code>~/my-site</code>, run:</span><span class="fa">در همان <code>~/my-site</code> اجرا کنید:</span></p>
+  <div class="bigcmd a" style="--d:.5"><span class="p">docker build</span> <span id="bT">-t my-site</span> <span id="bDot">.</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:60px">
+    <div class="card" data-step="1"><div class="n"><code>-t my-site</code></div><p><span class="en"><b>Tag</b>: the name of your new image. No tag after it, so it becomes <code>my-site:latest</code>.</span><span class="fa"><b>Tag</b>: نام ایمیج جدید شما. تگی بعدش نیامده، پس <code>my-site:latest</code> می‌شود.</span></p></div>
+    <div class="card tip" data-step="2"><div class="n"><code>.</code></div><p><span class="en"><b>This folder</b>. Docker reads the <code>Dockerfile</code> here and can <code>COPY</code> files from here. Don't forget it!</span><span class="fa"><b>همین پوشه</b>. Docker فایل <code>Dockerfile</code> را اینجا می‌خواند و فایل‌ها را از اینجا <code>COPY</code> می‌کند. فراموشش نکنید!</span></p></div>
+  </div>
+  <svg viewBox="0 0 1420 200" style="width:1420px;height:200px;margin-top:20px;overflow:visible;direction:ltr" data-step="2">
+    <use href="#folder" x="380" y="20" width="240" height="192" opacity=".95"/>
+    <g transform="translate(420 80)"><use href="#file" width="56" height="70"/><rect x="8" y="34" width="40" height="10" rx="3" fill="#c2185b" opacity=".7"/></g>
+    <g transform="translate(510 80)"><use href="#file" width="56" height="70"/></g>
+    <text x="500" y="0" text-anchor="middle" fill="#3ccf7f" font-size="40" font-weight="700" font-family="JetBrains Mono,monospace">.</text>
+    <text x="300" y="130" text-anchor="end" fill="#eef2fb" font-size="20" font-family="JetBrains Mono,monospace">~/my-site</text>
+    <path d="M640 120H860" stroke="#3ccf7f" stroke-width="3" class="flow"/><path d="M852 110l12 10-12 10" fill="none" stroke="#3ccf7f" stroke-width="3"/>
+    <circle r="7" fill="#3ccf7f"><animateMotion dur="1.2s" repeatCount="indefinite" path="M640 120H860"/></circle>
+    <rect x="880" y="90" width="200" height="60" rx="14" fill="#0d1426" stroke="rgba(110,155,255,.5)"/>
+    <text x="980" y="128" text-anchor="middle" fill="#a9c4ff" font-size="20" font-family="JetBrains Mono,monospace">docker build</text>
+  </svg>
+</section>
+
+<!-- ======================= 7 · BUILD OUTPUT ======================= -->
+<section class="slide" data-title-en="Build and see your image" data-title-fa="ساختن و دیدن ایمیج">
+  <div class="kicker a"><span class="en">Steps 2–3</span><span class="fa">قدم‌های ۲ و ۳</span></div>
+  <h2><span class="en split">Docker follows <span class="hl">your lines</span></span><span class="fa split">Docker <span class="hl">خط‌های شما</span> را دنبال می‌کند</span></h2>
+  <div style="display:grid;grid-template-columns:1fr 430px;gap:26px;margin-top:22px;direction:ltr">
+    <div class="term sm a" style="--d:.4;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash · ~/my-site</span></div>
+      <div class="body" style="font-size:15.5px">
+        <div class="run" data-step="1"><div class="cmd">docker build -t my-site .</div><pre class="out">
+ => [internal] load build definition from Dockerfile
  ...
- => [1/2] FROM docker.io/library/nginx:latest@sha256:f9ea18bfa4fad...   <span class="c"># line 1 of your Dockerfile</span>
- => [2/2] COPY index.html /usr/share/nginx/html/index.html               <span class="c"># line 2</span>
+ => [1/2] FROM docker.io/library/nginx:latest@sha256:f9ea18bfa4fad...  <span class="c"># line 1</span>
+ => [2/2] COPY index.html /usr/share/nginx/html/index.html              <span class="c"># line 2</span>
  => exporting to image
  ...
- => => naming to docker.io/library/my-site:latest                        <span class="c"># your image's name</span></code></pre></div>
-  <p class="en"><code>[1/2]</code> and <code>[2/2]</code> are the two lines of your Dockerfile, run in order.</p>
-  <p class="fa"><code>[1/2]</code> و <code>[2/2]</code> همان دو خط Dockerfile شما هستند که به ترتیب اجرا شدند.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The build finished with <code>naming to … my-site:latest</code></span><span class="fa">ساخت با <code>naming to … my-site:latest</code> تمام شد</span></span></label>
+ => => naming to docker.io/library/my-site:latest                       <span class="c"># your image's name</span></pre></div>
+        <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 List only the my-site image, like you did with hello-world in Lesson 1." data-task-fa="👉 فقط ایمیج my-site را فهرست کنید، مثل کاری که در درس ۱ با hello-world کردید." style="margin:0"><div class="cmd">docker image ls my-site</div><pre class="out">
+IMAGE            ID             DISK USAGE   CONTENT SIZE   EXTRA
+my-site:latest   6ba373bd396d        240MB         63.9MB</pre></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <svg viewBox="0 0 430 380" style="width:430px;height:380px;overflow:visible">
+        <path d="M60 340H370" stroke="rgba(110,155,255,.2)" stroke-width="2"/>
+        <g class="drop" data-step="2">
+          <use href="#slab" x="95" y="180" width="200" height="139" style="--t:#5fe39a;--l:#22a35d;--r:#167a45"/>
+          <text x="310" y="262" fill="#7fd8a6" font-size="17" font-weight="600" font-family="JetBrains Mono,monospace">[1/2] FROM</text>
+        </g>
+        <g class="drop" data-step="3">
+          <use href="#slab" x="95" y="148" width="200" height="139" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/>
+          <text x="310" y="222" fill="#a9c4ff" font-size="17" font-weight="600" font-family="JetBrains Mono,monospace">[2/2] COPY</text>
+        </g>
+        <g data-step="4" class="pop-in">
+          <rect x="100" y="90" width="190" height="42" rx="11" fill="#1D63ED"/>
+          <text x="195" y="118" text-anchor="middle" fill="#fff" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">my-site:latest</text>
+          <path d="M195 132V160" stroke="#6e9bff" stroke-width="3"/>
+        </g>
+      </svg>
+      <div class="caps" style="height:150px">
+        <div data-only="2 3"><p><span class="en"><code>[1/2]</code> and <code>[2/2]</code> are the two lines of your Dockerfile, run in order.</span><span class="fa"><code>[1/2]</code> و <code>[2/2]</code> همان دو خط Dockerfile شما هستند که به ترتیب اجرا شدند.</span></p></div>
+        <div data-only="4"><p><span class="en">The build finished with <code>naming to … my-site:latest</code>. ✅</span><span class="fa">ساخت با <code>naming to … my-site:latest</code> تمام شد. ✅</span></p></div>
+        <div data-only="6"><p><span class="en">Your own image, right next to the ones you pulled from Docker Hub.</span><span class="fa">ایمیج خودتان، درست کنار ایمیج‌هایی که از Docker Hub دانلود کردید.</span></p></div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 3 SEE IMAGE ================= -->
-<section class="card step" id="s3">
-  <h2><span class="num">3</span>
-    <span class="en">See your image</span><span class="fa">دیدن ایمیج</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">List only the <code>my-site</code> image, like you did with <code>hello-world</code> in Lesson 1:</p>
-  <p class="fa">فقط ایمیج <code>my-site</code> را فهرست کنید، مثل کاری که در درس ۱ با <code>hello-world</code> کردید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image ls my-site</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>IMAGE            ID             DISK USAGE   CONTENT SIZE   EXTRA
-my-site:latest   6ba373bd396d        240MB         63.9MB</code></pre></div>
-  <p class="en">Your own image, right next to the ones you pulled from Docker Hub.</p>
-  <p class="fa">ایمیج خودتان، درست کنار ایمیج‌هایی که از Docker Hub دانلود کردید.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I see <code>my-site:latest</code></span><span class="fa"><code>my-site:latest</code> را می‌بینم</span></span></label>
+<!-- ======================= 8 · RUN ======================= -->
+<section class="slide" data-title-en="Run it, without -v" data-title-fa="اجرای آن، بدون -v">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">Run it, <span class="hl">without -v</span></span><span class="fa split">اجرای آن، <span class="hl">بدون -v</span></span></h2>
+  <div class="term a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Run my-site in the background, named web, on localhost:8080. No -v!" data-task-fa="👉 my-site را در پس‌زمینه، با نام web و روی localhost:8080 اجرا کنید. بدون -v!" style="margin:0"><div class="cmd">docker run -d --name web -p 8080:80 my-site</div></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:620px 1fr;gap:30px;margin-top:26px;align-items:center">
+    <svg viewBox="0 0 620 300" style="width:620px;height:300px;overflow:visible;direction:ltr" data-step="3">
+      <use href="#monitor" x="10" y="40" width="230" height="196"/>
+      <use href="#folder" x="75" y="60" width="100" height="80"/>
+      <text x="125" y="166" text-anchor="middle" fill="#eef2fb" font-size="15" font-family="JetBrains Mono,monospace">~/my-site</text>
+      <text x="125" y="290" text-anchor="middle" fill="#93a0bb" font-size="17" font-family="Inter,sans-serif" class="en">Your PC</text>
+      <text x="125" y="290" text-anchor="middle" fill="#93a0bb" font-size="18" class="fa svgfa">کامپیوتر شما</text>
+      <path d="M250 130H400" stroke="rgba(255,107,107,.5)" stroke-width="3" stroke-dasharray="8 8"/>
+      <g transform="translate(325 130)"><circle r="20" fill="#2a0f14" stroke="#ff6b6b" stroke-width="3"/><path d="M-8-8l16 16M8-8l-16 16" stroke="#ff6b6b" stroke-width="3"/></g>
+      <text x="325" y="100" text-anchor="middle" fill="#ff8a8a" font-size="18" font-family="JetBrains Mono,monospace">-v</text>
+      <g transform="translate(510 150)"><use href="#cube" x="-80" y="-90" width="160" height="160"/>
+        <g transform="translate(-18 -40)"><use href="#file" width="36" height="46"/></g>
+        <circle cx="62" cy="-74" r="8" fill="#3ccf7f" class="pulse"/></g>
+      <text x="510" y="290" text-anchor="middle" fill="#93a0bb" font-size="17" font-family="JetBrains Mono,monospace">web</text>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="browser" data-step="2"><div class="bar"><i></i><i></i><i></i><span>localhost:8080</span></div><div class="page"><h1>Changed on my PC!</h1></div></div>
+      <div class="card key" data-step="3"><div class="n">🔑</div><p><span class="en">Your page, with no <code>-v</code>. It's <b>inside the image</b>.</span><span class="fa">صفحه‌ی شما، بدون <code>-v</code>. <b>داخل ایمیج</b> است.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 4 RUN ================= -->
-<section class="card step" id="s4">
-  <h2><span class="num">4</span>
-    <span class="en">Run it, without <code>-v</code></span><span class="fa">اجرای آن، بدون <code>-v</code></span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Run your image in the background, named <code>web</code>, on <code>localhost:8080</code>. Use <code>my-site</code> instead of <code>nginx</code>, and <b>no</b> <code>-v</code>:</p>
-  <p class="fa">ایمیج خودتان را در پس‌زمینه، با نام <code>web</code> و روی <code>localhost:8080</code> اجرا کنید. به‌جای <code>nginx</code> از <code>my-site</code> استفاده کنید، و <b>بدون</b> <code>-v</code>:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 my-site</code></pre></div>
-  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a>:</p>
-  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را باز کنید:</p>
-  <div class="browser">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Changed on my PC!</h1></div>
+<!-- ======================= 9 · EDIT ======================= -->
+<section class="slide" data-title-en="Edit the page: does it change?" data-title-fa="ویرایش صفحه: تغییر می‌کند؟">
+  <div class="kicker a"><span class="en">Step 5</span><span class="fa">قدم ۵</span></div>
+  <h2><span class="en split">Edit the page: <span class="hl">does it change?</span></span><span class="fa split">ویرایش صفحه: <span class="hl">تغییر می‌کند؟</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:8px;font-size:22px"><span class="en">In Lesson 10 this changed the page right away. Let's try it now.</span><span class="fa">در درس ۱۰ این کار صفحه را بلافاصله عوض کرد. حالا امتحانش کنیم.</span></p>
+  <div class="term a" style="--d:.5;margin-top:16px">
+    <div class="bar"><i></i><i></i><i></i><span>bash · ~/my-site</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Replace the text in index.html with &lt;h1&gt;Version 2&lt;/h1&gt;." data-task-fa="👉 متن index.html را با &lt;h1&gt;Version 2&lt;/h1&gt; جایگزین کنید." style="margin:0"><div class="cmd">echo '&lt;h1&gt;Version 2&lt;/h1&gt;' &gt; index.html</div></div>
+    </div>
   </div>
-  <p class="en">Your page, with no <code>-v</code>. It's <b>inside the image</b>.</p>
-  <p class="fa">صفحه‌ی شما، بدون <code>-v</code>. <b>داخل ایمیج</b> است.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s4-1"><span><span class="en">The browser shows my page, and I didn't use <code>-v</code></span><span class="fa">مرورگر صفحه‌ی من را نشان می‌دهد و از <code>-v</code> استفاده نکردم</span></span></label>
-  </div>
-</section>
-
-<!-- ================= 5 EDIT ================= -->
-<section class="card step" id="s5">
-  <h2><span class="num">5</span>
-    <span class="en">Edit the page on your PC: does it change?</span><span class="fa">ویرایش صفحه روی کامپیوتر: تغییر می‌کند؟</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">In Lesson 10 this changed the page right away. Replace the text in <code>index.html</code> with <code>&lt;h1&gt;Version 2&lt;/h1&gt;</code>:</p>
-  <p class="fa">در درس ۱۰ این کار صفحه را بلافاصله عوض کرد. متن <code>index.html</code> را با <code>&lt;h1&gt;Version 2&lt;/h1&gt;</code> جایگزین کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>echo '&lt;h1&gt;Version 2&lt;/h1&gt;' &gt; index.html</code></pre></div>
-  <p class="en">Reload the browser:</p>
-  <p class="fa">مرورگر را reload کنید:</p>
-  <div class="browser">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Changed on my PC!</h1></div>
-  </div>
-  <p class="en"><b>No change!</b> <code>COPY</code> made a copy of the file <b>when you built the image</b>. The image keeps that copy; it doesn't look at your folder anymore.</p>
-  <p class="fa"><b>تغییری نکرد!</b> <code>COPY</code> <b>هنگام ساختن ایمیج</b> از فایل یک کپی گرفت. ایمیج همان کپی را نگه می‌دارد و دیگر به پوشه‌ی شما نگاه نمی‌کند.</p>
-  <div class="table-wrap">
-  <table>
-    <thead><tr>
-      <th></th>
-      <th><span class="en">Lesson 10 (<code>-v</code>)</span><span class="fa">درس ۱۰ (<code>-v</code>)</span></th>
-      <th><span class="en">Lesson 17 (<code>COPY</code>)</span><span class="fa">درس ۱۷ (<code>COPY</code>)</span></th>
-    </tr></thead>
-    <tbody>
-      <tr><td><span class="en">The page lives</span><span class="fa">صفحه کجاست</span></td><td><span class="en">on your PC, shared</span><span class="fa">روی کامپیوتر شما، به اشتراک گذاشته شده</span></td><td><span class="en">inside the image, a copy</span><span class="fa">داخل ایمیج، یک کپی</span></td></tr>
-      <tr><td><span class="en">Edit the file</span><span class="fa">ویرایش فایل</span></td><td><span class="en">shows up right away</span><span class="fa">بلافاصله دیده می‌شود</span></td><td><span class="en">needs a rebuild</span><span class="fa">نیاز به ساخت دوباره دارد</span></td></tr>
-      <tr><td><span class="en">Good for</span><span class="fa">مناسب برای</span></td><td><span class="en">working on your files</span><span class="fa">کار روی فایل‌ها</span></td><td><span class="en">a finished version to share or deploy</span><span class="fa">نسخه‌ی نهایی برای اشتراک یا انتشار</span></td></tr>
-    </tbody>
-  </table>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s5-1"><span><span class="en">After editing and reloading, the page did <b>not</b> change</span><span class="fa">بعد از ویرایش و reload، صفحه تغییر <b>نکرد</b></span></span></label>
+  <div style="display:grid;grid-template-columns:380px 1fr 1fr;gap:26px;margin-top:24px;align-items:start">
+    <div class="card" data-step="2" style="padding:18px 22px">
+      <div class="n"><span class="en">ON YOUR PC · index.html</span><span class="fa">روی کامپیوتر شما · index.html</span></div>
+      <div style="position:relative;height:60px;font:600 19px var(--mono);direction:ltr;text-align:left">
+        <div data-only="0 1" style="position:absolute;inset:0;color:var(--muted)">&lt;h1&gt;Changed on my PC!&lt;/h1&gt;</div>
+        <div data-only="2 3 4" style="position:absolute;inset:0;color:var(--green)">&lt;h1&gt;Version 2&lt;/h1&gt; ✓</div>
+      </div>
+    </div>
+    <div style="position:relative">
+      <div class="browser" data-step="3"><div class="bar"><i></i><i></i><i></i><span>localhost:8080 ⟳</span></div><div class="page"><h1>Changed on my PC!</h1></div></div>
+      <div style="position:absolute;right:-10px;bottom:-30px"><div class="stamp2" data-step="3"><span class="en">No change!</span><span class="fa">تغییری نکرد!</span></div></div>
+    </div>
+    <div class="card key" data-step="4"><div class="n">🔑 COPY</div><p><span class="en"><code>COPY</code> made a copy of the file <b>when you built the image</b>. The image keeps that copy; it doesn't look at your folder anymore.</span><span class="fa"><code>COPY</code> <b>هنگام ساختن ایمیج</b> از فایل یک کپی گرفت. ایمیج همان کپی را نگه می‌دارد و دیگر به پوشه‌ی شما نگاه نمی‌کند.</span></p></div>
   </div>
 </section>
 
-<!-- ================= 6 REBUILD ================= -->
-<section class="card step" id="s6">
-  <h2><span class="num">6</span>
-    <span class="en">Rebuild to update</span><span class="fa">ساخت دوباره برای به‌روزرسانی</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Build the image again, so it gets a fresh copy of <code>index.html</code>:</p>
-  <p class="fa">ایمیج را دوباره بسازید تا یک کپی تازه از <code>index.html</code> بگیرد:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker build -t my-site .</code></pre></div>
-  <p class="en">The running container still uses the <b>old</b> image. Replace it: delete <code>web</code> in one command, then run your image again like in step 4:</p>
-  <p class="fa">کانتینر در حال اجرا هنوز از ایمیج <b>قبلی</b> استفاده می‌کند. عوضش کنید: <code>web</code> را با یک دستور حذف کنید و بعد ایمیج‌تان را مثل قدم ۴ دوباره اجرا کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web
-docker run -d --name web -p 8080:80 my-site</code></pre></div>
-  <p class="en">Reload the browser:</p>
-  <p class="fa">مرورگر را reload کنید:</p>
-  <div class="browser">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Version 2</h1></div>
-  </div>
-  <div class="note key">
-    <p class="en">🔑 To update an image: <b>edit → build → replace the container</b>.</p>
-    <p class="fa">🔑 برای به‌روزرسانی ایمیج: <b>ویرایش ← ساخت ← جایگزینی کانتینر</b>.</p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s6-1"><span><span class="en">After rebuilding and replacing the container, I see “Version 2”</span><span class="fa">بعد از ساخت دوباره و جایگزینی کانتینر، «Version 2» را می‌بینم</span></span></label>
-  </div>
-</section>
-
-<!-- ================= 7 CLEAN UP ================= -->
-<section class="card step" id="s7">
-  <h2><span class="num">7</span>
-    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm -f web</code></pre></div>
-  <div class="note key">
-    <p class="en">🔑 Keep the <code>my-site</code> image and the <code>~/my-site</code> folder. We'll use them in the next lesson.</p>
-    <p class="fa">🔑 ایمیج <code>my-site</code> و پوشه‌ی <code>~/my-site</code> را نگه دارید. در درس بعد از آن‌ها استفاده می‌کنیم.</p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s7-1"><span><span class="en"><code>web</code> is deleted; <code>my-site</code> is still in <code>docker image ls</code></span><span class="fa"><code>web</code> حذف شد؛ <code>my-site</code> هنوز در <code>docker image ls</code> هست</span></span></label>
+<!-- ======================= 10 · -v vs COPY ======================= -->
+<section class="slide" data-title-en="-v vs COPY" data-title-fa="-v و COPY">
+  <div class="kicker a"><span class="en">Step 5 · Compare</span><span class="fa">قدم ۵ · مقایسه</span></div>
+  <h2><span class="en split"><span class="hl">-v</span> or <span class="hl">COPY</span>?</span><span class="fa split"><span class="hl">-v</span> یا <span class="hl">COPY</span>؟</span></h2>
+  <div class="cmp" style="margin-top:20px">
+    <div></div>
+    <div class="a" style="--d:.4">
+      <svg viewBox="0 0 520 170" style="width:100%;height:170px;direction:ltr">
+        <use href="#folder" x="30" y="40" width="120" height="96"/>
+        <path id="vlink" d="M160 92H360" stroke="#ffb54d" stroke-width="4"/>
+        <circle r="7" fill="#ffb54d"><animateMotion dur="1.3s" repeatCount="indefinite" path="M160 92H360"/></circle>
+        <circle r="7" fill="#ffb54d"><animateMotion dur="1.3s" begin=".65s" repeatCount="indefinite" path="M160 92H360"/></circle>
+        <g transform="translate(430 90)"><use href="#cube" x="-55" y="-60" width="110" height="110"/></g>
+        <text x="260" y="76" text-anchor="middle" fill="#ffb54d" font-size="17" font-family="JetBrains Mono,monospace">-v</text>
+      </svg>
+      <div class="h"><span class="en">Lesson 10 (<code>-v</code>)</span><span class="fa">درس ۱۰ (<code>-v</code>)</span></div>
+    </div>
+    <div class="a" style="--d:.55">
+      <svg viewBox="0 0 520 170" style="width:100%;height:170px;direction:ltr">
+        <use href="#folder" x="30" y="40" width="120" height="96"/>
+        <path d="M160 92H330" stroke="#3ccf7f" stroke-width="3" stroke-dasharray="6 8" opacity=".5"/>
+        <g><animateTransform attributeName="transform" type="translate" values="0 0;170 0;170 0" keyTimes="0;.5;1" dur="3s" repeatCount="indefinite"/>
+          <g transform="translate(150 70)"><use href="#file" width="30" height="38"/></g>
+          <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;.5;.55;1" dur="3s" repeatCount="indefinite"/></g>
+        <g transform="translate(430 105)"><use href="#slab" x="-60" y="-10" width="120" height="83" style="--t:#5fe39a;--l:#22a35d;--r:#167a45"/><use href="#slab" x="-60" y="-34" width="120" height="83" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/></g>
+        <text x="245" y="76" text-anchor="middle" fill="#7fd8a6" font-size="17" font-family="JetBrains Mono,monospace">COPY</text>
+      </svg>
+      <div class="h"><span class="en">Lesson 17 (<code>COPY</code>)</span><span class="fa">درس ۱۷ (<code>COPY</code>)</span></div>
+    </div>
+    <div class="rh" data-step="1"><span class="en">The page lives</span><span class="fa">صفحه کجاست</span></div>
+    <div class="c v" data-step="1"><span class="en">on your PC, shared</span><span class="fa">روی کامپیوتر شما، به اشتراک گذاشته شده</span></div>
+    <div class="c cp" data-step="1"><span class="en">inside the image, a copy</span><span class="fa">داخل ایمیج، یک کپی</span></div>
+    <div class="rh" data-step="2"><span class="en">Edit the file</span><span class="fa">ویرایش فایل</span></div>
+    <div class="c v" data-step="2"><span class="en">shows up right away</span><span class="fa">بلافاصله دیده می‌شود</span></div>
+    <div class="c cp" data-step="2"><span class="en">needs a rebuild</span><span class="fa">نیاز به ساخت دوباره دارد</span></div>
+    <div class="rh" data-step="3"><span class="en">Good for</span><span class="fa">مناسب برای</span></div>
+    <div class="c v" data-step="3"><span class="en">working on your files</span><span class="fa">کار روی فایل‌ها</span></div>
+    <div class="c cp" data-step="3"><span class="en">a finished version to share or deploy</span><span class="fa">نسخه‌ی نهایی برای اشتراک یا انتشار</span></div>
   </div>
 </section>
 
-<div class="note tip stuck">
-  <p class="en">📥 <b>Stuck?</b> The finished files of this lesson are in the course folder under <code>examples/17-dockerfile/</code>. Compare them with yours. Or try the finished version: go into that folder and run <code>docker build -t my-site .</code>.</p>
-  <p class="fa">📥 <b>گیر کرده‌اید؟</b> فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/17-dockerfile/</code> هستند. آن‌ها را با فایل‌های خودتان مقایسه کنید. یا نسخه‌ی کامل را امتحان کنید: به همان پوشه بروید و <code>docker build -t my-site .</code> را اجرا کنید.</p>
+<!-- ======================= 11 · REBUILD ======================= -->
+<section class="slide" data-scene="cyc" data-title-en="Rebuild to update" data-title-fa="ساخت دوباره برای به‌روزرسانی">
+  <div class="kicker a"><span class="en">Step 6</span><span class="fa">قدم ۶</span></div>
+  <h2><span class="en split">Rebuild <span class="hl">to update</span></span><span class="fa split">ساخت دوباره <span class="hl">برای به‌روزرسانی</span></span></h2>
+  <div style="display:grid;grid-template-columns:1fr 420px;gap:28px;margin-top:20px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="term sm a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash · ~/my-site</span></div>
+        <div class="body">
+          <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Build the image again, so it gets a fresh copy of index.html." data-task-fa="👉 ایمیج را دوباره بسازید تا یک کپی تازه از index.html بگیرد."><div class="cmd">docker build -t my-site .</div></div>
+          <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 The container still uses the old image. Delete web in one command." data-task-fa="👉 کانتینر هنوز از ایمیج قبلی استفاده می‌کند. web را با یک دستور حذف کنید."><div class="cmd">docker rm -f web</div><pre class="out">
+web</pre></div>
+          <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 Run your image again like in step 4." data-task-fa="👉 ایمیج‌تان را مثل قدم ۴ دوباره اجرا کنید." style="margin:0"><div class="cmd">docker run -d --name web -p 8080:80 my-site</div></div>
+        </div>
+      </div>
+      <div class="browser" data-step="7"><div class="bar"><i></i><i></i><i></i><span>localhost:8080 ⟳</span></div><div class="page" style="height:100px"><h1>Version 2</h1></div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <svg viewBox="0 0 420 380" style="width:420px;height:380px;overflow:visible" class="cycle a fade">
+        <circle id="cycP" cx="210" cy="190" r="130" fill="none" stroke="rgba(110,155,255,.25)" stroke-width="3" stroke-dasharray="6 10"/>
+        <circle r="9" fill="#3ccf7f"><animateMotion dur="4s" repeatCount="indefinite" path="M210 60a130 130 0 1 1 -0.1 0"/></circle>
+        <g class="cn" data-k="0"><circle cx="210" cy="60" r="52" fill="#0d1426" stroke="#6e9bff" stroke-width="3"/><text x="210" y="56" text-anchor="middle" font-size="30">✏️</text><text x="210" y="88" text-anchor="middle" fill="#eef2fb" font-size="17" font-weight="700" class="en">edit</text><text x="210" y="88" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" class="fa">ویرایش</text></g>
+        <g class="cn" data-k="1"><circle cx="323" cy="255" r="52" fill="#0d1426" stroke="#6e9bff" stroke-width="3"/><text x="323" y="251" text-anchor="middle" font-size="30">🔨</text><text x="323" y="283" text-anchor="middle" fill="#eef2fb" font-size="17" font-weight="700" class="en">build</text><text x="323" y="283" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" class="fa">ساخت</text></g>
+        <g class="cn" data-k="2"><circle cx="97" cy="255" r="52" fill="#0d1426" stroke="#6e9bff" stroke-width="3"/><text x="97" y="251" text-anchor="middle" font-size="30">🔁</text><text x="97" y="283" text-anchor="middle" fill="#eef2fb" font-size="17" font-weight="700" class="en">replace</text><text x="97" y="283" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" class="fa">جایگزینی</text></g>
+      </svg>
+      <div class="card key" data-step="7"><div class="n">🔑</div><p><span class="en">To update an image: <b>edit → build → replace the container</b>.</span><span class="fa">برای به‌روزرسانی ایمیج: <b>ویرایش ← ساخت ← جایگزینی کانتینر</b>.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 12 · CLEAN UP ======================= -->
+<section class="slide" data-title-en="Clean up" data-title-fa="تمیزکاری">
+  <div class="kicker a"><span class="en">Step 7</span><span class="fa">قدم ۷</span></div>
+  <h2><span class="en split">Clean <span class="hl">up</span></span><span class="fa split"><span class="hl">تمیزکاری</span></span></h2>
+  <div class="term a" style="--d:.4;margin-top:26px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Delete the web container in one command." data-task-fa="👉 کانتینر web را با یک دستور حذف کنید." style="margin:0"><div class="cmd">docker rm -f web</div><pre class="out">
+web</pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:600px 1fr;gap:30px;margin-top:30px;align-items:center">
+    <svg viewBox="0 0 600 260" style="width:600px;height:260px;overflow:visible;direction:ltr">
+      <g transform="translate(100 120)"><g data-only="0 1"><use href="#cube" x="-60" y="-70" width="120" height="120"/>
+        <text x="0" y="110" text-anchor="middle" fill="#93a0bb" font-size="17" font-family="JetBrains Mono,monospace">web</text></g></g>
+      <g data-step="2"><g transform="translate(300 130)"><use href="#slab" x="-70" y="-10" width="140" height="97" style="--t:#5fe39a;--l:#22a35d;--r:#167a45"/><use href="#slab" x="-70" y="-38" width="140" height="97" style="--t:#a9c4ff;--l:#5c86e8;--r:#3f67c4"/>
+        <text x="0" y="100" text-anchor="middle" fill="#eef2fb" font-size="17" font-family="JetBrains Mono,monospace">my-site</text>
+        <text x="0" y="-62" text-anchor="middle" fill="#3ccf7f" font-size="16" font-weight="700"><tspan class="en">✓ KEEP</tspan><tspan class="fa svgfa">✓ نگه دارید</tspan></text></g></g>
+      <g data-step="2" style="transition-delay:.3s"><g transform="translate(500 130)"><use href="#folder" x="-60" y="-50" width="120" height="96"/>
+        <text x="0" y="100" text-anchor="middle" fill="#eef2fb" font-size="17" font-family="JetBrains Mono,monospace">~/my-site</text>
+        <text x="0" y="-62" text-anchor="middle" fill="#3ccf7f" font-size="16" font-weight="700"><tspan class="en">✓ KEEP</tspan><tspan class="fa svgfa">✓ نگه دارید</tspan></text></g></g>
+    </svg>
+    <div class="card key" data-step="2"><div class="n">🔑</div><p><span class="en">Keep the <code>my-site</code> image and the <code>~/my-site</code> folder. We'll use them in the next lesson.</span><span class="fa">ایمیج <code>my-site</code> و پوشه‌ی <code>~/my-site</code> را نگه دارید. در درس بعد از آن‌ها استفاده می‌کنیم.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 13 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 You built <span class="hl">your own image!</span></span><span class="fa split">🎉 ایمیج <span class="hl">خودتان را ساختید!</span></span></h2>
+  <div class="sumgrid">
+    <div class="card a" style="--d:.4"><code>FROM IMAGE</code><p><span class="en">The image to start from</span><span class="fa">ایمیجی که از آن شروع می‌کنیم</span></p></div>
+    <div class="card a" style="--d:.55"><code>COPY FILE PATH</code><p><span class="en">Copy a file from your folder into the image</span><span class="fa">کپی یک فایل از پوشه‌ی شما به داخل ایمیج</span></p></div>
+    <div class="card a" style="--d:.7"><code>docker build -t NAME .</code><p><span class="en">Build an image from the Dockerfile in this folder</span><span class="fa">ساختن ایمیج از Dockerfile همین پوشه</span></p></div>
+    <div class="card a" style="--d:.85"><code><span class="en">Update</span><span class="fa">به‌روزرسانی</span></code><p><span class="en">edit → build → replace the container</span><span class="fa">ویرایش ← ساخت ← جایگزینی کانتینر</span></p></div>
+  </div>
+  <div class="btnrow a" style="--d:1.1">
+    <a class="bigbtn primary" href="18-tags.html"><span class="en">Next: Lesson 18 · Tags: keep versions →</span><span class="fa">بعدی: درس ۱۸ · تگ‌ها: نگه داشتن نسخه‌ها ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 13</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
 </div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
 
-<!-- ================= SUMMARY ================= -->
-<section class="card" id="sum">
-  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><code>FROM IMAGE</code></td><td><span class="en">The image to start from</span><span class="fa">ایمیجی که از آن شروع می‌کنیم</span></td></tr>
-      <tr><td><code>COPY FILE PATH</code></td><td><span class="en">Copy a file from your folder into the image</span><span class="fa">کپی یک فایل از پوشه‌ی شما به داخل ایمیج</span></td></tr>
-      <tr><td><code>docker build -t NAME .</code></td><td><span class="en">Build an image from the Dockerfile in this folder</span><span class="fa">ساختن ایمیج از Dockerfile همین پوشه</span></td></tr>
-      <tr><td><span class="en">Update</span><span class="fa">به‌روزرسانی</span></td><td><span class="en">edit → build → replace the container</span><span class="fa">ویرایش ← ساخت ← جایگزینی کانتینر</span></td></tr>
-    </tbody>
-  </table>
-  </div>
-</section>
+<script>
+/* ---------- lesson 17 scenes ---------- */
+/* lines with data-hot="1 2" glow on those steps */
+const hotLines = slide => {
+  const els = [...slide.querySelectorAll('[data-hot]')];
+  return k => els.forEach(e => e.classList.toggle('hot', e.dataset.hot.split(' ').includes(String(k))));
+};
+window.SCENES = {
+  hot(slide) { const h = hotLines(slide); return { step(k) { h(k); } }; },
 
-<div class="done-banner" id="doneBanner">
-  <h2>🎉 <span class="en">You built your own image!</span><span class="fa">ایمیج خودتان را ساختید!</span></h2>
-  <p id="nextLine"></p>
-</div>
+  /* highlight -t my-site, then the dot */
+  bcmd(slide) {
+    const t = slide.querySelector('#bT'), d = slide.querySelector('#bDot');
+    return { step(k) { t.classList.toggle('on', k === 1); d.classList.toggle('on2', k === 2); } };
+  },
 
-<nav class="pager" id="pager"></nav>
+  /* edit → build → replace: light the node for the current command */
+  cyc(slide) {
+    const nodes = [...slide.querySelectorAll('.cn circle')];
+    return { step(k) {
+      const a = k >= 7 ? -1 : k >= 3 ? 2 : k >= 1 ? 1 : 0;
+      nodes.forEach((c, i) => { c.setAttribute('stroke', i === a ? '#3ccf7f' : '#6e9bff'); c.setAttribute('stroke-width', i === a ? 6 : 3); });
+    } };
+  },
 
-<footer>
-  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
-</footer>
-
-</main>
-
-</div>
-
+  /* confetti */
+  sum(slide, api) {
+    const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+    const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+    const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+    const stop = api.loop(t => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of P) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+        if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+      }
+    });
+    return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+  }
+};
+</script>
 <script src="tips.js"></script>
-<script src="course.js"></script>
+<script src="deck.js"></script>
 </body>
 </html>

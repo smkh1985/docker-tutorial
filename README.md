@@ -1,6 +1,6 @@
 # Docker, one small step at a time
 
-A hands-on, bilingual (English / فارسی) Docker course. Every lesson teaches **one** thing, with real commands and real output, checklists that save your progress in the browser, and tooltips that explain every part of every command.
+A bilingual (English / فارسی) Docker course made of animated slides. Every lesson teaches **one** thing, with real commands and real output, and tooltips that explain every part of every command. Use **→** to step through a lesson and **L** to switch language.
 
 **Start here:** open `index.html` in your browser (or the GitHub Pages site), then begin with **★ Why Docker?**
 

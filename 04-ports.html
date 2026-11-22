@@ -1,245 +1,498 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 4 · Open it in the browser</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 4 · Open it in the browser (motion)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="course.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- lesson 4 specifics ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  body.lang-fa .dirauto{direction:rtl}
+  .goal{display:flex;flex-direction:column;gap:12px;min-height:250px}
+  .goal svg{width:90px;height:90px}
+  .goal h3{font-size:23px}
+  .colcards{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+  .term.sm .body{font-size:17px}
+  .term.xs .body{font-size:16px;padding:16px 20px 18px}
+  .term.xxs .body{font-size:15px;padding:14px 18px 16px}
+  .card.sm{padding:16px 20px}.card.sm p{font-size:17px}
+  .card p code,.lead code{white-space:nowrap}
+  .sv{opacity:0;transition:opacity .5s}
+  .sv.vis{opacity:1}
+  /* browser mock */
+  .browser{border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 30px 70px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .browser .bb{display:flex;align-items:center;gap:7px;padding:10px 14px;background:#dfe3ea}
+  .browser .bb i{width:11px;height:11px;border-radius:50%;background:#ff5f57}.browser .bb i:nth-child(2){background:#febc2e}.browser .bb i:nth-child(3){background:#28c840}
+  .browser .bb span{margin-left:10px;flex:1;background:#fff;border-radius:16px;padding:5px 14px;font:500 15px var(--mono);color:#333}
+  .browser .page{padding:24px 28px;min-height:150px;color:#202124;font-family:Arial,Helvetica,sans-serif}
+  .browser .page h1{font-size:26px;margin-bottom:10px}
+  .browser .page p{font-size:15px;color:#444}
+  .browser.err .page h1{font-size:22px;font-weight:500}
+  .browser.err .page .ic{font-size:34px;filter:grayscale(1);margin-bottom:8px}
+  /* name:port split */
+  .psplit{display:flex;justify-content:flex-start;align-items:flex-end;font:600 76px/1 var(--mono);direction:ltr;margin-top:46px}
+  .psplit>span{display:inline-block;transition:transform 1s var(--ease)}
+  .psplit .h{color:var(--amber)}.psplit .c{color:var(--green)}.psplit .col{color:var(--muted)}.psplit .p{color:var(--sky);margin-right:70px}
+  .psplit.apart .h{transform:translateX(-30px)}.psplit.apart .c{transform:translateX(30px)}
+  .psplit .lab{position:relative}
+  .psplit .lab small{position:absolute;left:50%;top:115%;transform:translateX(-50%);font:600 17px/1.35 var(--font);white-space:nowrap;opacity:0;transition:opacity .6s .4s;text-align:center}
+  body.lang-fa .psplit .lab small{font-family:Vazirmatn,sans-serif;font-size:20px}
+  .psplit.apart .lab small{opacity:1}
+  .bigport{font:600 46px/1.2 var(--mono);direction:ltr;text-align:center;margin-top:18px}
+  .bigport .h{color:var(--amber)}.bigport .c{color:var(--green)}.bigport .m{color:var(--muted)}
+  .errbox{font:500 15px/1.55 var(--mono);color:#ff8a8a;white-space:pre-wrap;direction:ltr;text-align:left}
+  .btnrow{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px;padding:18px 24px}
+  .sumgrid code{font-size:18px;flex:none;min-width:300px;text-align:left}
+  .sumgrid p{font-size:18px}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  /* svg port diagram */
+  .xflash{animation:xf 1.6s ease-in-out infinite}@keyframes xf{0%,45%{opacity:0}55%,90%{opacity:1}100%{opacity:0}}
+  .plug{transition:transform 1s var(--back)}
+</style>
 </head>
-<body class="lang-en" data-lesson="04">
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
 
-<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
-<header class="topbar">
-  <div class="topbar-inner">
-    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
-      <span class="title-text" id="brandTitle"></span>
-    </a>
-    <div class="progress-wrap">
-      <div class="progress"><div id="bar"></div></div>
-      <span class="progress-label" id="plabel">0 / 0</span>
-    </div>
-    <span id="navSlot"></span>
-    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
-    <button class="btn" id="themeBtn" title="Theme">◐</button>
-    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
-  </div>
+<!-- shared shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="cubeoff" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#3a4357"/><path d="M0 30L60 0V60L0 90Z" fill="#2a3142"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#6b7489"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.1)" stroke-width="3"/>
+    </symbol>
+    <symbol id="box3" viewBox="-62 -60 124 114" overflow="visible">
+      <use href="#slab" x="-62" y="-6" width="124" height="86" style="--t:#2a5bd8;--l:#163a96;--r:#0f2a70"/>
+      <use href="#slab" x="-62" y="-32" width="124" height="86" style="--t:#4a7cf0;--l:#1d4fc4;--r:#153c99"/>
+      <use href="#slab" x="-62" y="-58" width="124" height="86" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+    </symbol>
+    <!-- a small browser window -->
+    <symbol id="brw" viewBox="0 0 200 140" overflow="visible">
+      <rect x="2" y="2" width="196" height="136" rx="12" fill="#0d1426" stroke="#6e9bff" stroke-width="3"/>
+      <rect x="2" y="2" width="196" height="30" rx="12" fill="#1a2440"/><rect x="2" y="20" width="196" height="12" fill="#1a2440"/>
+      <circle cx="18" cy="17" r="4.5" fill="#ff5f57"/><circle cx="32" cy="17" r="4.5" fill="#febc2e"/><circle cx="46" cy="17" r="4.5" fill="#28c840"/>
+      <rect x="60" y="9" width="128" height="16" rx="8" fill="#0d1426"/>
+      <text x="124" y="21" text-anchor="middle" fill="#a9c4ff" font-size="10.5" font-family="JetBrains Mono,monospace">localhost:8080</text>
+    </symbol>
+    <!-- a port socket -->
+    <symbol id="sock" viewBox="0 0 70 50" overflow="visible">
+      <rect x="1" y="1" width="68" height="48" rx="10" fill="#0d1426" stroke="currentColor" stroke-width="3"/>
+      <rect x="22" y="15" width="6" height="14" rx="2" fill="currentColor" opacity=".6"/><rect x="42" y="15" width="6" height="14" rx="2" fill="currentColor" opacity=".6"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="index.html"><img src="docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
 </header>
 
-<div class="layout">
+<div id="viewport"><div id="stage">
 
-<!-- ================= TABLE OF CONTENTS ================= -->
-<nav class="toc">
-  <ol>
-    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Try without -p</span><span class="fa">۱ · امتحان بدون ‎-p</span></a></li>
-    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Publish a port</span><span class="fa">۲ · منتشر کردن پورت</span></a></li>
-    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Check the port</span><span class="fa">۳ · بررسی پورت</span></a></li>
-    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Open it</span><span class="fa">۴ · باز کردن در مرورگر</span></a></li>
-    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Clean up</span><span class="fa">۵ · تمیزکاری</span></a></li>
-  </ol>
-</nav>
-
-<main>
-
-<!-- ================= HERO ================= -->
-<section class="hero">
-  <h1>
-    <span class="en">Lesson 4 — Open it in the browser</span>
-    <span class="fa">درس ۴ — باز کردن در مرورگر</span>
-  </h1>
-  <p class="en">In Lesson 3 nginx was running, but you never saw a web page. You'll find out why, and fix it with <code>-p</code>.</p>
-  <p class="fa">در درس ۳ nginx در حال اجرا بود، ولی هیچ صفحه‌ی وبی ندیدید. می‌فهمید چرا، و با <code>-p</code> درستش می‌کنید.</p>
-  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
-  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 4 — Open it in the browser" data-title-fa="درس ۴ — باز کردن در مرورگر" style="display:grid;grid-template-columns:640px 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 4</span><span class="fa">دوره‌ی Docker · درس ۴</span></div>
+    <h1 style="font-size:96px;line-height:1.08;margin:26px 0 26px">
+      <span class="en split">Open it in the <span class="hl">browser</span></span><span class="fa split">باز کردن در <span class="hl">مرورگر</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en">In Lesson 3 nginx was running, but you never saw a web page. You'll find out why, and fix it with <code>-p</code>.</span><span class="fa">در درس ۳ nginx در حال اجرا بود، ولی هیچ صفحه‌ی وبی ندیدید. می‌فهمید چرا، و با <code>-p</code> درستش می‌کنید.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:780px;height:420px;overflow:visible;direction:ltr" viewBox="0 0 780 420">
+    <rect x="6" y="20" width="768" height="380" rx="26" fill="rgba(13,20,38,.45)" stroke="rgba(110,155,255,.35)" stroke-width="2"/>
+    <text x="30" y="58" fill="#eef2fb" font-size="19" font-weight="700" font-family="Inter,sans-serif" class="en">💻 Your PC (host)</text>
+    <text x="750" y="58" fill="#eef2fb" font-size="20" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa" text-anchor="end">💻 کامپیوتر شما (host)</text>
+    <use href="#brw" x="30" y="140" width="200" height="140"/>
+    <g transform="translate(140 215)" font-family="Arial,sans-serif"><text x="0" y="0" text-anchor="middle" fill="#eef2fb" font-size="15" font-weight="700">Welcome to nginx!</text><rect x="-60" y="14" width="120" height="6" rx="3" fill="#3a4357"/><rect x="-60" y="28" width="90" height="6" rx="3" fill="#3a4357"/></g>
+    <use href="#sock" x="290" y="185" width="70" height="50" style="color:#ffb54d"/>
+    <text x="325" y="265" text-anchor="middle" fill="#ffb54d" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">8080</text>
+    <rect x="485" y="90" width="265" height="280" rx="20" fill="rgba(60,207,127,.05)" stroke="#3ccf7f" stroke-width="2" stroke-dasharray="8 6"/>
+    <text x="618" y="120" text-anchor="middle" fill="#3ccf7f" font-size="16" font-weight="700" font-family="Inter,sans-serif" class="en">container web</text>
+    <text x="618" y="120" text-anchor="middle" fill="#3ccf7f" font-size="17" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">کانتینر web</text>
+    <use href="#sock" x="415" y="185" width="70" height="50" style="color:#3ccf7f"/>
+    <text x="450" y="265" text-anchor="middle" fill="#3ccf7f" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">80</text>
+    <path d="M360 210 H 415" stroke="#6e9bff" stroke-width="7" stroke-linecap="round"/>
+    <text x="388" y="170" text-anchor="middle" fill="#a9c4ff" font-size="17" font-family="JetBrains Mono,monospace">-p</text>
+    <g transform="translate(560 160)"><use href="#cube" x="0" y="0" width="120" height="120"/></g>
+    <text x="620" y="320" text-anchor="middle" fill="#a9c4ff" font-size="16" font-family="JetBrains Mono,monospace">nginx</text>
+    <circle r="7" fill="#3ccf7f"><animateMotion dur="2.6s" repeatCount="indefinite" path="M230 210 H 600"/></circle>
+    <rect width="18" height="12" rx="2" fill="#ffb54d"><animateMotion dur="2.6s" begin="1.3s" repeatCount="indefinite" path="M600 210 H 222"/></rect>
+  </svg>
 </section>
 
-<!-- ================= 1 WITHOUT -p ================= -->
-<section class="card step" id="s1">
-  <h2><span class="num">1</span>
-    <span class="en">Try it without <code>-p</code></span><span class="fa">امتحان بدون <code>-p</code></span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Start nginx in the background with the name <code>web</code>, exactly like at the end of Lesson 3:</p>
-  <p class="fa">nginx را با نام <code>web</code> در پس‌زمینه اجرا کنید، دقیقاً مثل آخر درس ۳:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker run -d --name web nginx</code></pre></div>
-  <p class="en">Now open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> in your browser:</p>
-  <p class="fa">حالا <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را در مرورگرتان باز کنید:</p>
-  <div class="browser err">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>This site can't be reached</h1><p>localhost refused to connect.</p></div>
-  </div>
-  <p class="en">It doesn't work. A container has its <b>own private network</b>. nginx listens on port 80 <b>inside</b> the container, but nothing connects your PC to it. Even <code>http://localhost:80</code> fails.</p>
-  <p class="fa">کار نمی‌کند. هر کانتینر <b>شبکه‌ی خصوصی خودش</b> را دارد. nginx روی پورت 80 <b>داخل</b> کانتینر گوش می‌دهد، ولی چیزی کامپیوتر شما را به آن وصل نمی‌کند. حتی <code>http://localhost:80</code> هم کار نمی‌کند.</p>
-  <div class="flow">
-    <div class="box"><b><span class="en">Your browser</span><span class="fa">مرورگر شما</span></b><small><code>localhost:8080</code></small></div>
-    <div class="arrow"><small>✕ <span class="en">nothing connected</span><span class="fa">هیچ اتصالی نیست</span></small></div>
-    <div class="box ctr"><b><span class="en">Container</span><span class="fa">کانتینر</span> <code>web</code></b><small><span class="en">nginx on port 80 (inside)</span><span class="fa">nginx روی پورت 80 (داخل)</span></small></div>
-  </div>
-  <p class="en">Stop and delete it, so we can start it again the right way:</p>
-  <p class="fa">متوقفش کنید و حذفش کنید تا بتوانیم درست اجرایش کنیم:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker stop web
-docker rm web</code></pre></div>
-  <p class="en">💡 <b>Shortcut:</b> <code>-f</code> (<b>force</b>) does both in one command. It stops the container if it's running, then deletes it:</p>
-  <p class="fa">💡 <b>میان‌بُر:</b> <code>-f</code> (<b>force</b>، یعنی اجباری) هر دو کار را با یک دستور انجام می‌دهد. اگر کانتینر در حال اجرا باشد متوقفش می‌کند و بعد حذفش می‌کند:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker rm -f web</code></pre></div>
-  <p class="en">Use one way or the other, not both.</p>
-  <p class="fa">یکی از این دو روش را استفاده کنید، نه هر دو را.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s1-1"><span><span class="en">The browser couldn't open <code>localhost:8080</code></span><span class="fa">مرورگر نتوانست <code>localhost:8080</code> را باز کند</span></span></label>
-    <label><input type="checkbox" data-id="s1-2"><span><span class="en">I stopped and deleted <code>web</code> (with <code>stop</code> + <code>rm</code>, or <code>rm -f</code>)</span><span class="fa"><code>web</code> را متوقف و حذف کردم (با <code>stop</code> + <code>rm</code>، یا <code>rm -f</code>)</span></span></label>
-  </div>
-</section>
-
-<!-- ================= 2 PUBLISH ================= -->
-<section class="card step" id="s2">
-  <h2><span class="num">2</span>
-    <span class="en">Publish a port with <code>-p</code></span><span class="fa">منتشر کردن پورت با <code>-p</code></span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Same command, plus <code>-p 8080:80</code>:</p>
-  <p class="fa">همان دستور، به‌اضافه‌ی <code>-p 8080:80</code>:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker run -d --name web -p 8080:80 nginx</code></pre></div>
-  <p class="en"><code>-p</code> means <b>publish</b>. It connects a port on your PC to a port inside the container. The order is always <b>your PC first</b>, then the container:</p>
-  <p class="fa"><code>-p</code> یعنی <b>publish</b> (منتشر کردن). یک پورت روی کامپیوتر شما را به یک پورت داخل کانتینر وصل می‌کند. ترتیب همیشه این است: <b>اول کامپیوتر شما</b>، بعد کانتینر:</p>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><code>8080</code></td><td><span class="en">Port on <b>your PC</b> (the host). You choose it</span><span class="fa">پورت روی <b>کامپیوتر شما</b> (host). خودتان انتخابش می‌کنید</span></td></tr>
-      <tr><td><code>80</code></td><td><span class="en">Port <b>inside the container</b>. nginx listens here, so this is fixed</span><span class="fa">پورت <b>داخل کانتینر</b>. nginx اینجا گوش می‌دهد، پس ثابت است</span></td></tr>
-    </tbody>
-  </table>
-  </div>
-  <div class="flow">
-    <div class="box"><b><span class="en">Your browser</span><span class="fa">مرورگر شما</span></b><small><code>localhost:8080</code></small></div>
-    <div class="arrow"><small><code>-p 8080:80</code></small></div>
-    <div class="box ctr"><b><span class="en">Container</span><span class="fa">کانتینر</span> <code>web</code></b><small><span class="en">nginx on port 80</span><span class="fa">nginx روی پورت 80</span></small></div>
-  </div>
-  <details class="q">
-    <summary><span class="en">❓ Error: “port is already allocated”?</span><span class="fa">❓ خطای «port is already allocated»؟</span></summary>
-    <div class="code"><span class="lbl">output</span><pre><code>docker: Error response from daemon: failed to set up container networking: ... Bind for 0.0.0.0:8080 failed: port is already allocated</code></pre></div>
-    <p class="en">Something else on your PC (maybe another container) already uses port 8080. Only one program can use a host port at a time. Delete the new container (<code>docker rm web</code>) and pick another host port, e.g. <code>-p 8081:80</code>, then open <code>localhost:8081</code>.</p>
-    <p class="fa">برنامه‌ی دیگری روی کامپیوتر شما (شاید یک کانتینر دیگر) از پورت 8080 استفاده می‌کند. هر پورت host در هر لحظه فقط مال یک برنامه است. کانتینر جدید را حذف کنید (<code>docker rm web</code>) و یک پورت دیگر انتخاب کنید، مثلاً <code>-p 8081:80</code>، و بعد <code>localhost:8081</code> را باز کنید.</p>
-  </details>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s2-1"><span><span class="en">The command printed a container ID with no error</span><span class="fa">دستور بدون خطا یک شناسه‌ی کانتینر چاپ کرد</span></span></label>
-    <label><input type="checkbox" data-id="s2-2"><span><span class="en">I know which number is my PC's port and which is the container's</span><span class="fa">می‌دانم کدام عدد پورت کامپیوتر من است و کدام پورت کانتینر</span></span></label>
+<!-- ======================= 3 · WITHOUT -p ======================= -->
+<section class="slide" data-title-en="Try it without -p" data-title-fa="امتحان بدون -p">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Try it <span class="hl">without -p</span></span><span class="fa split">امتحان <span class="hl">بدون &#x2066;-p&#x2069;</span></span></h2>
+  <div style="display:grid;grid-template-columns:700px 1fr;gap:30px;margin-top:22px;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:16px" class="dirauto">
+      <div class="term xs a" style="--d:.4">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Start nginx in the background with the name web, exactly like at the end of Lesson 3." data-task-fa="👉 nginx را با نام web در پس‌زمینه اجرا کنید، دقیقاً مثل آخر درس ۳."><div class="cmd">docker run -d --name web nginx</div><pre class="out">
+1c76533ac4cbf87fdbd0e208968f0b8bb201b670a2777d22770de41178d25b03</pre></div>
+        </div>
+      </div>
+      <p class="lead" data-step="3" style="font-size:20px"><span class="en">Now open <code>http://localhost:8080</code> in your browser:</span><span class="fa">حالا <code>http://localhost:8080</code> را در مرورگرتان باز کنید:</span></p>
+      <div class="browser err" data-step="3">
+        <div class="bb"><i></i><i></i><i></i><span>localhost:8080</span></div>
+        <div class="page"><div class="ic">📄</div><h1>This site can’t be reached</h1><p>localhost refused to connect.</p></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px" class="dirauto">
+      <svg viewBox="0 0 690 330" style="width:690px;height:330px;overflow:visible;direction:ltr" class="a fade">
+        <rect x="4" y="4" width="682" height="322" rx="24" fill="rgba(13,20,38,.45)" stroke="rgba(110,155,255,.35)" stroke-width="2"/>
+        <text x="24" y="38" fill="#eef2fb" font-size="18" font-weight="700" font-family="Inter,sans-serif" class="en">💻 Your PC</text>
+        <text x="666" y="38" fill="#eef2fb" font-size="19" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa" text-anchor="end">💻 کامپیوتر شما</text>
+        <use href="#brw" x="24" y="110" width="180" height="126"/>
+        <rect x="350" y="60" width="316" height="246" rx="20" fill="rgba(60,207,127,.05)" stroke="#3ccf7f" stroke-width="2" stroke-dasharray="8 6"/>
+        <text x="508" y="88" text-anchor="middle" fill="#3ccf7f" font-size="15" font-weight="700" font-family="Inter,sans-serif" class="en">container web · its own private network</text>
+        <text x="508" y="88" text-anchor="middle" fill="#3ccf7f" font-size="16" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">کانتینر web · شبکه‌ی خصوصی خودش</text>
+        <use href="#sock" x="420" y="148" width="62" height="44" style="color:#3ccf7f"/>
+        <text x="451" y="218" text-anchor="middle" fill="#3ccf7f" font-size="17" font-weight="700" font-family="JetBrains Mono,monospace">80</text>
+        <g transform="translate(520 120)"><use href="#cube" x="0" y="0" width="110" height="110"/></g>
+        <text x="575" y="262" text-anchor="middle" fill="#a9c4ff" font-size="15" font-family="JetBrains Mono,monospace">nginx</text>
+        <g data-step="3">
+          <circle r="7" fill="#ffb54d"><animateMotion dur="1.6s" repeatCount="indefinite" keyPoints="0;1;.85" keyTimes="0;.55;1" calcMode="linear" path="M206 170 H 344"/></circle>
+          <g class="xflash"><circle cx="330" cy="170" r="18" fill="rgba(255,107,107,.15)" stroke="#ff6b6b" stroke-width="2"/><text x="330" y="177" text-anchor="middle" fill="#ff6b6b" font-size="20" font-weight="700">✕</text></g>
+          <text x="276" y="140" text-anchor="middle" fill="#ff8a8a" font-size="15" font-weight="600" font-family="Inter,sans-serif" class="en">nothing connected</text>
+          <text x="276" y="140" text-anchor="middle" fill="#ff8a8a" font-size="16" font-weight="600" font-family="Vazirmatn,sans-serif" class="fa">هیچ اتصالی نیست</text>
+        </g>
+      </svg>
+      <div class="card key" data-step="4"><div class="n">🔒 <span class="en">WHY?</span><span class="fa">چرا؟</span></div><p><span class="en">A container has its <b>own private network</b>. nginx listens on port 80 <b>inside</b> the container, but nothing connects your PC to it. Even <code>http://localhost:80</code> fails.</span><span class="fa">هر کانتینر <b>شبکه‌ی خصوصی خودش</b> را دارد. nginx روی پورت 80 <b>داخل</b> کانتینر گوش می‌دهد، ولی چیزی کامپیوتر شما را به آن وصل نمی‌کند. حتی <code>http://localhost:80</code> هم کار نمی‌کند.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 3 CHECK ================= -->
-<section class="card step" id="s3">
-  <h2><span class="num">3</span>
-    <span class="en">Check the port</span><span class="fa">بررسی پورت</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">List the running containers and look at the <code>PORTS</code> column:</p>
-  <p class="fa">کانتینرهای در حال اجرا را فهرست کنید و به ستون <code>PORTS</code> نگاه کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker ps</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS                                     NAMES
-7ffd259c2bc0   nginx     "/docker-entrypoint.…"   4 seconds ago   Up 2 seconds   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   web</code></pre></div>
-  <p class="en">In Lesson 3 this column said only <code>80/tcp</code>. Now it says <code>0.0.0.0:8080->80/tcp</code>: port 8080 on your PC <b>→</b> port 80 in the container. (<code>[::]</code> is the same thing for IPv6.)</p>
-  <p class="fa">در درس ۳ این ستون فقط <code>80/tcp</code> بود. حالا <code>0.0.0.0:8080->80/tcp</code> است: پورت 8080 کامپیوتر شما <b>←</b> پورت 80 کانتینر. (<code>[::]</code> همین است برای IPv6.)</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s3-1"><span><span class="en">I see <code>8080->80/tcp</code> in the <code>PORTS</code> column</span><span class="fa"><code>8080->80/tcp</code> را در ستون <code>PORTS</code> می‌بینم</span></span></label>
+<!-- ======================= 4 · STOP AND DELETE ======================= -->
+<section class="slide" data-title-en="Stop and delete: two ways" data-title-fa="توقف و حذف: دو روش">
+  <div class="kicker a"><span class="en">Step 1 · Clean up</span><span class="fa">قدم ۱ · پاک کردن</span></div>
+  <h2><span class="en split">Stop and delete it: <span class="hl">two ways</span></span><span class="fa split">توقف و حذف: <span class="hl">دو روش</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px;font-size:21px"><span class="en">Stop and delete <code>web</code>, so we can start it again the right way.</span><span class="fa"><code>web</code> را متوقف و حذف کنید تا بتوانیم درست اجرایش کنیم.</span></p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:22px;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:14px" class="dirauto">
+      <div class="kicker a" style="--d:.5;font-size:15px"><span class="en">Way 1 · two commands</span><span class="fa">روش ۱ · دو دستور</span></div>
+      <div class="term sm a" style="--d:.5">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Stop the web container." data-task-fa="👉 کانتینر web را متوقف کنید."><div class="cmd">docker stop web</div><pre class="out">
+web</pre></div>
+          <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Now delete it." data-task-fa="👉 حالا حذفش کنید."><div class="cmd">docker rm web</div><pre class="out">
+web</pre></div>
+        </div>
+      </div>
+      <svg viewBox="0 0 680 150" style="width:100%;height:150px;overflow:visible;direction:ltr" class="a fade">
+        <g transform="translate(40 20)"><use href="#cube" width="100" height="100"/></g>
+        <path d="M160 70 H 250" stroke="#6e9bff" stroke-width="3" class="flow"/><text x="205" y="56" text-anchor="middle" fill="#a9c4ff" font-size="15" font-family="JetBrains Mono,monospace">stop</text>
+        <g data-step="2" class="pop-in"><g transform="translate(270 20)"><use href="#cubeoff" width="100" height="100"/></g></g>
+        <path d="M390 70 H 480" stroke="#6e9bff" stroke-width="3" class="flow"/><text x="435" y="56" text-anchor="middle" fill="#a9c4ff" font-size="15" font-family="JetBrains Mono,monospace">rm</text>
+        <g data-step="4" class="pop-in"><circle cx="550" cy="70" r="38" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-dasharray="5 6"/><text x="550" y="80" text-anchor="middle" fill="#ff6b6b" font-size="30">✕</text></g>
+      </svg>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px" class="dirauto">
+      <div class="kicker" data-step="5" style="font-size:15px"><span class="en">Way 2 · shortcut</span><span class="fa">روش ۲ · میان‌بُر</span></div>
+      <div class="term sm" data-step="5">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run" data-step="5"><div class="cmd">docker rm -f web</div><pre class="out">
+web</pre></div>
+        </div>
+      </div>
+      <div class="card tip sm" data-step="5"><div class="n">💡 <bdo dir="ltr">-f</bdo></div><p><span class="en"><code>-f</code> (<b>force</b>) does both in one command. It stops the container if it's running, then deletes it.</span><span class="fa"><code>-f</code> (<b>force</b>، یعنی اجباری) هر دو کار را با یک دستور انجام می‌دهد. اگر کانتینر در حال اجرا باشد متوقفش می‌کند و بعد حذفش می‌کند.</span></p></div>
+      <div class="card key sm" data-step="6"><div class="n">🔑</div><p><span class="en">Use one way or the other, not both.</span><span class="fa">یکی از این دو روش را استفاده کنید، نه هر دو را.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 4 OPEN ================= -->
-<section class="card step" id="s4">
-  <h2><span class="num">4</span>
-    <span class="en">Open it</span><span class="fa">باز کردن در مرورگر</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> again (or reload the tab):</p>
-  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را دوباره باز کنید (یا تب را reload کنید):</p>
-  <div class="browser">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Welcome to nginx!</h1><p>If you see this page, nginx is successfully installed and working. …</p></div>
+<!-- ======================= 5 · PUBLISH -p ======================= -->
+<section class="slide" data-scene="psplit" data-title-en="Publish a port with -p" data-title-fa="منتشر کردن پورت با -p">
+  <div class="kicker a"><span class="en">Step 2</span><span class="fa">قدم ۲</span></div>
+  <h2><span class="en split">Publish a port with <span class="hl">-p</span></span><span class="fa split">منتشر کردن پورت با <span class="hl">&#x2066;-p&#x2069;</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px;font-size:21px"><span class="en">Same command, plus <code>-p 8080:80</code>. <code>-p</code> means <b>publish</b>: it connects a port on your PC to a port inside the container.</span><span class="fa">همان دستور، به‌اضافه‌ی <code>-p 8080:80</code>. <code>-p</code> یعنی <b>publish</b> (منتشر کردن): یک پورت روی کامپیوتر شما را به یک پورت داخل کانتینر وصل می‌کند.</span></p>
+  <div class="term sm a" style="--d:.5;margin-top:16px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1"><div class="cmd">docker run -d --name web -p 8080:80 nginx</div><pre class="out">
+7ffd259c2bc0a4e1b9d35f0c8e27d6a14b3f9e0c52d871a6f4be093c2d1e58a7   <span class="c"># a container ID, no error</span></pre></div>
+    </div>
   </div>
-  <p class="en">🎉 This page comes from nginx <b>inside</b> the container.</p>
-  <p class="fa">🎉 این صفحه از nginx <b>داخل</b> کانتینر می‌آید.</p>
-  <details class="q">
-    <summary><span class="en">❓ Can I check it from the terminal instead?</span><span class="fa">❓ می‌توانم از ترمینال بررسی کنم؟</span></summary>
-    <p class="en">Yes, with <code>curl</code>, which prints the page's HTML:</p>
-    <p class="fa">بله، با <code>curl</code> که HTML صفحه را چاپ می‌کند:</p>
-    <div class="code"><span class="lbl">bash</span><pre><code>curl http://localhost:8080</code></pre></div>
-    <div class="code"><span class="lbl">output</span><pre><code>&lt;!DOCTYPE html&gt;
+  <div style="display:grid;grid-template-columns:600px 1fr;gap:30px;margin-top:10px;align-items:start;direction:ltr">
+    <div>
+      <div class="psplit a" id="psplit" style="--d:.6">
+        <span class="p">-p</span><span class="h lab">8080<small style="color:var(--amber)"><span class="en">your PC (host)<br>you choose it</span><span class="fa">کامپیوتر شما (host)<br>خودتان انتخابش می‌کنید</span></small></span><span class="col">:</span><span class="c lab">80<small style="color:var(--green)"><span class="en">inside the container<br>nginx listens here: fixed</span><span class="fa">داخل کانتینر<br>nginx اینجا گوش می‌دهد: ثابت</span></small></span>
+      </div>
+    </div>
+    <svg viewBox="0 0 790 270" style="width:790px;height:270px;overflow:visible" class="a fade">
+      <rect x="4" y="4" width="782" height="262" rx="22" fill="rgba(13,20,38,.45)" stroke="rgba(110,155,255,.35)" stroke-width="2"/>
+      <text x="22" y="36" fill="#eef2fb" font-size="17" font-weight="700" font-family="Inter,sans-serif" class="en">💻 Your PC (host)</text>
+      <text x="766" y="36" fill="#eef2fb" font-size="18" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa" text-anchor="end">💻 کامپیوتر شما (host)</text>
+      <use href="#brw" x="22" y="80" width="170" height="119"/>
+      <use href="#sock" x="250" y="118" width="70" height="50" style="color:#ffb54d"/>
+      <text x="285" y="196" text-anchor="middle" fill="#ffb54d" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">8080</text>
+      <rect x="508" y="56" width="262" height="196" rx="18" fill="rgba(60,207,127,.05)" stroke="#3ccf7f" stroke-width="2" stroke-dasharray="8 6"/>
+      <text x="640" y="82" text-anchor="middle" fill="#3ccf7f" font-size="15" font-weight="700" font-family="Inter,sans-serif" class="en">container web</text>
+      <text x="640" y="82" text-anchor="middle" fill="#3ccf7f" font-size="16" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">کانتینر web</text>
+      <use href="#sock" x="436" y="118" width="70" height="50" style="color:#3ccf7f"/>
+      <text x="471" y="196" text-anchor="middle" fill="#3ccf7f" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">80</text>
+      <g transform="translate(590 100)"><use href="#cube" width="100" height="100"/></g>
+      <g data-step="3">
+        <path d="M320 143 H 436" stroke="#6e9bff" stroke-width="7" stroke-linecap="round"/>
+        <text x="378" y="128" text-anchor="middle" fill="#a9c4ff" font-size="15" font-family="JetBrains Mono,monospace">-p 8080:80</text>
+        <circle r="6" fill="#3ccf7f"><animateMotion dur="1.8s" repeatCount="indefinite" path="M192 143 H 640"/></circle>
+      </g>
+    </svg>
+  </div>
+  <p class="lead" data-step="3" style="margin-top:6px;font-size:20px"><span class="en">The order is always <b>your PC first</b>, then the container.</span><span class="fa">ترتیب همیشه این است: <b>اول کامپیوتر شما</b>، بعد کانتینر.</span></p>
+</section>
+
+<!-- ======================= 6 · PORT IN USE ======================= -->
+<section class="slide" data-title-en="Port is already allocated?" data-title-fa="پورت از قبل گرفته شده؟">
+  <div class="kicker a"><span class="en">Step 2 · What if…</span><span class="fa">قدم ۲ · اگر…</span></div>
+  <h2><span class="en split">“Port is <span class="hl">already allocated</span>”?</span><span class="fa split">خطای <span class="hl">«port&nbsp;is&nbsp;already&nbsp;allocated»</span>؟</span></h2>
+  <div class="term xs a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1"><div class="cmd">docker run -d --name web -p 8080:80 nginx</div><pre class="out" style="white-space:pre-wrap">
+<span style="color:#ff8a8a">docker: Error response from daemon: failed to set up container networking: ... Bind for 0.0.0.0:8080 failed: port is already allocated</span></pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 640px;gap:30px;margin-top:20px;align-items:center;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:16px" class="dirauto">
+      <div class="card key" data-step="2"><div class="n">🔌 <span class="en">ONE PORT, ONE PROGRAM</span><span class="fa">یک پورت، یک برنامه</span></div><p><span class="en">Something else on your PC (maybe another container) already uses port 8080. Only one program can use a host port at a time.</span><span class="fa">برنامه‌ی دیگری روی کامپیوتر شما (شاید یک کانتینر دیگر) از پورت 8080 استفاده می‌کند. هر پورت host در هر لحظه فقط مال یک برنامه است.</span></p></div>
+      <div class="card tip" data-step="3"><div class="n">✓ <span class="en">FIX</span><span class="fa">راه‌حل</span></div><p><span class="en">Delete the new container (<code>docker rm web</code>) and pick another host port, e.g. <code>-p 8081:80</code>, then open <code>localhost:8081</code>.</span><span class="fa">کانتینر جدید را حذف کنید (<code>docker rm web</code>) و یک پورت دیگر انتخاب کنید، مثلاً <code>-p 8081:80</code>، و بعد <code>localhost:8081</code> را باز کنید.</span></p></div>
+    </div>
+    <svg viewBox="0 0 640 330" style="width:640px;height:330px;overflow:visible;direction:ltr" class="a fade">
+      <rect x="4" y="4" width="632" height="322" rx="22" fill="rgba(13,20,38,.45)" stroke="rgba(110,155,255,.35)" stroke-width="2"/>
+      <text x="22" y="36" fill="#eef2fb" font-size="17" font-weight="700" font-family="Inter,sans-serif" class="en">💻 Your PC: host ports</text>
+      <text x="616" y="36" fill="#eef2fb" font-size="18" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa" text-anchor="end">💻 کامپیوتر شما: پورت‌های host</text>
+      <use href="#sock" x="60" y="90" width="80" height="56" style="color:#ffb54d"/><text x="100" y="172" text-anchor="middle" fill="#ffb54d" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">8080</text>
+      <use href="#sock" x="60" y="210" width="80" height="56" style="color:#93a0bb"/><text x="100" y="292" text-anchor="middle" fill="#93a0bb" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">8081</text>
+      <!-- the program already on 8080 -->
+      <path d="M140 118 H 230" stroke="#b48cff" stroke-width="7" stroke-linecap="round"/>
+      <rect x="222" y="96" width="156" height="44" rx="10" fill="rgba(180,140,255,.12)" stroke="#b48cff" stroke-width="2"/>
+      <text x="300" y="124" text-anchor="middle" fill="#c9b3ff" font-size="15" font-weight="700" font-family="Inter,sans-serif" class="en">another program</text>
+      <text x="300" y="124" text-anchor="middle" fill="#c9b3ff" font-size="16" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">یک برنامه‌ی دیگر</text>
+      <!-- the new container -->
+      <g transform="translate(490 150)"><use href="#cube" width="110" height="110"/></g>
+      <text x="545" y="290" text-anchor="middle" fill="#a9c4ff" font-size="15" font-family="JetBrains Mono,monospace">web</text>
+      <g data-only="1 2">
+        <path stroke="#6e9bff" stroke-width="7" stroke-linecap="round" fill="none"><animate attributeName="d" dur="1.6s" repeatCount="indefinite" values="M490 200 C 420 200, 300 160, 260 140;M490 200 C 420 200, 330 170, 300 156;M490 200 C 420 200, 300 160, 260 140"/></path>
+        <g class="xflash"><circle cx="200" cy="150" r="18" fill="rgba(255,107,107,.15)" stroke="#ff6b6b" stroke-width="2"/><text x="200" y="157" text-anchor="middle" fill="#ff6b6b" font-size="20" font-weight="700">✕</text></g>
+      </g>
+      <g data-step="3">
+        <path d="M490 215 C 380 215, 260 238, 140 238" stroke="#6e9bff" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <text x="320" y="216" text-anchor="middle" fill="#a9c4ff" font-size="15" font-family="JetBrains Mono,monospace">-p 8081:80</text>
+        <text x="170" y="210" fill="#3ccf7f" font-size="22" font-weight="700">✓</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================= 7 · CHECK ======================= -->
+<section class="slide" data-scene="cols" data-title-en="Check the port" data-title-fa="بررسی پورت">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Check <span class="hl">the port</span></span><span class="fa split">بررسی <span class="hl">پورت</span></span></h2>
+  <div class="term xs a" style="--d:.4;margin-top:22px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall colsrc" data-step="1" data-reveal="2" data-task-en="👉 List the running containers, then look at the PORTS column." data-task-fa="👉 کانتینرهای در حال اجرا را فهرست کنید و به ستون PORTS نگاه کنید."><div class="cmd">docker ps</div><pre class="out">
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS                                     NAMES
+7ffd259c2bc0   nginx     "/docker-entrypoint.…"   4 seconds ago   Up 2 seconds   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   web</pre></div>
+    </div>
+  </div>
+  <div class="colcards">
+    <div class="card" data-step="3" data-col="PORTS"><div class="n">PORTS</div><p><span class="en">In Lesson 3 this column said only <code>80/tcp</code>. Now it shows the connection:</span><span class="fa">در درس ۳ این ستون فقط <code>80/tcp</code> بود. حالا اتصال را نشان می‌دهد:</span></p>
+      <div class="bigport"><span class="m">0.0.0.0:</span><span class="h">8080</span><span class="m">-&gt;</span><span class="c">80</span><span class="m">/tcp</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px;text-align:center;direction:ltr">
+        <p style="color:var(--amber)"><span class="en">port 8080 on your PC</span><span class="fa">پورت 8080 کامپیوتر شما</span></p>
+        <p style="color:var(--green)"><span class="en">→ port 80 in the container</span><span class="fa">→ پورت 80 کانتینر</span></p>
+      </div>
+    </div>
+  </div>
+  <p class="lead" data-step="4" style="margin-top:14px;font-size:19px;color:var(--muted)"><span class="en"><code style="font-variant-ligatures:none">[::]</code> is the same thing for IPv6.</span><span class="fa"><code style="font-variant-ligatures:none">[::]</code> همین است برای IPv6.</span></p>
+</section>
+
+<!-- ======================= 8 · OPEN ======================= -->
+<section class="slide" data-title-en="Open it" data-title-fa="باز کردن در مرورگر">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">Open it in <span class="hl">the browser</span></span><span class="fa split">باز کردن در <span class="hl">مرورگر</span></span></h2>
+  <p class="lead a" style="--d:.4;margin-top:10px;font-size:21px"><span class="en">Open <code>http://localhost:8080</code> again (or reload the tab):</span><span class="fa"><code>http://localhost:8080</code> را دوباره باز کنید (یا تب را reload کنید):</span></p>
+  <div style="display:grid;grid-template-columns:600px 1fr;gap:30px;margin-top:18px;direction:ltr">
+    <div style="display:flex;flex-direction:column;gap:16px" class="dirauto">
+      <div class="browser" data-step="1" style="transition-delay:1.6s">
+        <div class="bb"><i></i><i></i><i></i><span>localhost:8080</span></div>
+        <div class="page"><h1>Welcome to nginx!</h1><p>If you see this page, nginx is successfully installed and working. …</p></div>
+      </div>
+      <div class="card tip" data-step="2"><div class="n">🎉</div><p><span class="en">This page comes from nginx <b>inside</b> the container.</span><span class="fa">این صفحه از nginx <b>داخل</b> کانتینر می‌آید.</span></p></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px" class="dirauto">
+      <svg viewBox="0 0 790 230" style="width:790px;height:230px;overflow:visible;direction:ltr" class="a fade">
+        <rect x="4" y="4" width="782" height="222" rx="22" fill="rgba(13,20,38,.45)" stroke="rgba(110,155,255,.35)" stroke-width="2"/>
+        <use href="#brw" x="22" y="50" width="170" height="119"/>
+        <use href="#sock" x="250" y="88" width="70" height="50" style="color:#ffb54d"/>
+        <text x="285" y="166" text-anchor="middle" fill="#ffb54d" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">8080</text>
+        <rect x="508" y="24" width="262" height="190" rx="18" fill="rgba(60,207,127,.05)" stroke="#3ccf7f" stroke-width="2" stroke-dasharray="8 6"/>
+        <use href="#sock" x="436" y="88" width="70" height="50" style="color:#3ccf7f"/>
+        <text x="471" y="166" text-anchor="middle" fill="#3ccf7f" font-size="19" font-weight="700" font-family="JetBrains Mono,monospace">80</text>
+        <path d="M320 113 H 436" stroke="#6e9bff" stroke-width="7" stroke-linecap="round"/>
+        <g transform="translate(590 60)"><use href="#cube" width="100" height="100"/></g>
+        <text x="640" y="196" text-anchor="middle" fill="#a9c4ff" font-size="15" font-family="JetBrains Mono,monospace">nginx</text>
+        <g data-step="1">
+          <circle r="7" fill="#3ccf7f"><animateMotion dur="2.4s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;.5;1" calcMode="linear" path="M192 113 H 630"/></circle>
+          <rect width="20" height="14" rx="2" fill="#ffffff"><animateMotion dur="2.4s" repeatCount="indefinite" keyPoints="0;0;1" keyTimes="0;.5;1" calcMode="linear" path="M630 113 H 180"/></rect>
+          <text x="372" y="80" text-anchor="end" fill="#93a0bb" font-size="14" font-family="Inter,sans-serif" class="en">request →</text>
+          <text x="388" y="80" fill="#93a0bb" font-size="14" font-family="Inter,sans-serif" class="en">← page</text>
+          <text x="372" y="80" text-anchor="end" fill="#93a0bb" font-size="15" font-family="Vazirmatn,sans-serif" class="fa">درخواست →</text>
+          <text x="388" y="80" fill="#93a0bb" font-size="15" font-family="Vazirmatn,sans-serif" class="fa">← صفحه</text>
+        </g>
+      </svg>
+      <div data-step="3" style="display:flex;flex-direction:column;gap:10px">
+        <p style="font-size:19px;color:rgba(238,242,251,.82)"><span class="en">❓ Check it from the terminal instead: <code>curl</code> prints the page's HTML.</span><span class="fa">❓ از ترمینال هم می‌توانید بررسی کنید: <code>curl</code> HTML صفحه را چاپ می‌کند.</span></p>
+        <div class="term xs">
+          <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+          <div class="body">
+            <div class="run" data-step="3"><div class="cmd">curl http://localhost:8080</div><pre class="out">
+&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
 &lt;title&gt;Welcome to nginx!&lt;/title&gt;
-...</code></pre></div>
-  </details>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s4-1"><span><span class="en">I see “Welcome to nginx!” in my browser</span><span class="fa">«Welcome to nginx!» را در مرورگرم می‌بینم</span></span></label>
+...</pre></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 5 CLEAN UP ================= -->
-<section class="card step" id="s5">
-  <h2><span class="num">5</span>
-    <span class="en">Clean up</span><span class="fa">تمیزکاری</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Stop the container, then reload the browser tab: the page is gone again.</p>
-  <p class="fa">کانتینر را متوقف کنید و بعد تب مرورگر را reload کنید: صفحه دوباره از دسترس خارج شده.</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker stop web</code></pre></div>
-  <p class="en">Delete it, and check it's gone from <b>all</b> containers:</p>
-  <p class="fa">حذفش کنید و بررسی کنید که از <b>همه‌ی</b> کانتینرها حذف شده:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker rm web
-docker ps -a</code></pre></div>
-  <p class="en">Remember: we only removed the <b>container</b>. The <b>image</b> is still there. Check it:</p>
-  <p class="fa">یادتان باشد: فقط <b>کانتینر</b> را حذف کردیم. <b>ایمیج</b> هنوز سر جایش است. بررسی کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker image ls nginx</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>IMAGE          ID             DISK USAGE   CONTENT SIZE   EXTRA
-nginx:latest   f9ea18bfa4fa        243MB         66.7MB</code></pre></div>
-  <div class="note key">
-    <p class="en">🔑 Keep this image. We need it in the next lessons.</p>
-    <p class="fa">🔑 این ایمیج را نگه دارید، چون در درس‌های بعد به آن نیاز داریم.</p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s5-1"><span><span class="en">After <code>docker stop</code>, the page no longer loads</span><span class="fa">بعد از <code>docker stop</code>، صفحه دیگر باز نمی‌شود</span></span></label>
-    <label><input type="checkbox" data-id="s5-2"><span><span class="en"><code>web</code> is gone from <code>docker ps -a</code></span><span class="fa"><code>web</code> از <code>docker ps -a</code> حذف شده</span></span></label>
-    <label><input type="checkbox" data-id="s5-img"><span><span class="en">The <code>nginx</code> image is still in <code>docker image ls</code></span><span class="fa">ایمیج <code>nginx</code> هنوز در <code>docker image ls</code> هست</span></span></label>
-  </div>
-</section>
-
-<!-- ================= SUMMARY ================= -->
-<section class="card" id="sum">
-  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><code>-p HOST:CONTAINER</code></td><td><span class="en">Connect a port on your PC to a port in the container</span><span class="fa">وصل کردن یک پورت کامپیوتر شما به یک پورت کانتینر</span></td></tr>
-      <tr><td><code>docker run -d --name web -p 8080:80 nginx</code></td><td><span class="en">nginx, reachable at <code>localhost:8080</code></span><span class="fa">nginx، در دسترس روی <code>localhost:8080</code></span></td></tr>
-      <tr><td><code>docker rm -f NAME</code></td><td><span class="en">Stop and delete a container in one go</span><span class="fa">توقف و حذف کانتینر در یک قدم</span></td></tr>
-      <tr><td><code>PORTS 0.0.0.0:8080->80/tcp</code></td><td><span class="en">How <code>docker ps</code> shows a published port</span><span class="fa">نحوه‌ی نمایش پورت منتشرشده در <code>docker ps</code></span></td></tr>
-    </tbody>
-  </table>
+<!-- ======================= 9 · CLEAN UP ======================= -->
+<section class="slide" data-title-en="Clean up" data-title-fa="تمیزکاری">
+  <div class="kicker a"><span class="en">Step 5</span><span class="fa">قدم ۵</span></div>
+  <h2><span class="en split">Clean <span class="hl">up</span></span><span class="fa split"><span class="hl">تمیزکاری</span></span></h2>
+  <div style="display:grid;grid-template-columns:840px 1fr;gap:28px;margin-top:22px;direction:ltr">
+    <div class="term xs a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Stop the container, then reload the browser tab." data-task-fa="👉 کانتینر را متوقف کنید و بعد تب مرورگر را reload کنید."><div class="cmd">docker stop web</div><pre class="out">
+web</pre></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Delete it." data-task-fa="👉 حذفش کنید."><div class="cmd">docker rm web</div><pre class="out">
+web</pre></div>
+        <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 Check it's gone from all containers." data-task-fa="👉 بررسی کنید که از همه‌ی کانتینرها حذف شده."><div class="cmd">docker ps -a</div><pre class="out">
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</pre></div>
+        <div class="run recall" data-step="7" data-reveal="8" data-task-en="👉 We only removed the container. Check the image: list only the nginx image." data-task-fa="👉 فقط کانتینر را حذف کردیم. ایمیج را بررسی کنید: فقط ایمیج nginx را فهرست کنید."><div class="cmd">docker image ls nginx</div><pre class="out">
+IMAGE          ID             DISK USAGE   CONTENT SIZE   EXTRA
+nginx:latest   f9ea18bfa4fa        243MB         66.7MB</pre></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px" class="dirauto">
+      <div class="browser err" data-step="2" style="transition-delay:1.2s">
+        <div class="bb"><i></i><i></i><i></i><span>localhost:8080</span></div>
+        <div class="page" style="min-height:120px"><div class="ic">📄</div><h1>This site can’t be reached</h1></div>
+      </div>
+      <p data-step="2" style="font-size:18px;color:rgba(238,242,251,.82);transition-delay:1.2s"><span class="en">After <code>docker stop</code>, the page is gone again.</span><span class="fa">بعد از <code>docker stop</code>، صفحه دوباره از دسترس خارج شده.</span></p>
+      <div class="card tip sm" data-step="8" style="display:flex;gap:18px;align-items:center">
+        <svg viewBox="0 0 100 100" style="width:80px;height:80px;flex:none" class="bob"><use href="#box3" x="8" y="12" width="84" height="78"/></svg>
+        <p><span class="en">🔑 The <b>image</b> is still there. Keep it: we need it in the next lessons.</span><span class="fa">🔑 <b>ایمیج</b> هنوز سر جایش است. نگهش دارید، چون در درس‌های بعد به آن نیاز داریم.</span></p>
+      </div>
+    </div>
   </div>
 </section>
 
-<div class="done-banner" id="doneBanner">
-  <h2>🎉 <span class="en">You opened a container in your browser!</span><span class="fa">یک کانتینر را در مرورگر باز کردید!</span></h2>
-  <p id="nextLine"></p>
+<!-- ======================= 10 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 You opened a container <span class="hl">in your browser!</span></span><span class="fa split">🎉 یک کانتینر را <span class="hl">در مرورگر</span> باز کردید!</span></h2>
+  <div class="sumgrid">
+    <div class="card a" style="--d:.4"><code>-p HOST:CONTAINER</code><p><span class="en">Connect a port on your PC to a port in the container</span><span class="fa">وصل کردن یک پورت کامپیوتر شما به یک پورت کانتینر</span></p></div>
+    <div class="card a" style="--d:.5"><code>docker rm -f NAME</code><p><span class="en">Stop and delete a container in one go</span><span class="fa">توقف و حذف کانتینر در یک قدم</span></p></div>
+    <div class="card a" style="--d:.6;grid-column:1/3"><code style="min-width:545px">docker run -d --name web -p 8080:80 nginx</code><p><span class="en">nginx, reachable at <code>localhost:8080</code></span><span class="fa">nginx، در دسترس روی <code>localhost:8080</code></span></p></div>
+    <div class="card a" style="--d:.7;grid-column:1/3"><code style="min-width:545px">PORTS 0.0.0.0:8080-&gt;80/tcp</code><p><span class="en">How <code>docker ps</code> shows a published port</span><span class="fa">نحوه‌ی نمایش پورت منتشرشده در <code>docker ps</code></span></p></div>
+  </div>
+  <div class="btnrow a" style="--d:1.1">
+    <a class="bigbtn primary" href="05-logs.html"><span class="en">Next: Lesson 5 · Logs →</span><span class="fa">بعدی: درس ۵ · لاگ‌ها ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 10</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
 </div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
 
-<nav class="pager" id="pager"></nav>
+<script>
+/* ---------- lesson 4 scenes ---------- */
+window.SCENES = {
+  /* -p 8080:80 splits into "your PC" and "container" */
+  psplit(slide) {
+    const el = slide.querySelector('#psplit');
+    el.classList.remove('apart');
+    return { step(k) { el.classList.toggle('apart', k >= 2); } };
+  },
 
-<footer>
-  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
-</footer>
+  /* highlight the column of the card that just appeared (cards carry data-col) */
+  cols(slide) {
+    const run = slide.querySelector('.colsrc'), out = run.querySelector('.out');
+    const lines = [...out.querySelectorAll('.ol')].map(l => l.textContent);
+    const header = lines[0], rows = lines.slice(1).map(l => l.replace(/#.*$/, ''));
+    const toks = rows.flatMap(r => [...r.matchAll(/\S+(?: \S+)*/g)].map(m => [m.index, m.index + m[0].length]));
+    const span = key => { let a = header.indexOf(key), b = a + key.length; toks.forEach(([x, y]) => { if (x < b && y > a) { a = Math.min(a, x); b = Math.max(b, y); } }); return [a, b]; };
+    let hl = out.querySelector('.colhl');
+    if (!hl) { hl = document.createElement('div'); hl.className = 'colhl'; out.appendChild(hl); }
+    hl.style.opacity = 0; hl.style.height = (lines.length * 1.65) + 'em';
+    const cards = [...slide.querySelectorAll('[data-col]')];
+    return {
+      step(k) {
+        const c = cards.find(c => +c.dataset.step <= k && k <= +c.dataset.step + 1);
+        cards.forEach(x => x.classList.toggle('on', x === c));
+        if (c) { const [a, b] = span(c.dataset.col); hl.style.left = `calc(${a}ch - 4px)`; hl.style.width = `calc(${b - a}ch + 8px)`; hl.style.opacity = 1; }
+        else hl.style.opacity = 0;
+      },
+      stop() { hl.style.opacity = 0; }
+    };
+  },
 
-</main>
-
-</div>
-
+  /* confetti */
+  sum(slide, api) {
+    const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+    const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+    const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+    const stop = api.loop(t => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of P) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+        if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+      }
+    });
+    return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+  }
+};
+</script>
 <script src="tips.js"></script>
-<script src="course.js"></script>
+<script src="deck.js"></script>
 </body>
 </html>

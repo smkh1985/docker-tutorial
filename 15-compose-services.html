@@ -1,293 +1,499 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 15 · Compose: an app and its database</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 15 · Compose: an app and its database (motion)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Vazirmatn:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="course.css">
-</head>
-<body class="lang-en" data-lesson="15">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Vazirmatn:wght@400;600;700&display=swap">
+<link rel="icon" href="docker.svg" type="image/svg+xml">
+<link rel="stylesheet" href="deck.css">
+<style>
+  /* ---- shared lesson bits ---- */
+  .t-slab{fill:var(--t)}.l-slab{fill:var(--l)}.r-slab{fill:var(--r)}
+  svg [data-step].pop-in,svg [data-only].pop-in{transform-box:fill-box;transform-origin:center}
+  [data-until]{transition:opacity .6s,filter .6s}
+  [data-until].gone{opacity:0!important;filter:blur(8px)}
+  .goal{display:flex;flex-direction:column;gap:14px;min-height:280px}
+  .goal svg{width:96px;height:96px}
+  .goal h3{font-size:25px}
+  .term.sm .body{font-size:17px}
+  .term.xs .body{font-size:15px;padding:16px 20px 18px}
+  .btnrow{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+  .bigbtn{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;border-radius:14px;font:700 19px var(--font);text-decoration:none;color:var(--text);border:1px solid rgba(110,155,255,.4);background:rgba(29,99,237,.18);transition:all .25s}
+  .bigbtn:hover{background:var(--blue);transform:translateY(-3px)}
+  .bigbtn.primary{background:linear-gradient(90deg,var(--blue),#2f86ff);border-color:transparent;box-shadow:0 10px 40px rgba(29,99,237,.45)}
+  .sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+  .sumgrid .card{display:flex;align-items:center;gap:22px;padding:20px 24px}
+  .sumgrid code{font-size:20px;flex:none;min-width:360px;text-align:left}
+  .sumgrid p{font-size:18px}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .browser{border-radius:14px;overflow:hidden;background:#f3f5fa;color:#1b2333;box-shadow:0 26px 60px rgba(0,0,0,.5);direction:ltr;text-align:left}
+  .browser .bar{display:flex;align-items:center;gap:7px;padding:9px 14px;background:#dde3ee}
+  .browser .bar i{width:11px;height:11px;border-radius:50%;background:#c3cad8}
+  .browser .bar .url{flex:1;margin-left:8px;background:#fff;border-radius:8px;padding:4px 12px;font:500 14px var(--mono);color:#556}
+  .browser .page{padding:14px 20px 16px;font-family:Tahoma,Verdana,sans-serif}
+  .browser .page h1{font:700 26px Tahoma,Verdana,sans-serif;letter-spacing:0;color:#1b2333;margin-bottom:6px}
+  .browser .page p{font:14px/1.5 Tahoma,Verdana,sans-serif;color:#34405a}
+  .browser.err .page p{color:#a3202c;background:#fde8ea;border-left:4px solid #e04050;padding:7px 10px;border-radius:6px}
+  .browser .page .crumb{color:#2f62b8}
+  .lead.sm{font-size:21px}
+  .vs{display:block;margin-top:8px}
+  code{font-variant-ligatures:none} /* JetBrains Mono's -- ligature breaks inside RTL text */
+  /* ---- lesson 15 ---- */
 
-<!-- ================= TOP BAR (title and ‹ › links are filled in by course.js) ================= -->
-<header class="topbar">
-  <div class="topbar-inner">
-    <a class="brand" href="index.html" title="Course home"><span class="dot"></span>
-      <span class="title-text" id="brandTitle"></span>
-    </a>
-    <div class="progress-wrap">
-      <div class="progress"><div id="bar"></div></div>
-      <span class="progress-label" id="plabel">0 / 0</span>
-    </div>
-    <span id="navSlot"></span>
-    <button class="btn lang" id="langBtn" title="Switch language">فارسی</button>
-    <button class="btn" id="themeBtn" title="Theme">◐</button>
-    <button class="btn" id="resetBtn"><span class="en">Reset</span><span class="fa">شروع دوباره</span></button>
-  </div>
+  .yaml .yb{padding:16px 22px 18px;font:500 20px/1.7 var(--mono);color:#dfe6f5}
+  .yl{white-space:pre;border-radius:6px;padding:0 8px;margin:0 -8px;transition:background .35s,box-shadow .35s}
+  .yl .k{color:#7fb0ff}.yl .v{color:#ffcf6b}.yl .s{color:#7fd8a6}.yl .d{color:#93a0bb}
+  .yl.hot{background:rgba(110,155,255,.2);box-shadow:0 0 0 2px rgba(110,155,255,.7)}
+  .typein .yl{opacity:0;transform:translateX(-12px);transition:opacity .4s,transform .4s var(--ease),background .35s,box-shadow .35s}
+  .typein.in .yl{opacity:1;transform:none;transition-delay:calc(var(--i) * .3s),calc(var(--i) * .3s),0s,0s}
+  .drun{font:500 19px/1.4 var(--mono);direction:ltr;text-align:left;white-space:nowrap;padding:16px 22px;border-radius:14px;background:#05080f;border:1px solid rgba(110,155,255,.22);color:#dfe6f5}
+  .drun::before{content:"$ ";color:var(--green)}
+  .drun .sg{border-radius:6px;padding:1px 4px;transition:background .35s,box-shadow .35s,color .35s}
+  .drun .sg.hot{background:rgba(255,181,77,.22);box-shadow:0 0 0 2px #ffb54d;color:#fff}
+  .drun.big{font-size:22px;padding:22px 26px}
+  .pains{display:flex;gap:18px;margin-top:26px;flex-wrap:wrap}
+  .pain{font:700 26px var(--display);padding:14px 24px;border-radius:16px;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.45);color:#ffb3b3}
+  .pain[data-step]{transform:scale(.6) rotate(-6deg)}
+  .pain[data-step].in{transform:rotate(-2deg);transition:transform .5s var(--back),opacity .3s,filter .3s}
+  .tree{font:500 22px/1.5 var(--mono);direction:ltr;text-align:left;display:flex;flex-direction:column;gap:12px}
+  .tree .row{display:flex;gap:12px;align-items:center}
+  .tree .row.i1{margin-left:44px}.tree .row.i2{margin-left:88px}
+  .tree .ic{font-size:28px}
+  .tree .here{font:700 15px var(--font);color:var(--green);border:1px solid var(--green);border-radius:999px;padding:2px 10px;margin-left:8px}
+  body.lang-fa .tree .here{font-family:Vazirmatn,sans-serif}
+  .mapcap{position:relative;min-height:250px}
+  .mapcap>.card{position:absolute;inset:0 0 auto 0}
+  .mapcap .pair{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:14px;direction:ltr}
+  .mapcap .pair code{font-size:21px}
+  .mapcap .arr{color:var(--muted);font:700 22px var(--font)}
+  .mapcap p{font-size:22px}
+  .namebrk{display:flex;gap:4px;font:600 30px var(--mono);direction:ltr;justify-content:center;margin:6px 0 4px}
+  .namebrk span{padding:2px 6px;border-radius:8px}
+  .nbl{display:grid;grid-template-columns:repeat(3,auto);justify-content:center;gap:4px 30px;text-align:center;font-size:16px;color:var(--muted)}
+
+  .yaml.tall .yb{font-size:18px;line-height:1.6;padding:12px 22px 14px}
+  .form{display:grid;grid-template-columns:120px 1fr;gap:6px 14px;align-items:center;direction:ltr;text-align:left;margin-top:6px}
+  .form b{font:600 16px var(--font);color:var(--muted)}
+  .form code{font-size:17px}
+  .form small{font:600 15px var(--font);color:var(--amber);margin-left:8px}
+  body.lang-fa .form small{font-family:Vazirmatn,sans-serif}
+  .colbox{position:absolute;border-radius:6px;background:rgba(255,181,77,.16);outline:2px solid rgba(255,181,77,.7);pointer-events:none;transition:opacity .4s}
+  .stag>*{transition-delay:calc(var(--k,0) * .45s)!important}
+  .mk{border-radius:4px;transition:background .35s,box-shadow .35s}.mk.hot{background:rgba(255,181,77,.25);box-shadow:0 0 0 2px #ffb54d;color:#fff}
+  .sumgrid code.tx{font-family:var(--font);font-weight:700;direction:inherit;text-align:start}
+  .sumgrid code.tx .mono{font-family:var(--mono);font-weight:500}
+  .before{display:flex;flex-direction:column;gap:8px;direction:ltr}
+  .before code{font-size:15px;opacity:.75;white-space:nowrap}
+
+</style>
+</head>
+<body class="lang-en">
+<canvas id="bg"></canvas><div id="glow"></div><div class="vignette"></div>
+<div id="progress"></div>
+
+<!-- shared isometric shapes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="slab" viewBox="-62 -32 124 86" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V52L-60 22Z"/><path class="r-slab" d="M0 30L60 0V22L0 52Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+    </symbol>
+    <symbol id="cube" viewBox="-62 -32 124 124" overflow="visible">
+      <path d="M-60 0L0 30V90L-60 60Z" fill="#167a4a"/><path d="M0 30L60 0V60L0 90Z" fill="#0f5a37"/><path d="M0 -30L60 0L0 30L-60 0Z" fill="#3ccf7f"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="cubec" viewBox="-62 -32 124 124" overflow="visible">
+      <path class="l-slab" d="M-60 0L0 30V90L-60 60Z"/><path class="r-slab" d="M0 30L60 0V60L0 90Z"/><path class="t-slab" d="M0 -30L60 0L0 30L-60 0Z"/>
+      <path d="M-44 20V52M-30 27V59M-16 34V66M44 20V52M30 27V59M16 34V66" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
+    </symbol>
+    <symbol id="monitor" viewBox="0 0 200 170"><rect x="4" y="4" width="192" height="122" rx="14" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M80 126l-8 30h56l-8-30" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M56 158h88" stroke="#6e9bff" stroke-width="5" stroke-linecap="round"/></symbol>
+    <symbol id="doc" viewBox="0 0 120 150"><path d="M8 6h76l28 28v108a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z" fill="#0d1426" stroke="#6e9bff" stroke-width="4"/><path d="M84 6v28h28" fill="none" stroke="#6e9bff" stroke-width="4"/>
+      <g stroke-width="7" stroke-linecap="round"><path d="M20 50h40" stroke="#7fb0ff"/><path d="M32 70h34" stroke="#7fb0ff"/><path d="M44 90h30M80 90h16" stroke="#ffcf6b"/><path d="M44 110h36" stroke="#7fb0ff"/><path d="M56 128h36" stroke="#7fd8a6"/></g></symbol>
+    <symbol id="disk" viewBox="0 0 120 100" overflow="visible"><path d="M8 22v56c0 10 23 18 52 18s52-8 52-18V22" fill="#33255f" stroke="#b48cff" stroke-width="3"/><path d="M8 50c0 10 23 18 52 18s52-8 52-18" fill="none" stroke="#b48cff" stroke-opacity=".45" stroke-width="2"/><ellipse cx="60" cy="22" rx="52" ry="16" fill="#6a4bc4" stroke="#b48cff" stroke-width="3"/></symbol>
+  </defs>
+</svg>
+
+<header class="topnav">
+  <a class="home pill" href="index.html"><img src="docker.svg" alt=""><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
+  <span class="sp"></span>
+  <button class="pill" id="ovBtn"><span class="en">All slides</span><span class="fa">همه‌ی اسلایدها</span></button>
+  <button class="pill" id="langBtn">فارسی</button>
 </header>
 
-<div class="layout">
+<div id="viewport"><div id="stage">
 
-<!-- ================= TABLE OF CONTENTS ================= -->
-<nav class="toc">
-  <ol>
-    <li><a href="#s1"><span class="tick">✓</span><span class="en">1 · Project folder + env file</span><span class="fa">۱ · پوشه‌ی پروژه + env file</span></a></li>
-    <li><a href="#s2"><span class="tick">✓</span><span class="en">2 · Write compose.yaml</span><span class="fa">۲ · نوشتن compose.yaml</span></a></li>
-    <li><a href="#s3"><span class="tick">✓</span><span class="en">3 · Start everything</span><span class="fa">۳ · اجرای همه‌چیز</span></a></li>
-    <li><a href="#s4"><span class="tick">✓</span><span class="en">4 · Log in by service name</span><span class="fa">۴ · ورود با نام سرویس</span></a></li>
-    <li><a href="#s5"><span class="tick">✓</span><span class="en">5 · Save some data</span><span class="fa">۵ · ذخیره‌ی داده</span></a></li>
-    <li><a href="#s6"><span class="tick">✓</span><span class="en">6 · down, then up</span><span class="fa">۶ · down و دوباره up</span></a></li>
-    <li><a href="#s7"><span class="tick">✓</span><span class="en">7 · Remove everything</span><span class="fa">۷ · حذف همه‌چیز</span></a></li>
-  </ol>
-</nav>
-
-<main>
-
-<!-- ================= HERO ================= -->
-<section class="hero">
-  <h1>
-    <span class="en">Lesson 15 — Compose: an app and its database</span>
-    <span class="fa">درس ۱۵ — Compose: یک برنامه و دیتابیسش</span>
-  </h1>
-  <p class="en">In Lesson 13 you connected Adminer to PostgreSQL with <b>four</b> commands: a network, two long <code>docker run</code>s… Now you'll write it all <b>once</b> in a <code>compose.yaml</code>, with the env file (Lesson 11) and a named volume (Lesson 9), and start it with <b>one</b> command.</p>
-  <p class="fa">در درس ۱۳ با <b>چهار</b> دستور Adminer را به PostgreSQL وصل کردید: یک شبکه، دو <code>docker run</code> طولانی… حالا همه را <b>یک بار</b> در یک <code>compose.yaml</code> می‌نویسید، با env file (درس ۱۱) و یک named volume (درس ۹)، و با <b>یک</b> دستور اجرا می‌کنید.</p>
-  <p class="en">🧠 <b>Blurred commands</b> are ones you've already learned. Try to remember them, then click to check.</p>
-  <p class="fa">🧠 <b>دستورهای محو</b> را قبلاً یاد گرفته‌اید. سعی کنید به یاد بیاورید، بعد کلیک کنید و ببینید.</p>
+<!-- ======================= 1 · TITLE ======================= -->
+<section class="slide" data-title-en="Lesson 15 — An app and its database" data-title-fa="درس ۱۵ — یک برنامه و دیتابیسش" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:30px">
+  <div>
+    <div class="kicker a"><span class="en">Docker course · Lesson 15</span><span class="fa">دوره‌ی Docker · درس ۱۵</span></div>
+    <h1 style="font-size:84px;line-height:1.1;margin:26px 0 26px">
+      <span class="en split">Compose: <span class="hl">an app and its database</span></span><span class="fa split">Compose: <span class="hl">یک برنامه و دیتابیسش</span></span>
+    </h1>
+    <p class="lead a" style="--d:.6"><span class="en">Two services, a network and a volume, all written <b>once</b> in a <code>compose.yaml</code> and started with <b>one</b> command.</span><span class="fa">دو سرویس، یک شبکه و یک volume، همه <b>یک بار</b> در یک <code>compose.yaml</code> نوشته می‌شوند و با <b>یک</b> دستور اجرا می‌شوند.</span></p>
+    <p class="a fade" style="--d:1.2;margin-top:40px;font-size:18px;color:var(--muted)"><span class="en">Press <code>→</code> or <code>Space</code> to start</span><span class="fa">برای شروع <code>→</code> یا <code>Space</code> را بزنید</span></p>
+  </div>
+  <svg class="a blur" style="--d:.3;width:700px;height:620px;overflow:visible;direction:ltr" viewBox="0 0 700 620">
+    <circle cx="350" cy="310" r="290" fill="none" stroke="rgba(110,155,255,.14)" stroke-dasharray="4 10"/>
+    <g class="bob"><use href="#doc" x="270" y="40" width="120" height="150"/></g>
+    <path d="M330 200 V250" stroke="#6e9bff" stroke-width="3" class="flow"/>
+    <path d="M90 300 H610" stroke="#3ccf7f" stroke-width="8" stroke-linecap="round" opacity=".45"/>
+    <path d="M90 300 H610" stroke="#b8f5d2" stroke-width="3" class="flow"/>
+    <path d="M190 380 V300 M480 380 V300" stroke="#3ccf7f" stroke-width="5"/>
+    <use href="#cube" x="125" y="350" width="130" height="130"/>
+    <use href="#cubec" x="415" y="350" width="130" height="130" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+    <text x="190" y="520" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text>
+    <text x="480" y="520" text-anchor="middle" fill="#eef2fb" font-size="22" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+    <path d="M545 440 H585" stroke="#b48cff" stroke-width="3" stroke-dasharray="4 4"/>
+    <use href="#disk" x="585" y="405" width="90" height="75"/>
+    <text x="630" y="510" text-anchor="middle" fill="#b48cff" font-size="16" font-family="JetBrains Mono,monospace">pgdata</text>
+    <g><circle r="7" fill="#3ccf7f"/><animateMotion dur="2.4s" repeatCount="indefinite" path="M190 380 V300 H480 V380"/></g>
+  </svg>
 </section>
 
-<!-- ================= 1 FOLDER ================= -->
-<section class="card step" id="s1">
-  <h2><span class="num">1</span>
-    <span class="en">Project folder and env file</span><span class="fa">پوشه‌ی پروژه و env file</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Make a project folder called <code>compose-db</code> in your home folder and go into it (Lesson 14):</p>
-  <p class="fa">یک پوشه‌ی پروژه به نام <code>compose-db</code> در پوشه‌ی خانه‌تان بسازید و واردش شوید (درس ۱۴):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>mkdir ~/compose-db
-cd ~/compose-db</code></pre></div>
-  <p class="en">Create <code>db.env</code> with <code>nano</code>, with the same three settings as in Lesson 11:</p>
-  <p class="fa">با <code>nano</code> فایل <code>db.env</code> را با همان سه تنظیم درس ۱۱ بسازید:</p>
-  <div class="code"><span class="lbl">db.env</span><pre><code>POSTGRES_USER=ali
-POSTGRES_PASSWORD=secret
-POSTGRES_DB=shop</code></pre></div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s1-1"><span><span class="en"><code>db.env</code> is in <code>~/compose-db</code></span><span class="fa"><code>db.env</code> در <code>~/compose-db</code> است</span></span></label>
+<!-- ======================= 3 · FOLDER + ENV ======================= -->
+<section class="slide" data-title-en="Project folder and env file" data-title-fa="پوشه‌ی پروژه و env file">
+  <div class="kicker a"><span class="en">Step 1</span><span class="fa">قدم ۱</span></div>
+  <h2><span class="en split">Project folder and <span class="hl">env file</span></span><span class="fa split">پوشه‌ی پروژه و <span class="hl">env&nbsp;file</span></span></h2>
+  <div style="display:grid;grid-template-columns:820px 1fr;gap:34px;margin-top:26px">
+    <div class="term sm a" style="--d:.4;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Make a project folder called compose-db in your home folder." data-task-fa="👉 یک پوشه‌ی پروژه به نام compose-db در پوشه‌ی خانه‌تان بسازید."><div class="cmd">mkdir ~/compose-db</div></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Go into it." data-task-fa="👉 واردش شوید." style="margin-bottom:0"><div class="cmd">cd ~/compose-db</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="term yaml typein" data-step="5">
+        <div class="bar"><i></i><i></i><i></i><span>db.env</span></div>
+        <div class="yb">
+<div class="yl" style="--i:0"><span class="k">POSTGRES_USER</span>=<span class="v">ali</span></div>
+<div class="yl" style="--i:1"><span class="k">POSTGRES_PASSWORD</span>=<span class="v">secret</span></div>
+<div class="yl" style="--i:2"><span class="k">POSTGRES_DB</span>=<span class="v">shop</span></div>
+        </div>
+      </div>
+      <div class="card" data-step="5"><p><span class="en">Create <code>db.env</code> with <code>nano</code>, with the same three settings as in Lesson 11.</span><span class="fa">با <code>nano</code> فایل <code>db.env</code> را با همان سه تنظیم درس ۱۱ بسازید.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 2 YAML ================= -->
-<section class="card step" id="s2">
-  <h2><span class="num">2</span>
-    <span class="en">Write <code>compose.yaml</code></span><span class="fa">نوشتن <code>compose.yaml</code></span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Create <code>compose.yaml</code> with <code>nano</code> in the same folder (mind the spaces):</p>
-  <p class="fa">با <code>nano</code> فایل <code>compose.yaml</code> را در همان پوشه بسازید (به فاصله‌ها دقت کنید):</p>
-  <div class="code"><span class="lbl">compose.yaml</span><pre><code>services:
-  db:
-    image: postgres:alpine
-    env_file: db.env
-    volumes:
-      - pgdata:/var/lib/postgresql
-  adminer:
-    image: adminer
-    ports:
-      - "8080:8080"
-
-volumes:
-  pgdata:</code></pre></div>
-  <div class="table-wrap">
-  <table>
-    <thead><tr>
-      <th><code>compose.yaml</code></th>
-      <th><span class="en">Same as</span><span class="fa">معادل</span></th>
-    </tr></thead>
-    <tbody>
-      <tr><td><code>db:</code> / <code>adminer:</code></td><td><span class="en">two services, like <code>--name db</code> and <code>--name adminer</code></span><span class="fa">دو سرویس، مثل <code>--name db</code> و <code>--name adminer</code></span></td></tr>
-      <tr><td><code>env_file: db.env</code></td><td><code>--env-file db.env</code> <span class="en">(Lesson 11)</span><span class="fa">(درس ۱۱)</span></td></tr>
-      <tr><td><code>- pgdata:/var/lib/postgresql</code></td><td><span class="en">a named volume on PostgreSQL's data folder, like <code>-v</code> (Lesson 9)</span><span class="fa">یک named volume روی پوشه‌ی داده‌ی PostgreSQL، مثل <code>-v</code> (درس ۹)</span></td></tr>
-      <tr><td><code>- "8080:8080"</code></td><td><code>-p 8080:8080</code> <span class="en">(only Adminer, for your browser)</span><span class="fa">(فقط Adminer، برای مرورگر شما)</span></td></tr>
-      <tr><td><code>volumes: pgdata:</code></td><td><span class="en">At the bottom, without indentation: <b>declare</b> the named volume. Compose requires this</span><span class="fa">در پایین، بدون تورفتگی: named volume را <b>اعلام</b> می‌کند. Compose این را لازم دارد</span></td></tr>
-      <tr><td><span class="en">no network?</span><span class="fa">شبکه نیست؟</span></td><td><span class="en">Compose creates one for the project and puts every service on it (Lesson 14)</span><span class="fa">Compose یکی برای پروژه می‌سازد و همه‌ی سرویس‌ها را رویش می‌گذارد (درس ۱۴)</span></td></tr>
-    </tbody>
-  </table>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s2-1"><span><span class="en"><code>compose.yaml</code> is saved next to <code>db.env</code></span><span class="fa"><code>compose.yaml</code> کنار <code>db.env</code> ذخیره شد</span></span></label>
+<!-- ======================= 4 · compose.yaml ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Write compose.yaml" data-title-fa="نوشتن compose.yaml">
+  <div class="kicker a"><span class="en">Step 2</span><span class="fa">قدم ۲</span></div>
+  <h2><span class="en split">Write <span class="hl">compose.yaml</span></span><span class="fa split">نوشتن <span class="hl">compose.yaml</span></span></h2>
+  <div style="display:grid;grid-template-columns:600px 1fr;gap:34px;margin-top:22px">
+    <div class="term yaml tall a" style="--d:.4">
+      <div class="bar"><i></i><i></i><i></i><span>compose.yaml</span></div>
+      <div class="yb">
+<div class="yl"><span class="k">services:</span></div>
+<div class="yl" data-hot="1">  <span class="k">db:</span></div>
+<div class="yl">    <span class="k">image:</span> <span class="v">postgres:alpine</span></div>
+<div class="yl" data-hot="2">    <span class="k">env_file:</span> <span class="v">db.env</span></div>
+<div class="yl" data-hot="3">    <span class="k">volumes:</span></div>
+<div class="yl" data-hot="3">      - <span class="s">pgdata:/var/lib/postgresql</span></div>
+<div class="yl" data-hot="1">  <span class="k">adminer:</span></div>
+<div class="yl">    <span class="k">image:</span> <span class="v">adminer</span></div>
+<div class="yl" data-hot="4">    <span class="k">ports:</span></div>
+<div class="yl" data-hot="4">      - <span class="s">"8080:8080"</span></div>
+<div class="yl" data-hot="5"><span class="k">volumes:</span></div>
+<div class="yl" data-hot="5">  <span class="k">pgdata:</span></div>
+      </div>
+    </div>
+    <div class="mapcap" style="min-height:300px">
+      <div class="card a" style="--d:.5" data-until="1"><p><span class="en">Create <code>compose.yaml</code> with <code>nano</code> in the same folder (mind the spaces). Press → to read it line by line.</span><span class="fa">با <code>nano</code> فایل <code>compose.yaml</code> را در همان پوشه بسازید (به فاصله‌ها دقت کنید). → را بزنید تا خط به خط بخوانیدش.</span></p></div>
+      <div class="card on" data-only="1"><div class="pair"><code>db:</code><code>adminer:</code></div><p><span class="en">Two services, like <code>--name db</code> and <code>--name adminer</code>.</span><span class="fa">دو سرویس، مثل <code>--name db</code> و <code>--name adminer</code>.</span></p></div>
+      <div class="card on" data-only="2"><div class="pair"><code>env_file: db.env</code><span class="arr">↔</span><code>--env-file db.env</code></div><p><span class="en">Same as <code>--env-file</code> (Lesson 11).</span><span class="fa">معادل <code>--env-file</code> (درس ۱۱).</span></p></div>
+      <div class="card on" data-only="3"><div class="pair"><code>- pgdata:/var/lib/postgresql</code></div><p><span class="en">A named volume on PostgreSQL's data folder, like <code>-v</code> (Lesson 9).</span><span class="fa">یک named volume روی پوشه‌ی داده‌ی PostgreSQL، مثل <code>-v</code> (درس ۹).</span></p></div>
+      <div class="card on" data-only="4"><div class="pair"><code>- "8080:8080"</code><span class="arr">↔</span><code>-p 8080:8080</code></div><p><span class="en">Only Adminer, for your browser.</span><span class="fa">فقط Adminer، برای مرورگر شما.</span></p></div>
+      <div class="card on" data-only="5"><div class="pair"><code>volumes: pgdata:</code></div><p><span class="en">At the bottom, without indentation: <b>declare</b> the named volume. Compose requires this.</span><span class="fa">در پایین، بدون تورفتگی: named volume را <b>اعلام</b> می‌کند. Compose این را لازم دارد.</span></p></div>
+      <div class="card key" data-only="6"><div class="n"><span class="en">NO NETWORK?</span><span class="fa">شبکه نیست؟</span></div><p><span class="en">Compose creates one for the project and puts every service on it (Lesson 14).</span><span class="fa">Compose یکی برای پروژه می‌سازد و همه‌ی سرویس‌ها را رویش می‌گذارد (درس ۱۴).</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 3 UP ================= -->
-<section class="card step" id="s3">
-  <h2><span class="num">3</span>
-    <span class="en">Start everything</span><span class="fa">اجرای همه‌چیز</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Start the project in the background (Lesson 14):</p>
-  <p class="fa">پروژه را در پس‌زمینه اجرا کنید (درس ۱۴):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker compose up -d</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>[+] up 4/4
+<!-- ======================= 5 · UP ======================= -->
+<section class="slide" data-title-en="Start everything" data-title-fa="اجرای همه‌چیز">
+  <div class="kicker a"><span class="en">Step 3</span><span class="fa">قدم ۳</span></div>
+  <h2><span class="en split">Start <span class="hl">everything</span></span><span class="fa split">اجرای <span class="hl">همه‌چیز</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:24px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Start the project in the background (Lesson 14)." data-task-fa="👉 پروژه را در پس‌زمینه اجرا کنید (درس ۱۴)." style="margin-bottom:0"><div class="cmd">docker compose up -d</div><pre class="out">
+[+] up 4/4
  ✔ Network compose-db_default     Created
  ✔ Volume compose-db_pgdata       Created
  ✔ Container compose-db-adminer-1 Started
- ✔ Container compose-db-db-1      Started</code></pre></div>
-  <p class="en">One command, four things: a <b>network</b>, a <b>volume</b> and <b>two containers</b>. List the project's containers:</p>
-  <p class="fa">یک دستور، چهار چیز: یک <b>شبکه</b>، یک <b>volume</b> و <b>دو کانتینر</b>. کانتینرهای پروژه را فهرست کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker compose ps</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>NAME                   SERVICE   STATUS         PORTS
-compose-db-adminer-1   adminer   Up 6 seconds   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
-compose-db-db-1        db        Up 7 seconds   5432/tcp</code></pre></div>
-  <p class="en"><code>db</code> shows only <code>5432/tcp</code>: PostgreSQL's port, <b>not</b> published to your PC (Lesson 13).</p>
-  <p class="fa"><code>db</code> فقط <code>5432/tcp</code> را نشان می‌دهد: پورت PostgreSQL، که روی کامپیوتر شما منتشر <b>نشده</b> (درس ۱۳).</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s3-1"><span><span class="en">Both <code>db</code> and <code>adminer</code> are <code>Up</code></span><span class="fa">هر دو <code>db</code> و <code>adminer</code> در وضعیت <code>Up</code> هستند</span></span></label>
+ ✔ Container compose-db-db-1      Started</pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 440px;gap:30px;margin-top:16px;align-items:center">
+    <svg viewBox="0 0 900 300" style="width:900px;height:300px;overflow:visible;direction:ltr">
+      <g data-step="2" style="transition-delay:.4s">
+        <path d="M30 250 H700" stroke="#3ccf7f" stroke-width="10" stroke-linecap="round" class="draw" style="--len:670" opacity=".5"/>
+        <path d="M30 250 H700" stroke="#b8f5d2" stroke-width="3" class="flow"/>
+        <text x="365" y="290" text-anchor="middle" fill="#3ccf7f" font-size="17" font-weight="600" font-family="JetBrains Mono,monospace">compose-db_default</text>
+      </g>
+      <g data-step="2" class="pop-in" style="transition-delay:1s"><use href="#disk" x="740" y="120" width="130" height="108"/></g>
+      <g data-step="2" style="transition-delay:1s"><text x="805" y="258" text-anchor="middle" fill="#b48cff" font-size="16" font-family="JetBrains Mono,monospace">compose-db_pgdata</text><path d="M620 170 H735" stroke="#b48cff" stroke-width="3" stroke-dasharray="5 5"/></g>
+      <g data-step="2" class="pop-in" style="transition-delay:1.5s"><use href="#cube" x="150" y="60" width="130" height="130"/></g>
+      <g data-step="2" style="transition-delay:1.5s"><path d="M215 200V250" stroke="#3ccf7f" stroke-width="5"/><text x="215" y="40" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">compose-db-adminer-1</text></g>
+      <g data-step="2" class="pop-in" style="transition-delay:2s"><use href="#cubec" x="490" y="60" width="130" height="130" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/></g>
+      <g data-step="2" style="transition-delay:2s"><path d="M555 200V250" stroke="#3ccf7f" stroke-width="5"/><text x="555" y="40" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">compose-db-db-1</text></g>
+    </svg>
+    <div class="card key" data-step="3"><p><span class="en">One command, four things: a <b>network</b>, a <b>volume</b> and <b>two containers</b>.</span><span class="fa">یک دستور، چهار چیز: یک <b>شبکه</b>، یک <b>volume</b> و <b>دو کانتینر</b>.</span></p></div>
   </div>
 </section>
 
-<!-- ================= 4 LOGIN ================= -->
-<section class="card step" id="s4">
-  <h2><span class="num">4</span>
-    <span class="en">Log in by service name</span><span class="fa">ورود با نام سرویس</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Open <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> and log in. This time use the settings from <code>db.env</code>:</p>
-  <p class="fa"><a href="http://localhost:8080" target="_blank">http://localhost:8080</a> را باز کنید و وارد شوید. این بار از تنظیمات <code>db.env</code> استفاده کنید:</p>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><b>System</b></td><td><code>PostgreSQL</code></td></tr>
-      <tr><td><b>Server</b></td><td><code>db</code> <span class="en">← the <b>service</b> name from <code>compose.yaml</code></span><span class="fa">← نام <b>سرویس</b> در <code>compose.yaml</code></span></td></tr>
-      <tr><td><b>Username</b></td><td><code>ali</code></td></tr>
-      <tr><td><b>Password</b></td><td><code>secret</code></td></tr>
-      <tr><td><b>Database</b></td><td><code>shop</code></td></tr>
-    </tbody>
-  </table>
+<!-- ======================= 6 · PS ======================= -->
+<section class="slide" data-scene="fx" data-title-en="List the project's containers" data-title-fa="فهرست کانتینرهای پروژه">
+  <div class="kicker a"><span class="en">Step 3 · Check</span><span class="fa">قدم ۳ · بررسی</span></div>
+  <h2><span class="en split">Both <span class="hl">are Up</span></span><span class="fa split">هر دو <span class="hl">Up هستند</span></span></h2>
+  <div class="term sm a" style="--d:.4;margin-top:24px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 List the project's containers." data-task-fa="👉 کانتینرهای پروژه را فهرست کنید." style="margin-bottom:0"><div class="cmd">docker compose ps</div><pre class="out">
+NAME                   SERVICE   STATUS         PORTS
+compose-db-adminer-1   adminer   Up 6 seconds   <span class="mk" data-hot="4">0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp</span>
+compose-db-db-1        db        Up 7 seconds   <span class="mk" data-hot="3">5432/tcp</span></pre></div>
+    </div>
   </div>
-  <div class="browser">
-    <div class="bar">localhost:8080</div>
-    <div class="page"><h1>Schema: public</h1><p>PostgreSQL » db » shop · Logged in as: <b>ali</b></p></div>
-  </div>
-  <p class="en">✅ Adminer found <code>db</code> by its <b>service name</b>, with no <code>docker network create</code> and no <code>--network</code>. The <code>shop</code> database is empty for now.</p>
-  <p class="fa">✅ Adminer، <code>db</code> را با <b>نام سرویسش</b> پیدا کرد، بدون <code>docker network create</code> و بدون <code>--network</code>. دیتابیس <code>shop</code> فعلاً خالی است.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s4-1"><span><span class="en">I'm logged in to <code>shop</code> as <code>ali</code></span><span class="fa">با کاربر <code>ali</code> وارد <code>shop</code> شدم</span></span></label>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:24px">
+    <div class="card" data-step="3"><div class="n">db</div><p><span class="en"><code>db</code> shows only <code>5432/tcp</code>: PostgreSQL's port, <b>not</b> published to your PC (Lesson 13).</span><span class="fa"><code>db</code> فقط <code>5432/tcp</code> را نشان می‌دهد: پورت PostgreSQL، که روی کامپیوتر شما منتشر <b>نشده</b> (درس ۱۳).</span></p></div>
+    <div class="card" data-step="4"><div class="n">adminer</div><p><span class="en">Adminer is published on <code>8080</code>, for your browser.</span><span class="fa">Adminer روی <code>8080</code> منتشر شده، برای مرورگر شما.</span></p></div>
   </div>
 </section>
 
-<!-- ================= 5 SAVE DATA ================= -->
-<section class="card step" id="s5">
-  <h2><span class="num">5</span>
-    <span class="en">Save some data</span><span class="fa">ذخیره‌ی مقداری داده</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Create a table <code>products</code> and add one product, using <code>psql</code> (Lesson 11) inside the <code>db</code> service:</p>
-  <p class="fa">با <code>psql</code> (درس ۱۱) داخل سرویس <code>db</code>، یک جدول <code>products</code> بسازید و یک محصول اضافه کنید:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker compose exec db psql -U ali -d shop -c "CREATE TABLE products (name text);" -c "INSERT INTO products VALUES ('coffee');"</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>CREATE TABLE
-INSERT 0 1</code></pre></div>
-  <p class="en"><code>docker compose exec</code> is like <code>docker exec</code>, but you use the <b>service name</b> (<code>db</code>). Reload Adminer: the table <code>products</code> is there, with <code>coffee</code> in it.</p>
-  <p class="fa"><code>docker compose exec</code> مثل <code>docker exec</code> است، ولی از <b>نام سرویس</b> (<code>db</code>) استفاده می‌کنید. Adminer را reload کنید: جدول <code>products</code> آنجاست و <code>coffee</code> داخلش.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s5-1"><span><span class="en">I see the <code>products</code> table in Adminer</span><span class="fa">جدول <code>products</code> را در Adminer می‌بینم</span></span></label>
+<!-- ======================= 7 · LOG IN ======================= -->
+<section class="slide" data-title-en="Log in by service name" data-title-fa="ورود با نام سرویس">
+  <div class="kicker a"><span class="en">Step 4</span><span class="fa">قدم ۴</span></div>
+  <h2><span class="en split">Log in by <span class="hl">service name</span></span><span class="fa split">ورود با <span class="hl">نام سرویس</span></span></h2>
+  <div style="display:grid;grid-template-columns:640px 1fr;gap:30px;margin-top:22px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="card a" style="--d:.4;padding:20px 24px">
+        <div class="n"><span class="en">OPEN localhost:8080 · SETTINGS FROM db.env</span><span class="fa">localhost:8080 را باز کنید · تنظیمات db.env</span></div>
+        <div class="form">
+          <b>System</b><span><code>PostgreSQL</code></span>
+          <b>Server</b><span><code>db</code><small><span class="en">← the <b>service</b> name from compose.yaml</span><span class="fa">← نام <b>سرویس</b> در compose.yaml</span></small></span>
+          <b>Username</b><span><code>ali</code></span>
+          <b>Password</b><span><code>secret</code></span>
+          <b>Database</b><span><code>shop</code></span>
+        </div>
+      </div>
+      <div class="browser" data-step="1">
+        <div class="bar"><i></i><i></i><i></i><span class="url">localhost:8080</span></div>
+        <div class="page"><h1>Schema: public</h1><p><span class="crumb">PostgreSQL » db » shop</span> · Logged in as: <b>ali</b></p></div>
+      </div>
+    </div>
+    <div>
+      <svg viewBox="0 0 640 330" class="a fade" style="--d:.5;width:640px;height:330px;overflow:visible;direction:ltr">
+        <path d="M20 260 H620" stroke="#3ccf7f" stroke-width="10" stroke-linecap="round" opacity=".5"/>
+        <path d="M20 260 H620" stroke="#b8f5d2" stroke-width="3" class="flow"/>
+        <text x="320" y="300" text-anchor="middle" fill="#3ccf7f" font-size="17" font-weight="600" font-family="JetBrains Mono,monospace">compose-db_default</text>
+        <path d="M140 195 V260 M440 195 V260" stroke="#3ccf7f" stroke-width="5"/>
+        <use href="#cube" x="85" y="70" width="110" height="110"/>
+        <use href="#cubec" x="385" y="70" width="110" height="110" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+        <text x="140" y="50" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text>
+        <text x="440" y="50" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+        <path d="M495 130 H535" stroke="#b48cff" stroke-width="3" stroke-dasharray="4 4"/>
+        <use href="#disk" x="535" y="100" width="80" height="66"/>
+        <g data-step="1">
+          <g><rect x="-24" y="-14" width="48" height="28" rx="8" fill="#3ccf7f"/><text x="0" y="6" text-anchor="middle" fill="#05200f" font-size="15" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+            <animateMotion dur="2.4s" repeatCount="indefinite" path="M140 195 V260 H440 V195"/></g>
+        </g>
+      </svg>
+      <div class="card tip" data-step="2" style="margin-top:8px"><p><span class="en">✅ Adminer found <code>db</code> by its <b>service name</b>, with no <code>docker network create</code> and no <code>--network</code>. The <code>shop</code> database is empty for now.</span><span class="fa">✅ Adminer، <code>db</code> را با <b>نام سرویسش</b> پیدا کرد، بدون <code>docker network create</code> و بدون <code>--network</code>. دیتابیس <code>shop</code> فعلاً خالی است.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 6 DOWN UP ================= -->
-<section class="card step" id="s6">
-  <h2><span class="num">6</span>
-    <span class="en"><code>down</code>, then <code>up</code> again: is the data still there?</span><span class="fa"><code>down</code> و دوباره <code>up</code>: داده‌ها هنوز هستند؟</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Stop and delete the project's containers and network (Lesson 14):</p>
-  <p class="fa">کانتینرها و شبکه‌ی پروژه را متوقف و حذف کنید (درس ۱۴):</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker compose down</code></pre></div>
-  <p class="en">The containers and the network are gone, but <b>not the volume</b>. Check the list of volumes:</p>
-  <p class="fa">کانتینرها و شبکه حذف شدند، ولی <b>volume نه</b>. فهرست volumeها را بررسی کنید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker volume ls</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>DRIVER    VOLUME NAME
-local     compose-db_pgdata</code></pre></div>
-  <p class="en">Start the project again, and ask for the products:</p>
-  <p class="fa">پروژه را دوباره اجرا کنید و محصولات را بپرسید:</p>
-  <div class="code reveal"><span class="lbl">bash</span><pre><code>docker compose up -d</code></pre></div>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker compose exec db psql -U ali -d shop -c "SELECT * FROM products;"</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code>  name
+<!-- ======================= 8 · SAVE DATA ======================= -->
+<section class="slide" data-title-en="Save some data" data-title-fa="ذخیره‌ی داده">
+  <div class="kicker a"><span class="en">Step 5</span><span class="fa">قدم ۵</span></div>
+  <h2><span class="en split">Save <span class="hl">some data</span></span><span class="fa split">ذخیره‌ی <span class="hl">مقداری داده</span></span></h2>
+  <p class="lead sm a" style="--d:.4;margin-top:8px"><span class="en">Create a table <code>products</code> and add one product, using <code>psql</code> (Lesson 11) inside the <code>db</code> service:</span><span class="fa">با <code>psql</code> (درس ۱۱) داخل سرویس <code>db</code>، یک جدول <code>products</code> بسازید و یک محصول اضافه کنید:</span></p>
+  <div class="term xs a" style="--d:.5;margin-top:16px">
+    <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+    <div class="body">
+      <div class="run" data-step="1" style="margin-bottom:0"><div class="cmd">docker compose exec db psql -U ali -d shop -c "CREATE TABLE products (name text);" -c "INSERT INTO products VALUES ('coffee');"</div><pre class="out">
+CREATE TABLE
+INSERT 0 1</pre></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:600px 1fr;gap:30px;margin-top:20px;align-items:start">
+    <svg viewBox="0 0 600 290" style="width:600px;height:290px;overflow:visible;direction:ltr">
+      <use href="#cubec" x="40" y="70" width="140" height="140" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+      <text x="110" y="50" text-anchor="middle" fill="#eef2fb" font-size="20" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+      <path d="M190 160 H400" stroke="#b48cff" stroke-width="3" stroke-dasharray="5 5"/>
+      <use href="#disk" x="400" y="95" width="160" height="133"/>
+      <text x="480" y="260" text-anchor="middle" fill="#b48cff" font-size="17" font-family="JetBrains Mono,monospace">pgdata</text>
+      <g data-step="2">
+        <g>
+          <rect x="-62" y="-30" width="124" height="60" rx="8" fill="#f3f5fa"/>
+          <rect x="-62" y="-30" width="124" height="24" rx="8" fill="#dde3ee"/>
+          <text x="0" y="-12" text-anchor="middle" fill="#2f62b8" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace">products</text>
+          <text x="0" y="20" text-anchor="middle" fill="#1b2333" font-size="15" font-family="JetBrains Mono,monospace">coffee</text>
+          <animateMotion dur="2.6s" repeatCount="indefinite" path="M110 100 C 200 20, 380 20, 480 130" keyPoints="0;1;1" keyTimes="0;.7;1" calcMode="linear"/>
+          <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.75;1" dur="2.6s" repeatCount="indefinite"/>
+        </g>
+      </g>
+    </svg>
+    <div class="card" data-step="2"><p><span class="en"><code>docker compose exec</code> is like <code>docker exec</code>, but you use the <b>service name</b> (<code>db</code>). Reload Adminer: the table <code>products</code> is there, with <code>coffee</code> in it.</span><span class="fa"><code>docker compose exec</code> مثل <code>docker exec</code> است، ولی از <b>نام سرویس</b> (<code>db</code>) استفاده می‌کنید. Adminer را reload کنید: جدول <code>products</code> آنجاست و <code>coffee</code> داخلش.</span></p></div>
+  </div>
+</section>
+
+<!-- ======================= 9 · DOWN THEN UP ======================= -->
+<section class="slide" data-scene="fx" data-title-en="down, then up again" data-title-fa="down و دوباره up">
+  <div class="kicker a"><span class="en">Step 6</span><span class="fa">قدم ۶</span></div>
+  <h2><span class="en split">down, then up: <span class="hl">is the data still there?</span></span><span class="fa split">down و دوباره up: <span class="hl">داده‌ها هنوز هستند؟</span></span></h2>
+  <div style="display:grid;grid-template-columns:860px 1fr;gap:28px;margin-top:22px">
+    <div class="term xs a" style="--d:.4;align-self:start">
+      <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+      <div class="body">
+        <div class="run recall" data-step="1" data-reveal="2" data-task-en="👉 Stop and delete the project's containers and network (Lesson 14)." data-task-fa="👉 کانتینرها و شبکه‌ی پروژه را متوقف و حذف کنید (درس ۱۴)."><div class="cmd">docker compose down</div></div>
+        <div class="run recall" data-step="3" data-reveal="4" data-task-en="👉 Check the list of volumes." data-task-fa="👉 فهرست volumeها را بررسی کنید."><div class="cmd">docker volume ls</div><pre class="out">
+DRIVER    VOLUME NAME
+local     compose-db_pgdata</pre></div>
+        <div class="run recall" data-step="5" data-reveal="6" data-task-en="👉 Start the project again, in the background." data-task-fa="👉 پروژه را دوباره در پس‌زمینه اجرا کنید."><div class="cmd">docker compose up -d</div></div>
+        <div class="run" data-step="7" style="margin-bottom:0"><div class="cmd">docker compose exec db psql -U ali -d shop -c "SELECT * FROM products;"</div><pre class="out">
+  name
 --------
  coffee
-(1 row)</code></pre></div>
-  <p class="en">✅ Brand-new containers, but <code>coffee</code> is still there: Compose reused the same volume.</p>
-  <p class="fa">✅ کانتینرهای کاملاً جدید، ولی <code>coffee</code> هنوز هست: Compose از همان volume دوباره استفاده کرد.</p>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s6-1"><span><span class="en">After <code>down</code> and <code>up</code>, <code>SELECT</code> still shows <code>coffee</code></span><span class="fa">بعد از <code>down</code> و <code>up</code>، <code>SELECT</code> هنوز <code>coffee</code> را نشان می‌دهد</span></span></label>
+(1 row)</pre></div>
+      </div>
+    </div>
+    <div>
+      <svg viewBox="0 0 540 340" style="width:540px;height:340px;overflow:visible;direction:ltr">
+        <g data-until="2">
+          <path d="M20 280 H380" stroke="#3ccf7f" stroke-width="10" stroke-linecap="round" opacity=".5"/>
+          <path d="M110 215 V280 M290 215 V280" stroke="#3ccf7f" stroke-width="5"/>
+          <use href="#cube" x="60" y="105" width="100" height="100"/>
+          <use href="#cubec" x="240" y="105" width="100" height="100" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+          <text x="110" y="88" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text>
+          <text x="290" y="88" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+        </g>
+        <g data-step="6">
+          <path d="M20 280 H380" stroke="#3ccf7f" stroke-width="10" stroke-linecap="round" opacity=".5"/>
+          <path d="M20 280 H380" stroke="#b8f5d2" stroke-width="3" class="flow"/>
+          <path d="M110 215 V280 M290 215 V280" stroke="#3ccf7f" stroke-width="5"/>
+          <text x="110" y="88" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">adminer</text>
+          <text x="290" y="88" text-anchor="middle" fill="#eef2fb" font-size="18" font-weight="700" font-family="JetBrains Mono,monospace">db</text>
+          <text x="200" y="40" text-anchor="middle" fill="#3ccf7f" font-size="16" font-weight="700" font-family="Inter,sans-serif" class="en">✨ brand-new containers</text>
+          <text x="200" y="40" text-anchor="middle" fill="#3ccf7f" font-size="18" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">✨ کانتینرهای کاملاً جدید</text>
+        </g>
+        <g data-step="6" class="pop-in"><use href="#cube" x="60" y="105" width="100" height="100"/></g>
+        <g data-step="6" class="pop-in" style="transition-delay:.3s"><use href="#cubec" x="240" y="105" width="100" height="100" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/></g>
+        <path d="M345 160 H400" stroke="#b48cff" stroke-width="3" stroke-dasharray="5 5"/>
+        <use href="#disk" x="400" y="110" width="130" height="108"/>
+        <text x="465" y="243" text-anchor="middle" fill="#b48cff" font-size="15" font-family="JetBrains Mono,monospace">compose-db_pgdata</text>
+        <rect x="425" y="150" width="80" height="28" rx="6" fill="#f3f5fa"/><text x="465" y="170" text-anchor="middle" fill="#1b2333" font-size="15" font-family="JetBrains Mono,monospace">coffee</text>
+        <g data-step="2">
+          <text x="465" y="88" text-anchor="middle" fill="#b48cff" font-size="16" font-weight="700" font-family="Inter,sans-serif" class="en">✓ not the volume</text>
+          <text x="465" y="88" text-anchor="middle" fill="#b48cff" font-size="18" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">✓ volume نه</text>
+        </g>
+      </svg>
+      <div class="mapcap" style="min-height:120px;margin-top:6px">
+      <div class="card" data-only="2 3 4 5"><p style="font-size:18px"><span class="en">The containers and the network are gone, but <b>not the volume</b>.</span><span class="fa">کانتینرها و شبکه حذف شدند، ولی <b>volume نه</b>.</span></p></div>
+      <div class="card tip" data-step="8"><p style="font-size:18px"><span class="en">✅ Brand-new containers, but <code>coffee</code> is still there: Compose reused the same volume.</span><span class="fa">✅ کانتینرهای کاملاً جدید، ولی <code>coffee</code> هنوز هست: Compose از همان volume دوباره استفاده کرد.</span></p></div>
+    </div>
   </div>
 </section>
 
-<!-- ================= 7 DOWN -V ================= -->
-<section class="card step" id="s7">
-  <h2><span class="num">7</span>
-    <span class="en">Remove everything, including the data</span><span class="fa">حذف همه‌چیز، حتی داده‌ها</span>
-    <span class="badge"><span class="en">Done</span><span class="fa">انجام شد</span></span>
-  </h2>
-  <p class="en">Add <code>-v</code> to <code>down</code> to delete the project's <b>volumes</b> too:</p>
-  <p class="fa"><code>-v</code> را به <code>down</code> اضافه کنید تا <b>volume</b>های پروژه هم حذف شوند:</p>
-  <div class="code"><span class="lbl">bash</span><pre><code>docker compose down -v</code></pre></div>
-  <div class="code"><span class="lbl">output</span><pre><code> …
+<!-- ======================= 10 · DOWN -v ======================= -->
+<section class="slide" data-scene="fx" data-title-en="Remove everything" data-title-fa="حذف همه‌چیز">
+  <div class="kicker a"><span class="en">Step 7</span><span class="fa">قدم ۷</span></div>
+  <h2><span class="en split">Remove everything, <span class="hl">including the data</span></span><span class="fa split">حذف همه‌چیز، <span class="hl">حتی داده‌ها</span></span></h2>
+  <p class="lead sm a" style="--d:.4;margin-top:8px"><span class="en">Add <code>-v</code> to <code>down</code> to delete the project's <b>volumes</b> too:</span><span class="fa"><code>-v</code> را به <code>down</code> اضافه کنید تا <b>volume</b>های پروژه هم حذف شوند:</span></p>
+  <div style="display:grid;grid-template-columns:860px 1fr;gap:30px;margin-top:20px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="term sm a" style="--d:.5">
+        <div class="bar"><i></i><i></i><i></i><span>bash</span></div>
+        <div class="body">
+          <div class="run" data-step="1" style="margin-bottom:0"><div class="cmd">docker compose down -v</div><pre class="out">
+ …
  Volume compose-db_pgdata Removed      <span class="c"># the database is gone</span>
- Network compose-db_default Removed</code></pre></div>
-  <div class="note warn">
-    <p class="en">⚠ <code>down -v</code> deletes the project's databases <b>for good</b>. Use plain <code>down</code> for everyday stopping; use <code>down -v</code> only when you really want a fresh start.</p>
-    <p class="fa">⚠ <code>down -v</code> دیتابیس‌های پروژه را <b>برای همیشه</b> حذف می‌کند. برای توقف روزمره از <code>down</code> ساده استفاده کنید؛ <code>down -v</code> را فقط وقتی بزنید که واقعاً یک شروع تازه می‌خواهید.</p>
-  </div>
-  <div class="checks">
-    <div class="head"><span class="en">Checklist</span><span class="fa">چک‌لیست</span></div>
-    <label><input type="checkbox" data-id="s7-1"><span><span class="en"><code>compose-db_pgdata</code> is gone from <code>docker volume ls</code></span><span class="fa"><code>compose-db_pgdata</code> از <code>docker volume ls</code> حذف شده</span></span></label>
-  </div>
-</section>
-
-<div class="note tip stuck">
-  <p class="en">📥 <b>Stuck?</b> The finished files of this lesson are in the course folder under <code>examples/15-compose-services/</code>. Compare them with yours. Or try the finished version: go into that folder and run <code>docker compose up -d</code>.</p>
-  <p class="fa">📥 <b>گیر کرده‌اید؟</b> فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/15-compose-services/</code> هستند. آن‌ها را با فایل‌های خودتان مقایسه کنید. یا نسخه‌ی کامل را امتحان کنید: به همان پوشه بروید و <code>docker compose up -d</code> را اجرا کنید.</p>
-</div>
-
-<!-- ================= SUMMARY ================= -->
-<section class="card" id="sum">
-  <h2><span class="num">✎</span><span class="en">Summary</span><span class="fa">خلاصه</span></h2>
-  <div class="table-wrap">
-  <table>
-    <tbody>
-      <tr><td><span class="en">Several services</span><span class="fa">چند سرویس</span></td><td><span class="en">One <code>compose.yaml</code>; they reach each other by <b>service name</b></span><span class="fa">یک <code>compose.yaml</code>؛ با <b>نام سرویس</b> به هم دسترسی دارند</span></td></tr>
-      <tr><td><code>env_file:</code></td><td><span class="en">Like <code>--env-file</code></span><span class="fa">مثل <code>--env-file</code></span></td></tr>
-      <tr><td><code>volumes:</code> <span class="en">(top level)</span><span class="fa">(سطح بالا)</span></td><td><span class="en">Declare the named volumes the services use</span><span class="fa">اعلام named volumeهایی که سرویس‌ها استفاده می‌کنند</span></td></tr>
-      <tr><td><code>docker compose exec SERVICE …</code></td><td><span class="en">Run a command in a service's container</span><span class="fa">اجرای دستور در کانتینر یک سرویس</span></td></tr>
-      <tr><td><code>docker compose down</code></td><td><span class="en">Remove containers + network, <b>keep</b> volumes</span><span class="fa">حذف کانتینرها + شبکه، volumeها <b>می‌مانند</b></span></td></tr>
-      <tr><td><code>docker compose down -v</code></td><td><span class="en">Also delete the volumes (data gone!)</span><span class="fa">حذف volumeها هم (داده‌ها از بین می‌روند!)</span></td></tr>
-    </tbody>
-  </table>
+ Network compose-db_default Removed</pre></div>
+        </div>
+      </div>
+      <div class="card" data-step="2" style="border-color:rgba(255,107,107,.5);background:linear-gradient(160deg,rgba(60,16,20,.75),rgba(20,10,12,.8))"><div class="n" style="color:var(--red)">⚠</div><p><span class="en"><code>down -v</code> deletes the project's databases <b>for good</b>. Use plain <code>down</code> for everyday stopping; use <code>down -v</code> only when you really want a fresh start.</span><span class="fa"><code>down -v</code> دیتابیس‌های پروژه را <b>برای همیشه</b> حذف می‌کند. برای توقف روزمره از <code>down</code> ساده استفاده کنید؛ <code>down -v</code> را فقط وقتی بزنید که واقعاً یک شروع تازه می‌خواهید.</span></p></div>
+    </div>
+    <svg viewBox="0 0 520 380" class="a fade" style="--d:.5;width:520px;height:380px;overflow:visible;direction:ltr">
+      <g data-until="1">
+        <path d="M20 320 H360" stroke="#3ccf7f" stroke-width="10" stroke-linecap="round" opacity=".5"/>
+        <path d="M100 255 V320 M270 255 V320" stroke="#3ccf7f" stroke-width="5"/>
+        <use href="#cube" x="55" y="150" width="90" height="90"/>
+        <use href="#cubec" x="225" y="150" width="90" height="90" style="--t:#8fb2ff;--l:#3f6fe6;--r:#2c58c4"/>
+        <path d="M320 200 H370" stroke="#b48cff" stroke-width="3" stroke-dasharray="5 5"/>
+        <use href="#disk" x="370" y="150" width="130" height="108"/>
+        <rect x="395" y="190" width="80" height="28" rx="6" fill="#f3f5fa"/><text x="435" y="210" text-anchor="middle" fill="#1b2333" font-size="15" font-family="JetBrains Mono,monospace">coffee</text>
+      </g>
+      <g data-step="1" style="transition-delay:1.2s">
+        <circle cx="260" cy="200" r="70" fill="#2a0d12" stroke="#ff6b6b" stroke-width="4"/>
+        <g fill="none" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M228 178h64M248 178v-10h24v10M236 178l5 52h38l5-52"/><path d="M253 192v26M267 192v26" stroke-width="4"/></g>
+        <text x="260" y="320" text-anchor="middle" fill="#ff6b6b" font-size="18" font-weight="700" font-family="Inter,sans-serif" class="en">containers · network · volume</text>
+        <text x="260" y="320" text-anchor="middle" fill="#ff6b6b" font-size="20" font-weight="700" font-family="Vazirmatn,sans-serif" class="fa">کانتینرها · شبکه · volume</text>
+      </g>
+    </svg>
   </div>
 </section>
 
-<div class="done-banner" id="doneBanner">
-  <h2>🎉 <span class="en">You ran an app and its database with Compose!</span><span class="fa">یک برنامه و دیتابیسش را با Compose اجرا کردید!</span></h2>
-  <p id="nextLine"></p>
+<!-- ======================= 11 · SUMMARY ======================= -->
+<section class="slide" data-scene="sum" data-title-en="Summary" data-title-fa="خلاصه">
+  <canvas id="confetti"></canvas>
+  <div class="kicker a"><span class="en">Summary</span><span class="fa">خلاصه</span></div>
+  <h2><span class="en split">🎉 An app and its database, <span class="hl">with Compose!</span></span><span class="fa split">🎉 یک برنامه و دیتابیسش، <span class="hl">با Compose!</span></span></h2>
+  <div class="sumgrid" style="gap:14px;margin-top:22px">
+    <div class="card a" style="--d:.4"><code class="tx"><span class="en">Several services</span><span class="fa">چند سرویس</span></code><p><span class="en">One <code>compose.yaml</code>; they reach each other by <b>service name</b></span><span class="fa">یک <code>compose.yaml</code>؛ با <b>نام سرویس</b> به هم دسترسی دارند</span></p></div>
+    <div class="card a" style="--d:.5"><code>env_file:</code><p><span class="en">Like <code>--env-file</code></span><span class="fa">مثل <code>--env-file</code></span></p></div>
+    <div class="card a" style="--d:.6"><code class="tx"><span class="mono">volumes:</span> <span class="en">(top level)</span><span class="fa">(سطح بالا)</span></code><p><span class="en">Declare the named volumes the services use</span><span class="fa">اعلام named volumeهایی که سرویس‌ها استفاده می‌کنند</span></p></div>
+    <div class="card a" style="--d:.7"><code>docker compose exec SERVICE …</code><p><span class="en">Run a command in a service's container</span><span class="fa">اجرای دستور در کانتینر یک سرویس</span></p></div>
+    <div class="card a" style="--d:.8"><code>docker compose down</code><p><span class="en">Remove containers + network, <b>keep</b> volumes</span><span class="fa">حذف کانتینرها + شبکه، volumeها <b>می‌مانند</b></span></p></div>
+    <div class="card a" style="--d:.9"><code>docker compose down -v</code><p><span class="en">Also delete the volumes (data gone!)</span><span class="fa">حذف volumeها هم (داده‌ها از بین می‌روند!)</span></p></div>
+  </div>
+  <p class="a" style="--d:1;margin-top:14px;font-size:17px;color:var(--muted)"><span class="en">📥 Stuck? The finished files are in the course folder under <code>examples/15-compose-services/</code>.</span><span class="fa">📥 گیر کرده‌اید؟ فایل‌های کامل این درس در پوشه‌ی دوره، در <code>examples/15-compose-services/</code> هستند.</span></p>
+  <div class="btnrow a" style="--d:1.1;margin-top:20px">
+    <a class="bigbtn primary" href="16-commit.html"><span class="en">Next: Lesson 16 · Save a container as an image →</span><span class="fa">بعدی: درس ۱۶ · ذخیره‌ی کانتینر به‌صورت ایمیج ←</span></a>
+  </div>
+</section>
+
+</div></div>
+
+<div class="botnav">
+  <button id="prevBtn" aria-label="Previous">‹</button>
+  <div><div class="count" id="count">1 / 11</div><div class="steps" id="steps"></div></div>
+  <button id="nextBtn" aria-label="Next">›</button>
 </div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> step · <kbd>L</kbd> language · <kbd>O</kbd> slides · <kbd>F</kbd> fullscreen</div>
+<div id="overview"><div class="g"></div></div>
 
-<nav class="pager" id="pager"></nav>
-
-<footer>
-  <a href="index.html"><span class="en">Docker Course</span><span class="fa">دوره‌ی Docker</span></a>
-</footer>
-
-</main>
-
-</div>
-
+<script>
+/* ---------- lesson 15 scenes ---------- */
+(() => {
+  /* [data-until="k"]: visible until the slide reaches step k.  [data-hot="k m"]: highlighted on exactly those steps */
+  const fx = (slide) => ({ step(k) {
+    slide.querySelectorAll('[data-until]').forEach(el => el.classList.toggle('gone', k >= +el.dataset.until));
+    slide.querySelectorAll('[data-hot]').forEach(el => el.classList.toggle('hot', el.dataset.hot.split(' ').includes(String(k))));
+  } });
+  window.SCENES = {
+    fx,
+    sum(slide, api) {
+      const cv = slide.querySelector('#confetti'), { ctx, w, h } = api.setupCanvas(cv);
+      const cols = ['#1D63ED', '#6e9bff', '#3ccf7f', '#ffb54d', '#b48cff', '#eef2fb'];
+      const P = Array.from({ length: 160 }, () => ({ x: Math.random() * w, y: -Math.random() * h, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, r: Math.random() * 6.28, vr: (Math.random() - .5) * .2, s: 6 + Math.random() * 8, c: cols[Math.floor(Math.random() * cols.length)] }));
+      const stop = api.loop(t => {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of P) {
+          p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += .02;
+          if (t < 4 && p.y > h + 20) { p.y = -20; p.vy = 2 + Math.random() * 3; }
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 5) / 2); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+        }
+      });
+      return { stop() { stop(); ctx.clearRect(0, 0, w, h); } };
+    }
+  };
+})();
+</script>
 <script src="tips.js"></script>
-<script src="course.js"></script>
+<script src="deck.js"></script>
 </body>
 </html>
