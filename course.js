@@ -98,7 +98,13 @@ var LESSONS = [
         '<span class="lesson-title"><small>' + lessonLabel(l) + '</small><b>' + bi(l.en, l.fa) + '</b></span>' +
         '<span class="lesson-prog"><span class="progress"><div style="width:' + pct + '%"></div></span>' +
         '<span class="progress-label">' + (total ? done + ' / ' + total : '—') + '</span></span>';
-      list.appendChild(a);
+      var line = el('div', 'lesson-line');
+      line.appendChild(a);
+      var m = el('a', 'btn motion-mini', '▶ ' + bi('Slides', 'اسلاید'));
+      m.href = 'motion/' + l.file; m.title = bi('Animated slides', 'اسلایدهای متحرک').replace(/<[^>]+>/g, ' ');
+      m.title = 'Animated slides · اسلایدهای متحرک';
+      line.appendChild(m);
+      list.appendChild(line);
     });
     var pct = allTotal ? Math.round(allDone / allTotal * 100) : 0;
     document.getElementById('bar').style.width = pct + '%';
@@ -116,6 +122,20 @@ var LESSONS = [
     a.title = l.en;
     a.innerHTML = dir < 0 ? '‹' : '›';
     return a;
+  }
+  // Links to the animated (motion) version of this lesson: top bar + a callout under the hero
+  var motionHref = 'motion/' + cur.file;
+  var mBtn = el('a', 'btn motion-btn', '▶ ' + bi('Slides', 'اسلایدها'));
+  mBtn.href = motionHref; mBtn.title = 'Animated slides · اسلایدهای متحرک';
+  langBtn.parentNode.insertBefore(mBtn, langBtn);
+  var hero = document.querySelector('.hero');
+  if (hero) {
+    var call = el('a', 'motion-call',
+      '<span class="mc-icon">▶</span><span>' +
+      bi('<b>Watch the animated slides</b> for this lesson first, then come back and do it here.',
+         '<b>اول اسلایدهای متحرک</b> این درس را ببینید، بعد برگردید و اینجا انجامش دهید.') + '</span>');
+    call.href = motionHref;
+    hero.appendChild(call);
   }
   var navSlot = document.getElementById('navSlot');
   if (prev) navSlot.appendChild(navLink(prev, -1));

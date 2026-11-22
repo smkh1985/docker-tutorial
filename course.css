@@ -304,3 +304,28 @@ body.lang-fa .nav-btn { transform: scaleX(-1); }
 .star-btn { display: inline-block; text-decoration: none; font-weight: 600; padding: 8px 16px; margin-top: 6px; }
 .star-btn:hover { border-color: #e3b341; background: color-mix(in srgb, #e3b341 12%, var(--surface)); }
 footer .star-link { margin-inline-start: 12px; }
+
+/* ---------- Links to the motion (animated slides) version ---------- */
+.motion-btn { text-decoration: none; white-space: nowrap; font-weight: 600; }
+.motion-btn:hover { border-color: var(--docker); color: var(--docker); }
+.motion-call {
+  display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--docker) 45%, var(--border)); border-radius: 10px;
+  background: color-mix(in srgb, var(--docker) 9%, var(--surface)); color: var(--text); text-decoration: none;
+}
+.motion-call:hover { border-color: var(--docker); }
+.motion-call .mc-icon {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--docker); color: #fff; font-size: .8rem;
+}
+.lesson-line { display: flex; align-items: stretch; gap: 8px; margin-bottom: 10px; }
+.lesson-line .lesson-row { flex: 1; min-width: 0; margin-bottom: 0; }
+.motion-mini {
+  flex: none; display: flex; align-items: center; gap: 6px; text-decoration: none; white-space: nowrap;
+  border-radius: 12px; padding: 0 14px; font-weight: 600; box-shadow: var(--shadow);
+}
+.motion-mini:hover { border-color: var(--docker); color: var(--docker); }
+.motion-home { display: inline-block; text-decoration: none; font-weight: 600; padding: 8px 16px; margin-top: 6px;
+  background: var(--docker); border-color: var(--docker); color: #fff; }
+.motion-home:hover { filter: brightness(1.1); color: #fff; }
+@media (max-width: 560px) { .motion-btn .en, .motion-btn .fa { display: none !important; } .motion-mini { padding: 0 10px; } }
